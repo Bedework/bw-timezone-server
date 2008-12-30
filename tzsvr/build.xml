@@ -9,6 +9,7 @@
   <property name="base.name" value="tzsvr"/>
 
   <target name="init">
+    <echo message="*********************${this.dir}" />
     <dirname property="this.dir" file="${ant.file}"/>
     <property name="source.home" location="${this.dir}/src"/>
   </target>
@@ -17,7 +18,8 @@
           description="Compile bedework service api Java sources and create build file">
     <!-- ==================== Sources and classes ====================== -->
 
-    <fileset id="base.java.sources" dir="${source.home}" >
+    <echo message="*********************${source.home}" />
+    <fileset id="buildjar.java.sources" dir="${source.home}" >
       <include name="org/bedework/timezones/server/**/*.java"/>
     </fileset>
 
@@ -25,6 +27,6 @@
       <include name="org/bedework/timezones/server/**/*.class"/>
     </patternset>
 
-    <ant antfile="${buildjar}" inheritRefs="true" target="build" />
+    <ant antfile="${project.home}/build/buildjar.xml" inheritRefs="true" target="build" />
   </target>
 </project>

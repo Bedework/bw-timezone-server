@@ -9,7 +9,7 @@
 
   <context-param>
     <param-name>debug</param-name>
-    <param-value>@RPI-DEBUG@</param-value>
+    <param-value>${app.debug.val}</param-value>
   </context-param>
 
   <!-- Do not alter or move  the following comment -->

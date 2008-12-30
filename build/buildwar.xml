@@ -75,7 +75,7 @@
               location="${app.sou.dir}/war/WEB-INF/web.xml" />
 
     <property name="app.sou.properties"
-              location="${app.sou.dir}/war/WEB-INF/classes/servlet.properties" />
+              location="${temp.home}/properties" />
   </target>
 
   <target name="build" depends="init">
@@ -100,17 +100,13 @@
          All are updated with new values.
          =============================================================== -->
 
-    <available file="${app.sou.dir}/properties" type="dir"
+    <available file="${app.sou.properties}" type="dir"
                property="org.bedework.properties.dir.exists" />
-
-    <available file="${app.sou.properties}" type="file"
-               property="org.bedework.servlet.properties.exists" />
 
     <available file="${app.sou.dir}/war/docs" type="dir"
                property="org.bedework.war.docs.exists" />
 
     <antcall target="copy.properties" inheritRefs="true" />
-    <antcall target="copy.servlet.properties" inheritRefs="true" />
     <antcall target="copy.war.docs" inheritRefs="true" />
 
     <!-- Make a temp copy of the web.xml file -->
@@ -185,16 +181,9 @@
     </copy>
   </target>
 
-  <!--
-  <target name="copy.servlet.properties" if="org.bedework.servlet.properties.exists">
-    <copy tofile="${app.dest.classes}/servlet.properties" file="${app.sou.properties}">
-      <filterset refid="property.filters" />
-    </copy>
-  </target>
-  -->
   <target name="copy.servlet.properties">
     <copy todir="${app.dest.classes}">
-      <fileset dir="${app.sou.dir}/war/WEB-INF/classes"
+      <fileset dir="${app.sou.properties}"
                includes="*"/>
       <!--<filterset refid="property.filters" />-->
     </copy>
