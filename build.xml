@@ -1,0 +1,190 @@
+<?xml version="1.0"?>
+
+<!-- This is the ant build file for the timezones package.
+
+     The target of interest is build which should leave a jar file
+     in the dist directory..
+
+     Authors: Mike Douglass   douglm - rpi.edu
+-->
+
+<project name="timezones" default="build">
+  <property environment="env"/>
+  <property name="base.name" value="timezones"/>
+  <dirname property="project.home" file="${ant.file}"/>
+  <property file="${project.home}/build.properties" />
+
+  <property name="project.name" value="${org.bedework.package.name}"/>
+  <property name="project.version" value="${org.bedework.version}"/>
+
+  <property name="dist.home" location="${project.home}/dist"/>
+  <property name="lib.dir" location="${project.home}/lib"/>
+  <property name="libapi.dir" location="${project.home}/libapi"/>
+
+  <property name="build.dir" location="${project.home}/build"/>
+  <property name="buildjar" location="${build.dir}/buildjar.xml"/>
+
+  <!-- =================================================================
+       init:
+       ================================================================= -->
+
+  <target name="init" >
+    <property name="org.bedework.tzsvr.base" location="${project.home}/tzsvr" />
+
+    <mkdir dir="${dist.home}" />
+
+    <property name="test.data.dir"
+              location="${dist.home}/test-data" />
+
+    <property name="edu.rpi.cmt.empty.dir"
+              location="${dist.home}/empty-dir" />
+    <mkdir dir="${edu.rpi.cmt.empty.dir}" />
+
+    <fileset id="empty.fileset" dir="${edu.rpi.cmt.empty.dir}"
+             excludes="*" />
+    <!-- default to empty -->
+    <fileset id="base.resource.files" refid="empty.fileset" />
+
+    <property name="tzsvr.jar"
+              location="${dist.home}/${org.bedework.timezonessvr.jar}-${project.version}.jar" />
+
+    <!-- Name of our war file -->
+    <property name="propval.app.war.name" value="tzsvr" />
+
+    <!-- ==================== Compilation Classpath ==================== -->
+
+    <path id="compile.classpath">
+      <fileset dir="${lib.dir}">
+         <include name="*.jar"/>
+      </fileset>
+      <fileset dir="${dist.home}">
+         <include name="*.jar"/>
+      </fileset>
+      <fileset dir="${java.home}">
+         <include name="lib/tools.jar"/>
+      </fileset>
+    </path>
+  </target>
+
+  <!-- =================================================================
+       Clean out all library files from other projects and all generated
+       files in preparation for a complete rebuild.
+
+       Needed because switching versions leaves a load of old bedework
+       generated stuff in the libraries.
+       ================================================================= -->
+  <target name="deep-clean" depends="clean">
+    <delete>
+      <fileset dir="${lib.dir}">
+        <include name="rpiutil-*.jar" />
+        <include name="rpiaccess-*.jar" />
+        <include name="bw-*.jar" />
+      </fileset>
+    </delete>
+  </target>
+
+  <!-- =================================================================
+       Clean all generated files
+       ================================================================= -->
+  <target name="clean">
+    <delete dir="${dist.home}" />
+    <delete dir="${libapi.dir}" />
+  </target>
+
+  <!-- =================================================================
+       Clean up after a build.
+       ================================================================= -->
+  <target name="cleanup">
+    <delete dir="${edu.rpi.cmt.empty.dir}" />
+  </target>
+
+  <!-- ========================== Base build Targets ===================
+       Here we have one target building the classes and interfaces that make
+       up the access control suite.
+       ================================================================= -->
+
+  <target name="clean-build" depends="clean,build"
+          description="Clean and compile timezone classes"/>
+
+  <target name="clean-build-all" depends="clean,build-all"
+          description="Clean and compile timezone classes"/>
+
+  <target name="build" depends="init,build-source,build-war,cleanup"
+          description="Compile timezone classes"/>
+
+  <target name="build-all" depends="build"
+          description="Compile timezone classes"/>
+
+  <!-- ===================== build.source Target ===============================
+     This target builds jar files ready for the deploy target.
+     =================================================================== -->
+
+  <target name="build-source" depends="init,bld.tzsvr"  >
+    <mkdir dir="${libapi.dir}" />
+
+    <copy todir="${libapi.dir}" file="${tzsvr.jar}" />
+  </target>
+
+  <!-- ===================== build.war Target ===============================
+     This target builds war files ready for the deploy target.
+     =================================================================== -->
+
+  <target name="build-war" depends="build-source" >
+    <ant antfile="${build.dir}/buildwar.xml" inheritrefs="true"
+         target="build" >
+      <property name="app.sou.dir" location="${org.bedework.tzsvr.base}" />
+      <property name="propval.app.display.name"
+                value="Timezones service" />
+    </ant>
+  </target>
+
+  <!-- ===================== deploy Target ===============================
+     This target deploys a war file to our app server.
+     =================================================================== -->
+
+  <target name="deploy" depends="build-war" >
+    <delete dir="${deploy.dir}/${propval.app.war.name}" />
+    <delete file="${deploy.dir}/${propval.app.war.name}.war" />
+    <copy todir="${deploy.dir}"
+          file="${dist.home}/${propval.app.war.name}.war" />
+  </target>
+
+<!-- ==================== Javadoc Target ===============================
+     The "javadoc" target creates Javadoc API documentation for the Java
+     classes included in your application.  Normally, this is only required
+     when preparing a distribution release, but is available as a separate
+     target in case the developer wants to create Javadocs independently.
+     =================================================================== -->
+
+  <target name="javadoc" depends="init"
+          description="Create Javadoc API documentation">
+    <property name="destdir" location="${dist.home}/docs/api"/>
+    <mkdir dir="${destdir}"/>
+
+    <javadoc sourcepath="${org.bedework.tzsvr.base}/src:"
+           classpathref="compile.classpath"
+                destdir="${destdir}"
+               overview="${project.home}/overview.html"
+           packagenames="org.bedework.*,
+                         edu.rpi.*"
+                 access="public"
+                 author="true"
+                version="true"
+          breakiterator="yes"
+            windowtitle="${project.name} ${project.version} Timezones Documentation">
+      <doctitle><![CDATA[${project.name} ${project.version}<br/>Timezones Documentation]]></doctitle>
+      <header><![CDATA[${project.name} ${project.version}<br/>Timezones Documentation]]></header>
+      <link href="${env.JAVA_HOME}/docs/api" />
+    </javadoc>
+  </target>
+
+  <!-- ======================== component build targets =======================
+       ================================================================= -->
+
+  <target name="bld.tzsvr" >
+    <ant antfile="${org.bedework.tzsvr.base}/build.xml" inheritrefs="true"
+         target="build" >
+      <property name="build.jar.file" location="${tzsvr.jar}" />
+    </ant>
+  </target>
+</project>

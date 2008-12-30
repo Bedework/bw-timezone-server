@@ -1,0 +1,208 @@
+<?xml version="1.0"?>
+
+<!-- ===================================================================
+     Build server web applications.
+
+     It is assumed that no changes will be made to this file. It should be
+     possible to make all changes needed by modifying the configuration
+     properties or a bedework.build.proeprties file
+
+     An unwrapped web application will be built in the temp directory
+     and a war and ear file will be left in the dist directory.
+
+     Properties which must be defined on entry,
+
+     dist.home            where we build distributable products
+     lib.dir              where the library jars are located
+     libapi.dir           where the generated library jars are located
+     app.sou.dir          Location of the application skeleton,
+     propval.app.war.name Name of the application war file.
+     propval.app.display.name Built into application war
+     propval.app.tomcat.context.xml (Optional - points at your own context.xml file)
+
+     It is possible to define any of the app.dest properties below to override
+     the location of destination files.
+
+     In the directory
+        ${apps.sou.dir}
+     we expect an application skeleton formatted like a web-application
+     For the purposes of this build it should contain a
+     structure like
+              war - docs    (contains jsp and html for this app)
+                    WEB-INF - struts-config.xml
+                              web.xml
+                              jboss-web.xml (for jboss only)
+
+     Authors: Mike Douglass
+     =================================================================== -->
+
+<project name="bedework.buildwar" default="build" >
+  <target name="init">
+    <property name="temp.home" location="${dist.home}/temp" />
+
+    <mkdir dir="${temp.home}" />
+
+    <!-- Destinations - where we build an unwrapped war -->
+    <property name="app.dest.war"
+              location="${temp.home}/${propval.app.war.name}.war" />
+    <property name="app.dest.docs"
+              location="${app.dest.war}/docs" />
+    <property name="app.dest.webinf"
+              location="${app.dest.war}/WEB-INF" />
+    <property name="app.dest.metainf"
+              location="${app.dest.war}/META-INF" />
+    <property name="app.dest.classes"
+              location="${app.dest.webinf}/classes" />
+    <property name="app.dest.properties"
+              location="${app.dest.classes}/properties" />
+
+    <property name="app.dest.lib"
+              location="${app.dest.webinf}/lib" />
+
+    <!--temp web.xml location  -->
+    <property name="app.temp.web.xml"
+              location="${app.dest.webinf}/tempweb.xml" />
+
+    <!--final web.xml location  -->
+    <property name="app.dest.web.xml"
+              location="${app.dest.webinf}/web.xml" />
+
+    <property name="app.war.file"
+              location="${dist.home}/${propval.app.war.name}.war" />
+
+    <!-- default web.xml -->
+    <property name="app.web.xml"
+              location="${app.sou.dir}/war/WEB-INF/web.xml" />
+
+    <property name="app.sou.properties"
+              location="${app.sou.dir}/war/WEB-INF/classes/servlet.properties" />
+  </target>
+
+  <target name="build" depends="init">
+    <delete dir="${app.dest.war}" />
+
+    <!-- Add modifed login pages -->
+    <copy todir="${app.dest.docs}/login" failonerror="false" >
+      <fileset dir="${org.bedework.common.resources}/login" />
+      <filterset>
+        <filter token="DISPLAY-NAME" value="${propval.app.display.name}"/>
+      </filterset>
+    </copy>
+
+    <!-- ===============================================================
+         We copy 3 sets of properties.
+
+         First (for struts) are the servlet properties which ends up as
+              classes/servlet.properties
+         Next we copy in a set of generic property files and then with
+         overwrite we copy in a set of base specific files.
+
+         All are updated with new values.
+         =============================================================== -->
+
+    <available file="${app.sou.dir}/properties" type="dir"
+               property="org.bedework.properties.dir.exists" />
+
+    <available file="${app.sou.properties}" type="file"
+               property="org.bedework.servlet.properties.exists" />
+
+    <available file="${app.sou.dir}/war/docs" type="dir"
+               property="org.bedework.war.docs.exists" />
+
+    <antcall target="copy.properties" inheritRefs="true" />
+    <antcall target="copy.servlet.properties" inheritRefs="true" />
+    <antcall target="copy.war.docs" inheritRefs="true" />
+
+    <!-- Make a temp copy of the web.xml file -->
+    <copy tofile="${app.temp.web.xml}" file="${app.web.xml}"
+          overwrite="yes" />
+
+    <!-- Filter the temp copy of the web.xml file -->
+    <copy tofile="${app.dest.web.xml}"
+          file="${app.temp.web.xml}"
+          overwrite="yes" >
+      <filterset>
+        <filter token="RPI-DEBUG" value="${app.debug.val}"/>
+      </filterset>
+      <!-- <filterset refid="property.filters" /> -->
+    </copy>
+
+    <delete file="${app.temp.web.xml}" />
+
+    <!-- ===============================================================
+         Any jar files required
+         =============================================================== -->
+
+    <copy todir="${app.dest.lib}" overwrite="yes">
+      <fileset dir="${lib.dir}" excludes="servlet*.jar" />
+      <fileset dir="${dist.home}">
+        <include name="*.jar"/>
+      </fileset>
+    </copy>
+
+    <!-- tomcat -->
+    <antcall target="add.tomcat" inheritRefs="true" />
+
+    <!-- build the war file -->
+    <mkdir dir="${dist.home}" />
+    <delete file="${app.war.file}" />
+
+    <war warfile="${app.war.file}"
+         webxml="${app.dest.web.xml}"
+         basedir="${app.dest.war}"
+         excludes="WEB-INF/web.xml" />
+  </target>
+
+  <target name="add.jdbcdriver" if="app.jdbcdriver.jar">
+    <copy todir="${app.dest.lib}" file="${app.jdbcdriver.jar}"/>
+  </target>
+
+  <target name="add.tomcat" if="org.bedework.global.deploy.on.tomcat">
+    <property name="propval.app.tomcat.context.xml"
+              location="${app.sou.dir}/war/META-INF/context.xml" />
+    <resolveFile name="app.tomcat.context.xml"
+                 file="${propval.app.tomcat.context.xml}"
+                 base="${app.sou.dir}"/>
+
+    <copy tofile="${app.dest.metainf}/context.xml"
+          file="${app.tomcat.context.xml}"
+          overwrite="yes" >
+      <filterset refid="property.filters" />
+    </copy>
+  </target>
+
+  <target name="copy.properties" if="org.bedework.properties.dir.exists">
+    <!-- ===============================================================
+         Any property files we need for configuration, other than the
+         standard struts file, should be in the "${app.sou.dir}/properties
+         directory. They will be copied into the appropriate place for the
+         war and transformed by the above filter.
+         =============================================================== -->
+    <copy todir="${app.dest.properties}" overwrite="yes" >
+      <fileset dir="${app.sou.dir}/properties"
+               includes="*.properties"/>
+      <filterset refid="property.filters" />
+    </copy>
+  </target>
+
+  <!--
+  <target name="copy.servlet.properties" if="org.bedework.servlet.properties.exists">
+    <copy tofile="${app.dest.classes}/servlet.properties" file="${app.sou.properties}">
+      <filterset refid="property.filters" />
+    </copy>
+  </target>
+  -->
+  <target name="copy.servlet.properties">
+    <copy todir="${app.dest.classes}">
+      <fileset dir="${app.sou.dir}/war/WEB-INF/classes"
+               includes="*"/>
+      <!--<filterset refid="property.filters" />-->
+    </copy>
+  </target>
+
+  <target name="copy.war.docs" if="org.bedework.war.docs.exists">
+    <copy todir="${app.dest.docs}">
+      <fileset dir="${app.sou.dir}/war/docs" />
+    </copy>
+  </target>
+</project>
