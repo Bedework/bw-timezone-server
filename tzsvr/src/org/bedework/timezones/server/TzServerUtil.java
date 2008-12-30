@@ -95,6 +95,7 @@ public class TzServerUtil {
   static long gets;
   static long cacheHits;
   static long reads;
+  static long nameLists;
 
   /** Set up a Properties from the resources
    *
@@ -134,7 +135,6 @@ public class TzServerUtil {
   /** Retrieve the data and store in a temp file. Return the file object.
    *
    * @param props
-   * @param util
    * @return File
    * @throws ServletException
    */
@@ -189,6 +189,8 @@ public class TzServerUtil {
   }
 
   static List<String> getNames(ZipFile zf) throws ServletException {
+    nameLists++;
+
     if (nameList != null) {
       return nameList;
     }
@@ -202,7 +204,11 @@ public class TzServerUtil {
         ZipEntry ze = zes.nextElement();
 
         if (!ze.isDirectory()) {
-          nl.add(ze.getName());
+          String n = ze.getName();
+
+          if (n.endsWith(".ics")) {
+            nl.add(n.substring(0, nl.size() - 4));
+          }
         }
       }
 
@@ -223,7 +229,7 @@ public class TzServerUtil {
 
     try {
       reads++;
-      ZipEntry ze = zf.getEntry(name);
+      ZipEntry ze = zf.getEntry(name + ".ics");
 
       if (ze == null) {
         return null;

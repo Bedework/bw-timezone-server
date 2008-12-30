@@ -55,11 +55,14 @@ public class GetMethod extends MethodBase {
       trace("GetMethod: doMethod");
     }
 
+    String stats = req.getParameter("stats");
     String names = req.getParameter("names");
     String[] tzids = req.getParameterValues("tzid");
 
     if (names != null) {
       doNames(resp);
+    } else if (stats != null) {
+      doStats(resp);
     } else {
       doTzids(resp, tzids);
     }
@@ -80,6 +83,58 @@ public class GetMethod extends MethodBase {
     }
   }
 
+  private void doStats(HttpServletResponse resp) throws ServletException {
+    try {
+      Writer wtr = resp.getWriter();
+
+      wtr.write("<html>\r\n");
+      wtr.write("  <head>\r\n");
+
+      /* Need some styles I guess */
+
+      wtr.write("    <title>Timezone server statistics</title>\r\n");
+
+      wtr.write("</head>\r\n");
+      wtr.write("<body>\r\n");
+
+      wtr.write("    <h1>Timezone server statistics</title></h1>\r\n");
+
+      wtr.write("  <hr/>\r\n");
+
+      wtr.write("  <table width=\"100%\" " +
+                "cellspacing=\"0\"" +
+                " cellpadding=\"4\">\r\n");
+
+      statLine(wtr, "Gets", TzServerUtil.gets);
+      statLine(wtr, "Hits", TzServerUtil.cacheHits);
+      statLine(wtr, "Name lists", TzServerUtil.nameLists);
+      statLine(wtr, "Reads", TzServerUtil.reads);
+
+      wtr.write("</table>\r\n");
+
+      /* Could use a footer */
+      wtr.write("</body>\r\n");
+      wtr.write("</html>\r\n");
+    } catch (ServletException se) {
+      throw se;
+    } catch (Throwable t) {
+      throw new ServletException(t);
+    }
+  }
+
+  private void statLine(Writer wtr, String name, long val) throws Throwable {
+    wtr.write("<tr>\r\n");
+
+    wtr.write("  <td align=\"right\">");
+    wtr.write(name);
+    wtr.write("</td>");
+
+    wtr.write("  <td align=\"right\">");
+    wtr.write(String.valueOf(val));
+    wtr.write("</td>\r\n");
+    wtr.write("</tr>\r\n");
+  }
+
   private void doTzids(HttpServletResponse resp,
                        String[] tzids) throws ServletException {
     if ((tzids == null) || (tzids.length == 0)) {
@@ -89,12 +144,19 @@ public class GetMethod extends MethodBase {
     try {
       Writer wtr = resp.getWriter();
 
+      boolean found = false;
+
       for (String tzid: tzids) {
         String tz = TzServerUtil.getTz(tzid, TzServer.tzDefsZipFile);
 
         if (tz != null) {
+          found = true;
           wtr.write(tz);
         }
+      }
+
+      if (!found) {
+        resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
       }
     } catch (ServletException se) {
       throw se;

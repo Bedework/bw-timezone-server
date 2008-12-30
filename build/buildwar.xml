@@ -54,7 +54,7 @@
     <property name="app.dest.classes"
               location="${app.dest.webinf}/classes" />
     <property name="app.dest.properties"
-              location="${app.dest.classes}/properties" />
+              location="${app.dest.classes}" />
 
     <property name="app.dest.lib"
               location="${app.dest.webinf}/lib" />
@@ -175,9 +175,9 @@
          war and transformed by the above filter.
          =============================================================== -->
     <copy todir="${app.dest.properties}" overwrite="yes" >
-      <fileset dir="${app.sou.dir}/properties"
-               includes="*.properties"/>
-      <filterset refid="property.filters" />
+      <fileset dir="${dist.home}/temp/properties"
+               includes="*"/>
+<!--       <filterset refid="property.filters" /> -->
     </copy>
   </target>
 
