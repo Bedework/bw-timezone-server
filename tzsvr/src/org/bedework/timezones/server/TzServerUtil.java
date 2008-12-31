@@ -207,8 +207,8 @@ public class TzServerUtil {
         if (!ze.isDirectory()) {
           String n = ze.getName();
 
-          if (n.endsWith(".ics")) {
-            nl.add(n.substring(0, nl.size() - 4));
+          if (n.startsWith("zoneinfo/") && n.endsWith(".ics")) {
+            nl.add(n.substring(9, n.length() - 4));
           }
         }
       }
