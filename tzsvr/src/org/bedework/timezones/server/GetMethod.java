@@ -55,16 +55,14 @@ public class GetMethod extends MethodBase {
       trace("GetMethod: doMethod");
     }
 
-    String stats = req.getParameter("stats");
-    String names = req.getParameter("names");
-    String[] tzids = req.getParameterValues("tzid");
-
-    if (names != null) {
+    if (req.getParameter("names") != null) {
       doNames(resp);
-    } else if (stats != null) {
+    } else if (req.getParameter("stats") != null) {
       doStats(resp);
+    } else if (req.getParameter("aliases") != null) {
+      doAliases(resp);
     } else {
-      doTzids(resp, tzids);
+      doTzids(resp, req.getParameterValues("tzid"));
     }
   }
 
@@ -101,7 +99,7 @@ public class GetMethod extends MethodBase {
 
       wtr.write("  <hr/>\r\n");
 
-      wtr.write("  <table width=\"100%\" " +
+      wtr.write("  <table width=\"30%\" " +
                 "cellspacing=\"0\"" +
                 " cellpadding=\"4\">\r\n");
 
@@ -115,6 +113,18 @@ public class GetMethod extends MethodBase {
       /* Could use a footer */
       wtr.write("</body>\r\n");
       wtr.write("</html>\r\n");
+    } catch (ServletException se) {
+      throw se;
+    } catch (Throwable t) {
+      throw new ServletException(t);
+    }
+  }
+
+  private void doAliases(HttpServletResponse resp) throws ServletException {
+    try {
+      Writer wtr = resp.getWriter();
+
+      wtr.write(TzServerUtil.getAliases(TzServer.tzDefsZipFile));
     } catch (ServletException se) {
       throw se;
     } catch (Throwable t) {

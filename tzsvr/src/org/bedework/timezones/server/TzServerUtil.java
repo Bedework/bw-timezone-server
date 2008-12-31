@@ -96,6 +96,7 @@ public class TzServerUtil {
   static long cacheHits;
   static long reads;
   static long nameLists;
+  static long aliasReads;
 
   /** Set up a Properties from the resources
    *
@@ -229,34 +230,13 @@ public class TzServerUtil {
 
     try {
       reads++;
-      ZipEntry ze = zf.getEntry(name + ".ics");
+      ZipEntry ze = zf.getEntry("zoneinfo/" + name + ".ics");
 
       if (ze == null) {
         return null;
       }
 
-      InputStreamReader is = new InputStreamReader(zf.getInputStream(ze),
-                                                   "UTF-8");
-
-      StringWriter sw = new StringWriter();
-
-      char[] buff = new char[4096];
-
-      for (;;) {
-        int num = is.read(buff);
-
-        if (num < 0) {
-          break;
-        }
-
-        if (num > 0) {
-          sw.write(buff, 0, num);
-        }
-      }
-
-      is.close();
-
-      s = sw.toString();
+      s = entryToString(zf, ze);
 
       putCachedVtz(name, s);
 
@@ -264,6 +244,47 @@ public class TzServerUtil {
     } catch (Throwable t) {
       throw new ServletException(t);
     }
+  }
+
+  static String getAliases(ZipFile zf) throws ServletException {
+    try {
+      aliasReads++;
+      ZipEntry ze = zf.getEntry("aliases.txt");
+
+      if (ze == null) {
+        return null;
+      }
+
+      return entryToString(zf, ze);
+    } catch (Throwable t) {
+      throw new ServletException(t);
+    }
+  }
+
+  private static String entryToString(ZipFile zf,
+                                      ZipEntry ze) throws Throwable {
+    InputStreamReader is = new InputStreamReader(zf.getInputStream(ze),
+                                                 "UTF-8");
+
+    StringWriter sw = new StringWriter();
+
+    char[] buff = new char[4096];
+
+    for (;;) {
+      int num = is.read(buff);
+
+      if (num < 0) {
+        break;
+      }
+
+      if (num > 0) {
+        sw.write(buff, 0, num);
+      }
+    }
+
+    is.close();
+
+    return sw.toString();
   }
 
   /* ====================================================================

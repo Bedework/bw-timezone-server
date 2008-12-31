@@ -182,6 +182,10 @@
       <priority value="INFO"/>
    </category>
 
+   <category name="httpclient">
+      <priority value="INFO"/>
+   </category>
+
    <!--
    <category name="org.apache.commons.digester">
       <priority value="DEBUG"/>
