@@ -145,7 +145,7 @@ public class TzServerUtil {
         throw new ServletException("No data url defined");
       }
 
-      /* Fetch the registry */
+      /* Fetch the data */
       HttpClient client = new HttpClient();
 
       HttpMethod get = new GetMethod(dataUrl);
