@@ -154,7 +154,27 @@ public class GetMethod extends MethodBase {
 
     wtr.write("  <td align=\"right\">");
     wtr.write(String.valueOf(val));
+    wtr.write("</td>");
+
+    wtr.write("<td>");
+    if (millis == 0) {
+      wtr.write("&nbsp;");
+    } else {
+      String s = String.valueOf(millis);
+      while (s.length() < 4) {
+        s = "0" + s;
+      }
+
+      wtr.write(s.substring(0, s.length() - 3));
+      wtr.write(".");
+      wtr.write(s.substring(s.length() - 3));
+      wtr.write(" seconds");
+    }
+    wtr.write("</td>");
+
+
     wtr.write("</td>\r\n");
+
     wtr.write("</tr>\r\n");
   }
 
