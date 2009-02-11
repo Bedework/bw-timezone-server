@@ -26,6 +26,15 @@
 
 package org.bedework.timezones.server;
 
+import edu.rpi.sss.util.DateTimeUtil;
+
+import net.fortuna.ical4j.data.CalendarBuilder;
+import net.fortuna.ical4j.data.UnfoldingReader;
+import net.fortuna.ical4j.model.Component;
+import net.fortuna.ical4j.model.TimeZone;
+import net.fortuna.ical4j.model.component.VTimeZone;
+import net.fortuna.ical4j.util.TimeZones;
+
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
@@ -42,10 +51,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.io.StringWriter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -90,6 +106,10 @@ public class TzServerUtil {
 
   private static List<String> nameList;
 
+  /* ======================= TimeZone objects ======================= */
+
+  private static Map<String, TimeZone> tzs = new HashMap<String, TimeZone>();
+
   /* ======================= Stats ======================= */
 
   static long gets;
@@ -97,6 +117,11 @@ public class TzServerUtil {
   static long reads;
   static long nameLists;
   static long aliasReads;
+  static long conversions;
+  static long conversionsMillis;
+  static long tzfetches;
+  static long tzbuilds;
+  static long tzbuildsMillis;
 
   /** Set up a Properties from the resources
    *
@@ -287,6 +312,154 @@ public class TzServerUtil {
     return sw.toString();
   }
 
+  private static Calendar cal = Calendar.getInstance();
+  private static java.util.TimeZone utctz;
+
+  static {
+    try {
+      utctz = TimeZone.getTimeZone(TimeZones.UTC_ID);
+    } catch (Throwable t) {
+      throw new RuntimeException("Unable to initialise UTC timezone");
+    }
+    cal.setTimeZone(utctz);
+  }
+
+  /**
+   * @param time
+   * @param tzid
+   * @return String utc date
+   * @throws Throwable
+   */
+  public static String getUtc(String time,
+                              String tzid) throws Throwable {
+    if (DateTimeUtil.isISODateTimeUTC(time)) {
+      // Already UTC
+      return time;
+    }
+
+    if (!DateTimeUtil.isISODateTime(time)) {
+      return null;  // Bad datetime
+    }
+
+    conversions++;
+    long smillis = System.currentTimeMillis();
+
+    TimeZone tz = fetchTimeZone(tzid);
+
+    DateFormat formatTd  = new SimpleDateFormat("yyyyMMdd'T'HHmmss");
+    formatTd.setTimeZone(tz);
+
+    Date date = formatTd.parse(time);
+    String utc;
+
+    synchronized (cal) {
+      cal.clear();
+      cal.setTime(date);
+
+      //formatTd.setTimeZone(utctz);
+      //trace("formatTd with utc: " + formatTd.format(date));
+
+      StringBuilder sb = new StringBuilder();
+      digit4(sb, cal.get(Calendar.YEAR));
+      digit2(sb, cal.get(Calendar.MONTH) + 1); // Month starts at 0
+      digit2(sb, cal.get(Calendar.DAY_OF_MONTH));
+      sb.append('T');
+      digit2(sb, cal.get(Calendar.HOUR_OF_DAY));
+      digit2(sb, cal.get(Calendar.MINUTE));
+      digit2(sb, cal.get(Calendar.SECOND));
+      sb.append('Z');
+
+      utc = sb.toString();
+    }
+
+    conversionsMillis += System.currentTimeMillis() - smillis;
+
+    return utc;
+  }
+
+  /** Convert from local time in fromTzid to local time in toTzid. If dateTime is
+   * already an iso utc date time fromTzid may be null.
+   *
+   * @param dateTime
+   * @param fromTzid
+   * @param toTzid
+   * @return String time in given timezone
+   * @throws Throwable
+   */
+  public static String convertDateTime(String dateTime, String fromTzid,
+                                       String toTzid) throws Throwable {
+    String UTCdt = null;
+    if (DateTimeUtil.isISODateTimeUTC(dateTime)) {
+      // Already UTC
+      UTCdt = dateTime;
+    } else if (!DateTimeUtil.isISODateTime(dateTime)) {
+      return null;  // Bad datetime
+    } else if (toTzid == null) {
+      return null;  // Bad toTzid
+    } else {
+      UTCdt = getUtc(dateTime, fromTzid);
+      conversions--; // avoid double inc
+    }
+
+    conversions++;
+    long smillis = System.currentTimeMillis();
+
+    // Convert to time in toTzid
+
+    Date dt = DateTimeUtil.fromISODateTimeUTC(UTCdt);
+
+    TimeZone tz = fetchTimeZone(toTzid);
+    if (tz == null) {
+      return null;
+    }
+
+    String cdt = DateTimeUtil.isoDateTime(dt, tz);
+    conversionsMillis += System.currentTimeMillis() - smillis;
+
+    return cdt;
+  }
+
+  /** Get a timezone object from the server given the id.
+   *
+   * @param tzid
+   * @return TimeZone with id or null
+   * @throws Throwable
+   */
+  public static TimeZone fetchTimeZone(String tzid) throws Throwable {
+    tzfetches++;
+
+    TimeZone tz = tzs.get(tzid);
+    if (tz != null) {
+      return tz;
+    }
+
+    String tzdef = getTz(tzid, TzServer.tzDefsZipFile);
+
+    if (tzdef == null) {
+      return null;
+    }
+
+    tzbuilds++;
+    long smillis = System.currentTimeMillis();
+
+    CalendarBuilder cb = new CalendarBuilder();
+
+    UnfoldingReader ufrdr = new UnfoldingReader(new StringReader(tzdef), true);
+
+    net.fortuna.ical4j.model.Calendar cal = cb.build(ufrdr);
+    VTimeZone vtz = (VTimeZone)cal.getComponents().getComponent(Component.VTIMEZONE);
+    if (vtz == null) {
+      throw new Exception("Incorrectly stored timezone");
+    }
+
+    tz = new TimeZone(vtz);
+    tzs.put(tzid, tz);
+
+    tzbuildsMillis += System.currentTimeMillis() - smillis;
+
+    return tz;
+  }
+
   /* ====================================================================
    *                   Caching
    * ==================================================================== */
@@ -297,6 +470,7 @@ public class TzServerUtil {
 
   static void cacheRefresh() throws ServletException {
     cacheRefresh(vtzCache);
+    tzs.clear();
   }
 
   static String getCachedVtz(String name) throws ServletException {
@@ -372,5 +546,29 @@ public class TzServerUtil {
 
   static void error(Throwable t) {
     getLogger().error(TzServerUtil.class, t);
+  }
+
+  private static void digit2(StringBuilder sb, int val) throws Throwable {
+    if (val > 99) {
+      throw new Exception("Bad date");
+    }
+    if (val < 10) {
+      sb.append("0");
+    }
+    sb.append(val);
+  }
+
+  private static void digit4(StringBuilder sb, int val) throws Throwable {
+    if (val > 9999) {
+      throw new Exception("Bad date");
+    }
+    if (val < 10) {
+      sb.append("000");
+    } else if (val < 100) {
+      sb.append("00");
+    } else if (val < 1000) {
+      sb.append("0");
+    }
+    sb.append(val);
   }
 }

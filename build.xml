@@ -35,7 +35,9 @@
 
     <getJar name="commons-codec" version="1.3" />
     <getJar name="commons-httpclient" version="3.0" />
+    <getJar name="commons-lang" version="2.1" />
     <getJar name="ehcache" version="1.2.3" />
+    <getJar name="ical4j" version="head-dev" />
     <getJar name="log4j" version="1.2.8" />
     <getJar name="servletapi" version="2.4" />
 
@@ -186,12 +188,12 @@ tzsvc.vtimezones.cache.name=${org.bedework.app.tzsvr.vtimezones.cache.name}
           file="${dist.home}/${propval.app.war.name}.war" />
   </target>
 
-<!-- ==================== Javadoc Target ===============================
-     The "javadoc" target creates Javadoc API documentation for the Java
-     classes included in your application.  Normally, this is only required
-     when preparing a distribution release, but is available as a separate
-     target in case the developer wants to create Javadocs independently.
-     =================================================================== -->
+  <!-- ==================== Javadoc Target ===============================
+       The "javadoc" target creates Javadoc API documentation for the Java
+       classes included in your application.  Normally, this is only required
+       when preparing a distribution release, but is available as a separate
+       target in case the developer wants to create Javadocs independently.
+       =================================================================== -->
 
   <target name="javadoc" depends="init"
           description="Create Javadoc API documentation">

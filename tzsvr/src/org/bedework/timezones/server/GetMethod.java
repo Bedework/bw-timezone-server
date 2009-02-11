@@ -61,6 +61,10 @@ public class GetMethod extends MethodBase {
       doStats(resp);
     } else if (req.getParameter("aliases") != null) {
       doAliases(resp);
+    } else if (req.getParameter("convert") != null) {
+      doConvert(resp, req.getParameter("dt"),
+                req.getParameter("fromtzid"),
+                req.getParameter("totzid"));
     } else {
       doTzids(resp, req.getParameterValues("tzid"));
     }
@@ -103,10 +107,17 @@ public class GetMethod extends MethodBase {
                 "cellspacing=\"0\"" +
                 " cellpadding=\"4\">\r\n");
 
-      statLine(wtr, "Gets", TzServerUtil.gets);
-      statLine(wtr, "Hits", TzServerUtil.cacheHits);
-      statLine(wtr, "Name lists", TzServerUtil.nameLists);
-      statLine(wtr, "Reads", TzServerUtil.reads);
+      statLine(wtr, "Gets", TzServerUtil.gets, 0);
+      statLine(wtr, "Hits", TzServerUtil.cacheHits, 0);
+      statLine(wtr, "Name lists", TzServerUtil.nameLists, 0);
+      statLine(wtr, "Reads", TzServerUtil.reads, 0);
+      statLine(wtr, "conversions",
+               TzServerUtil.conversions,
+               TzServerUtil.conversionsMillis);
+      statLine(wtr, "tzfetches", TzServerUtil.tzfetches, 0);
+      statLine(wtr, "tzbuilds",
+               TzServerUtil.tzbuilds,
+               TzServerUtil.tzbuildsMillis);
 
       wtr.write("</table>\r\n");
 
@@ -132,7 +143,9 @@ public class GetMethod extends MethodBase {
     }
   }
 
-  private void statLine(Writer wtr, String name, long val) throws Throwable {
+  private void statLine(Writer wtr,
+                        String name, long val,
+                        long millis) throws Throwable {
     wtr.write("<tr>\r\n");
 
     wtr.write("  <td align=\"right\">");
@@ -143,6 +156,29 @@ public class GetMethod extends MethodBase {
     wtr.write(String.valueOf(val));
     wtr.write("</td>\r\n");
     wtr.write("</tr>\r\n");
+  }
+
+  private void doConvert(HttpServletResponse resp,
+                         String dateTime,
+                         String fromTzid,
+                         String toTzid) throws ServletException {
+    try {
+      Writer wtr = resp.getWriter();
+
+      String cnvDdateTime = TzServerUtil.convertDateTime(dateTime,
+                                                         fromTzid,
+                                                         toTzid);
+
+      if (cnvDdateTime != null) {
+        wtr.write(cnvDdateTime);
+      } else {
+        resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+      }
+    } catch (ServletException se) {
+      throw se;
+    } catch (Throwable t) {
+      throw new ServletException(t);
+    }
   }
 
   private void doTzids(HttpServletResponse resp,
