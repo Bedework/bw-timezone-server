@@ -65,6 +65,9 @@ public class GetMethod extends MethodBase {
       doConvert(resp, req.getParameter("dt"),
                 req.getParameter("fromtzid"),
                 req.getParameter("totzid"));
+    } else if (req.getParameter("utc") != null) {
+      doToUtc(resp, req.getParameter("dt"),
+                req.getParameter("fromtzid"));
     } else {
       doTzids(resp, req.getParameterValues("tzid"));
     }
@@ -188,6 +191,26 @@ public class GetMethod extends MethodBase {
       String cnvDdateTime = TzServerUtil.convertDateTime(dateTime,
                                                          fromTzid,
                                                          toTzid);
+
+      if (cnvDdateTime != null) {
+        wtr.write(cnvDdateTime);
+      } else {
+        resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+      }
+    } catch (ServletException se) {
+      throw se;
+    } catch (Throwable t) {
+      throw new ServletException(t);
+    }
+  }
+
+  private void doToUtc(HttpServletResponse resp,
+                       String dateTime,
+                       String fromTzid) throws ServletException {
+    try {
+      Writer wtr = resp.getWriter();
+
+      String cnvDdateTime = TzServerUtil.getUtc(dateTime, fromTzid);
 
       if (cnvDdateTime != null) {
         wtr.write(cnvDdateTime);
