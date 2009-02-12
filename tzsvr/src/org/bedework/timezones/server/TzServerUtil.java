@@ -1,5 +1,5 @@
 /* **********************************************************************
-    Copyright 2006 Rensselaer Polytechnic Institute. All worldwide rights reserved.
+    Copyright 2009 Rensselaer Polytechnic Institute. All worldwide rights reserved.
 
     Redistribution and use of this distribution in source and binary forms,
     with or without modification, are permitted provided that:
@@ -23,7 +23,6 @@
     special, consequential, or incidental damages related to the software,
     to the maximum extent the law permits.
 */
-
 package org.bedework.timezones.server;
 
 import edu.rpi.sss.util.DateTimeUtil;
@@ -55,14 +54,14 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -100,15 +99,22 @@ public class TzServerUtil {
   /** Unable to retrieve the data */
   public static final String errorNodata = "org.tserver.no.data";
 
+  /* ======================= Caching ======================= */
+
   private static CacheManager manager = new CacheManager();
 
   private static Cache vtzCache;
 
-  private static List<String> nameList;
+  private static SortedSet<String> nameList;
+
+  /** Time we last fetched the data */
+  static long lastDataFetch;
 
   /* ======================= TimeZone objects ======================= */
 
   private static Map<String, TimeZone> tzs = new HashMap<String, TimeZone>();
+
+  private static String aliases;
 
   /* ======================= Stats ======================= */
 
@@ -122,6 +128,19 @@ public class TzServerUtil {
   static long tzfetches;
   static long tzbuilds;
   static long tzbuildsMillis;
+
+  /**
+   * @return an etag based on when we refreshed data
+   */
+  public static String getEtag() {
+    StringBuilder val = new StringBuilder();
+
+    val.append("\"");
+    val.append(lastDataFetch);
+    val.append("\"");
+
+    return val.toString();
+  }
 
   /** Set up a Properties from the resources
    *
@@ -214,15 +233,18 @@ public class TzServerUtil {
     }
   }
 
-  static List<String> getNames(ZipFile zf) throws ServletException {
+  static SortedSet<String> getNames(ZipFile zf) throws ServletException {
     nameLists++;
 
-    if (nameList != null) {
-      return nameList;
+    /* Do this the right way round we don't need to synch */
+    SortedSet<String> nl = nameList;
+
+    if (nl != null) {
+      return nl;
     }
 
     try {
-      List<String> nl = new ArrayList<String>();
+      nl = new TreeSet<String>();
 
       Enumeration<? extends ZipEntry> zes = zf.entries();
 
@@ -273,6 +295,13 @@ public class TzServerUtil {
 
   static String getAliases(ZipFile zf) throws ServletException {
     try {
+      /* Do this the right way round we don't need to synch */
+      String a = aliases;
+
+      if (a != null) {
+        return a;
+      }
+
       aliasReads++;
       ZipEntry ze = zf.getEntry("aliases.txt");
 
@@ -280,7 +309,10 @@ public class TzServerUtil {
         return null;
       }
 
-      return entryToString(zf, ze);
+      a = entryToString(zf, ze);
+      aliases = a;
+
+      return a;
     } catch (Throwable t) {
       throw new ServletException(t);
     }
@@ -471,6 +503,8 @@ public class TzServerUtil {
   static void cacheRefresh() throws ServletException {
     cacheRefresh(vtzCache);
     tzs.clear();
+    aliases = null;
+    nameList = null;
   }
 
   static String getCachedVtz(String name) throws ServletException {

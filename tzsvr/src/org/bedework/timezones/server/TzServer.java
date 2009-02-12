@@ -67,9 +67,6 @@ public class TzServer extends HttpServlet
 
   static File tzDefsFile;
 
-  /** Time we last fetched the data */
-  volatile static long lastDataFetch;
-
   volatile static boolean refreshNow;
 
   protected transient Logger log;
@@ -229,9 +226,9 @@ public class TzServer extends HttpServlet
   }
 
   private synchronized void refresh() throws ServletException {
-    if (!refreshNow) {
+    if ((tzDefsFile != null) && !refreshNow) {
       Long regRefetchInterval = (Long)props.get(TzServerUtil.pnameRefetchInterval);
-      if ((System.currentTimeMillis() - lastDataFetch) < regRefetchInterval) {
+      if ((System.currentTimeMillis() - TzServerUtil.lastDataFetch) / 1000 < regRefetchInterval) {
         // No fetch needed
         return;
       }
@@ -241,11 +238,6 @@ public class TzServer extends HttpServlet
       File f = TzServerUtil.getdata(props);
 
       ZipFile zf = new ZipFile(f);
-
-
-      if (tzDefsFile != null) {
-
-      }
 
       if (tzDefsZipFile != null) {
         try {
@@ -264,6 +256,7 @@ public class TzServer extends HttpServlet
       tzDefsFile = f;
       tzDefsZipFile = zf;
 
+      TzServerUtil.lastDataFetch = System.currentTimeMillis();
       refreshNow = false;
     } catch (ServletException se) {
       throw se;

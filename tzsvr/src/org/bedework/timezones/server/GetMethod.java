@@ -49,17 +49,25 @@ public class GetMethod extends MethodBase {
    * @see org.bedework.timezones.server.MethodBase#doMethod(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.util.Properties)
    */
   public void doMethod(HttpServletRequest req,
-                        HttpServletResponse resp,
-                        Properties props) throws ServletException {
+                       HttpServletResponse resp,
+                       Properties props) throws ServletException {
     if (debug) {
       trace("GetMethod: doMethod");
     }
 
     if (req.getParameter("names") != null) {
+      if (ifNoneMatchTest(req, resp)) {
+        return;
+      }
+
       doNames(resp);
     } else if (req.getParameter("stats") != null) {
       doStats(resp);
     } else if (req.getParameter("aliases") != null) {
+      if (ifNoneMatchTest(req, resp)) {
+        return;
+      }
+
       doAliases(resp);
     } else if (req.getParameter("convert") != null) {
       doConvert(resp, req.getParameter("dt"),
@@ -75,6 +83,8 @@ public class GetMethod extends MethodBase {
 
   private void doNames(HttpServletResponse resp) throws ServletException {
     try {
+      resp.setHeader("ETag", TzServerUtil.getEtag());
+
       Writer wtr = resp.getWriter();
 
       for (String s: TzServerUtil.getNames(TzServer.tzDefsZipFile)) {
@@ -136,6 +146,8 @@ public class GetMethod extends MethodBase {
 
   private void doAliases(HttpServletResponse resp) throws ServletException {
     try {
+      resp.setHeader("ETag", TzServerUtil.getEtag());
+
       Writer wtr = resp.getWriter();
 
       wtr.write(TzServerUtil.getAliases(TzServer.tzDefsZipFile));
@@ -252,5 +264,22 @@ public class GetMethod extends MethodBase {
     } catch (Throwable t) {
       throw new ServletException(t);
     }
+  }
+
+  /* Return true if data unchanged - status is set */
+  private boolean ifNoneMatchTest(HttpServletRequest req,
+                                  HttpServletResponse resp) {
+    String inEtag = req.getHeader("If-None-Match");
+
+    if (inEtag == null) {
+      return false;
+    }
+
+    if (!inEtag.equals(TzServerUtil.getEtag())) {
+      return false;
+    }
+
+    resp.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+    return true;
   }
 }
