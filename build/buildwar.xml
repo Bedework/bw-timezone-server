@@ -44,7 +44,7 @@
 
     <!-- Destinations - where we build an unwrapped war -->
     <property name="app.dest.war"
-              location="${temp.home}/${propval.app.war.name}.war" />
+              location="${temp.home}/wars/${propval.app.war.name}.war" />
     <property name="app.dest.docs"
               location="${app.dest.war}/docs" />
     <property name="app.dest.webinf"
@@ -124,6 +124,16 @@
     </copy>
 
     <delete file="${app.temp.web.xml}" />
+
+    <if>
+      <isset property="org.bedework.global.context.roots" />
+      <then>
+        <!-- Add the contex root to the file. Note that newline is required -->
+        <echo file="${org.bedework.global.context.roots}" append="yes">
+${propval.app.war.name}.context=${propval.app.context.root}
+        </echo>
+      </then>
+    </if>
 
     <!-- ===============================================================
          Any jar files required
