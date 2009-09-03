@@ -45,14 +45,22 @@ public class GetMethod extends MethodBase {
     super(debug);
   }
 
+  private static final String tzspath = "/timezones";
+
   /* (non-Javadoc)
    * @see org.bedework.timezones.server.MethodBase#doMethod(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.util.Properties)
    */
   public void doMethod(HttpServletRequest req,
                        HttpServletResponse resp,
                        Properties props) throws ServletException {
+    String path = getResourceUri(req);
+
     if (debug) {
-      trace("GetMethod: doMethod");
+      trace("GetMethod: doMethod  path=" + path);
+    }
+
+    if (path == null) {
+      path = "";
     }
 
     if (req.getParameter("names") != null) {
@@ -76,6 +84,11 @@ public class GetMethod extends MethodBase {
     } else if (req.getParameter("utc") != null) {
       doToUtc(resp, req.getParameter("dt"),
                 req.getParameter("fromtzid"));
+    } else if (path.startsWith(tzspath + "/")) {
+      String[] ids = {
+         path.substring(tzspath.length() + 1)
+      };
+      doTzids(resp, ids);
     } else {
       doTzids(resp, req.getParameterValues("tzid"));
     }

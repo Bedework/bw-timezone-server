@@ -28,7 +28,10 @@ package org.bedework.timezones.server;
 
 import org.apache.log4j.Logger;
 
+import java.net.URLDecoder;
+import java.util.ArrayList;
 import java.util.Properties;
+import java.util.StringTokenizer;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -60,6 +63,115 @@ public abstract class MethodBase {
                                 HttpServletResponse resp,
                                 Properties props)
         throws ServletException;
+
+  /** Get the decoded and fixed resource URI
+   *
+   * @param req      Servlet request object
+   * @return String  fixed up uri
+   * @throws ServletException
+   */
+  public String getResourceUri(HttpServletRequest req)
+      throws ServletException {
+    String uri = req.getServletPath();
+
+    if ((uri == null) || (uri.length() == 0)) {
+      /* No path specified - set it to root. */
+      uri = "/";
+    }
+
+    if (debug) {
+      trace("uri: " + uri);
+    }
+
+    String resourceUri = fixPath(uri);
+
+    if (debug) {
+      trace("resourceUri: " + resourceUri);
+    }
+
+    return resourceUri;
+  }
+
+  /** Return a path, beginning with a "/", after "." and ".." are removed.
+   * If the parameter path attempts to go above the root we return null.
+   *
+   * Other than the backslash thing why not use URI?
+   *
+   * @param path      String path to be fixed
+   * @return String   fixed path
+   * @throws ServletException
+   */
+  public static String fixPath(String path) throws ServletException {
+    if (path == null) {
+      return null;
+    }
+
+    String decoded;
+    try {
+      decoded = URLDecoder.decode(path, "UTF8");
+    } catch (Throwable t) {
+      throw new ServletException("bad path: " + path);
+    }
+
+    if (decoded == null) {
+      return (null);
+    }
+
+    /** Make any backslashes into forward slashes.
+     */
+    if (decoded.indexOf('\\') >= 0) {
+      decoded = decoded.replace('\\', '/');
+    }
+
+    /** Ensure a leading '/'
+     */
+    if (!decoded.startsWith("/")) {
+      decoded = "/" + decoded;
+    }
+
+    /** Remove all instances of '//'.
+     */
+    while (decoded.indexOf("//") >= 0) {
+      decoded = decoded.replaceAll("//", "/");
+    }
+
+    if (decoded.indexOf("/.") < 0) {
+      return decoded;
+    }
+
+    /** Somewhere we may have /./ or /../
+     */
+
+    StringTokenizer st = new StringTokenizer(decoded, "/");
+
+    ArrayList<String> al = new ArrayList<String>();
+    while (st.hasMoreTokens()) {
+      String s = st.nextToken();
+
+      if (s.equals(".")) {
+        // ignore
+      } else if (s.equals("..")) {
+        // Back up 1
+        if (al.size() == 0) {
+          // back too far
+          return null;
+        }
+
+        al.remove(al.size() - 1);
+      } else {
+        al.add(s);
+      }
+    }
+
+    /** Reconstruct */
+    StringBuilder sb = new StringBuilder();
+    for (String s: al) {
+      sb.append('/');
+      sb.append(s);
+    }
+
+    return sb.toString();
+  }
 
   /** ===================================================================
    *                   Logging methods
