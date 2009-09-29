@@ -84,6 +84,9 @@ public class GetMethod extends MethodBase {
     } else if (req.getParameter("utc") != null) {
       doToUtc(resp, req.getParameter("dt"),
                 req.getParameter("fromtzid"));
+    } else if (path.equals(tzspath) ||
+               path.equals(tzspath + "/")) {
+      doNames(resp);
     } else if (path.startsWith(tzspath + "/")) {
       String[] ids = {
          path.substring(tzspath.length() + 1)
