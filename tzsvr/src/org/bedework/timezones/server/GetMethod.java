@@ -27,6 +27,7 @@
 package org.bedework.timezones.server;
 
 import java.io.Writer;
+import java.util.Collection;
 import java.util.Properties;
 
 import javax.servlet.ServletException;
@@ -72,6 +73,8 @@ public class GetMethod extends MethodBase {
       doNames(resp);
     } else if (req.getParameter("stats") != null) {
       doStats(resp);
+    } else if (req.getParameter("info") != null) {
+      doInfo(resp);
     } else if (req.getParameter("aliases") != null) {
       if (ifNoneMatchTest(req, resp)) {
         return;
@@ -175,6 +178,65 @@ public class GetMethod extends MethodBase {
     }
   }
 
+  private void doInfo(final HttpServletResponse resp) throws ServletException {
+    try {
+      resp.setHeader("ETag", TzServerUtil.getEtag());
+
+      Writer wtr = resp.getWriter();
+
+      Collection<String> info = TzServerUtil.getInfo(TzServer.tzDefsZipFile);
+
+      wtr.write("<html>\r\n");
+      wtr.write("  <head>\r\n");
+
+      /* Need some styles I guess */
+
+      wtr.write("    <title>Timezone server information</title>\r\n");
+
+      wtr.write("</head>\r\n");
+      wtr.write("<body>\r\n");
+
+      wtr.write("    <h1>Timezone server information</title></h1>\r\n");
+
+      wtr.write("  <hr/>\r\n");
+
+      wtr.write("  <table width=\"30%\" " +
+                "cellspacing=\"0\"" +
+                " cellpadding=\"4\">\r\n");
+
+      for (String s: info) {
+        String[] nameVal = s.split("=");
+        infoLine(wtr, nameVal[0], nameVal[1]);
+      }
+
+      wtr.write("</table>\r\n");
+
+      /* Could use a footer */
+      wtr.write("</body>\r\n");
+      wtr.write("</html>\r\n");
+    } catch (ServletException se) {
+      throw se;
+    } catch (Throwable t) {
+      throw new ServletException(t);
+    }
+  }
+
+  private void infoLine(final Writer wtr,
+                        final String name,
+                        final String val) throws Throwable {
+    wtr.write("<tr>\r\n");
+
+    wtr.write("  <td align=\"right\">");
+    wtr.write(name);
+    wtr.write("</td>");
+
+    wtr.write("  <td align=\"right\">");
+    wtr.write(val);
+    wtr.write("</td>");
+
+    wtr.write("</tr>\r\n");
+  }
+
   private void statLine(final Writer wtr,
                         final String name, final long val,
                         final long millis) throws Throwable {
@@ -203,7 +265,6 @@ public class GetMethod extends MethodBase {
       wtr.write(" seconds");
     }
     wtr.write("</td>");
-
 
     wtr.write("</td>\r\n");
 
