@@ -34,16 +34,16 @@ import net.fortuna.ical4j.model.TimeZone;
 import net.fortuna.ical4j.model.component.VTimeZone;
 import net.fortuna.ical4j.util.TimeZones;
 
-import net.sf.ehcache.Cache;
-import net.sf.ehcache.CacheManager;
-import net.sf.ehcache.Element;
-
 import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.log4j.Logger;
+
+import net.sf.ehcache.Cache;
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.Element;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -55,7 +55,9 @@ import java.io.StringWriter;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -116,11 +118,15 @@ public class TzServerUtil {
   /** Time we last fetched the data */
   static long lastDataFetch;
 
+  static String etagValue;
+
   /* ======================= TimeZone objects ======================= */
 
   private static Map<String, TimeZone> tzs = new HashMap<String, TimeZone>();
 
   private static String aliases;
+
+  private static Collection<String> tzinfo;
 
   /* ======================= Stats ======================= */
 
@@ -137,12 +143,34 @@ public class TzServerUtil {
 
   /**
    * @return an etag based on when we refreshed data
+   * @throws ServletException
    */
-  public static String getEtag() {
+  public static String getEtag() throws ServletException {
+    if (etagValue == null) {
+      Collection<String> info = tzinfo;
+
+      if (info == null) {
+        info = getInfo(TzServer.tzDefsZipFile);
+      }
+
+      if (info != null) {
+        for (String s: info) {
+          if (s.startsWith("buildTime=")) {
+            etagValue = s.substring("buildTime=".length());
+            break;
+          }
+        }
+      }
+
+      if (etagValue == null) {
+        etagValue = String.valueOf(lastDataFetch);
+      }
+    }
+
     StringBuilder val = new StringBuilder();
 
     val.append("\"");
-    val.append(lastDataFetch);
+    val.append(etagValue);
     val.append("\"");
 
     return val.toString();
@@ -155,8 +183,8 @@ public class TzServerUtil {
    * @return Properties
    * @throws ServletException
    */
-  static Properties getResources(HttpServlet servlet,
-                                 ServletConfig config) throws ServletException {
+  static Properties getResources(final HttpServlet servlet,
+                                 final ServletConfig config) throws ServletException {
     String resname = config.getInitParameter("application");
 
     Properties props = new Properties();
@@ -189,7 +217,7 @@ public class TzServerUtil {
    * @return File
    * @throws ServletException
    */
-  static File getdata(Properties props) throws ServletException {
+  static File getdata(final Properties props) throws ServletException {
     try {
       String dataUrl = props.getProperty(pnameTzdataURL);
       if (dataUrl == null) {
@@ -239,7 +267,7 @@ public class TzServerUtil {
     }
   }
 
-  static SortedSet<String> getNames(ZipFile zf) throws ServletException {
+  static SortedSet<String> getNames(final ZipFile zf) throws ServletException {
     nameLists++;
 
     /* Do this the right way round we don't need to synch */
@@ -274,7 +302,7 @@ public class TzServerUtil {
     }
   }
 
-  static String getTz(String name, ZipFile zf) throws ServletException {
+  static String getTz(final String name, final ZipFile zf) throws ServletException {
     String s = getCachedVtz(name);
     if (s != null) {
       cacheHits++;
@@ -299,7 +327,7 @@ public class TzServerUtil {
     }
   }
 
-  static String getAliases(ZipFile zf) throws ServletException {
+  static String getAliases(final ZipFile zf) throws ServletException {
     try {
       /* Do this the right way round we don't need to synch */
       String a = aliases;
@@ -324,8 +352,40 @@ public class TzServerUtil {
     }
   }
 
-  private static String entryToString(ZipFile zf,
-                                      ZipEntry ze) throws Throwable {
+  static Collection<String> getInfo(final ZipFile zf) throws ServletException {
+    try {
+      /* Do this the right way round we don't need to synch */
+      Collection<String> a = tzinfo;
+
+      if (a != null) {
+        return a;
+      }
+
+      ZipEntry ze = zf.getEntry("info.txt");
+
+      if (ze == null) {
+        return null;
+      }
+
+      String info = entryToString(zf, ze);
+
+      String[] infoLines = info.split("\n");
+      a = new ArrayList<String>();
+
+      for (String s: infoLines) {
+        a.add(s);
+      }
+
+      tzinfo = a;
+
+      return a;
+    } catch (Throwable t) {
+      throw new ServletException(t);
+    }
+  }
+
+  private static String entryToString(final ZipFile zf,
+                                      final ZipEntry ze) throws Throwable {
     InputStreamReader is = new InputStreamReader(zf.getInputStream(ze),
                                                  "UTF-8");
 
@@ -368,8 +428,8 @@ public class TzServerUtil {
    * @return String utc date
    * @throws Throwable
    */
-  public static String getUtc(String time,
-                              String tzid) throws Throwable {
+  public static String getUtc(final String time,
+                              final String tzid) throws Throwable {
     if (DateTimeUtil.isISODateTimeUTC(time)) {
       // Already UTC
       return time;
@@ -424,8 +484,8 @@ public class TzServerUtil {
    * @return String time in given timezone
    * @throws Throwable
    */
-  public static String convertDateTime(String dateTime, String fromTzid,
-                                       String toTzid) throws Throwable {
+  public static String convertDateTime(final String dateTime, final String fromTzid,
+                                       final String toTzid) throws Throwable {
     String UTCdt = null;
     if (DateTimeUtil.isISODateTimeUTC(dateTime)) {
       // Already UTC
@@ -463,7 +523,7 @@ public class TzServerUtil {
    * @return TimeZone with id or null
    * @throws Throwable
    */
-  public static TimeZone fetchTimeZone(String tzid) throws Throwable {
+  public static TimeZone fetchTimeZone(final String tzid) throws Throwable {
     tzfetches++;
 
     TimeZone tz = tzs.get(tzid);
@@ -502,7 +562,7 @@ public class TzServerUtil {
    *                   Caching
    * ==================================================================== */
 
-  static void cacheInit(Properties props) throws ServletException {
+  static void cacheInit(final Properties props) throws ServletException {
 
     vtzCache = manager.getCache(props.getProperty(pnameVtzCache));
   }
@@ -514,7 +574,7 @@ public class TzServerUtil {
     nameList = null;
   }
 
-  static String getCachedVtz(String name) throws ServletException {
+  static String getCachedVtz(final String name) throws ServletException {
     Element el = vtzCache.get(name);
 
     if (el == null) {
@@ -524,7 +584,7 @@ public class TzServerUtil {
     return (String)el.getValue();
   }
 
-  static void putCachedVtz(String name, String vtz) throws ServletException {
+  static void putCachedVtz(final String name, final String vtz) throws ServletException {
     Element el = new Element(name, vtz);
 
     vtzCache.put(el);
@@ -534,13 +594,13 @@ public class TzServerUtil {
    *                   Private methods
    * ==================================================================== */
 
-  private static void cacheRefresh(Cache cache) throws ServletException {
+  private static void cacheRefresh(final Cache cache) throws ServletException {
     if (cache != null) {
       cache.flush();
     }
   }
 
-  static Long longProp(Properties props, String name) throws Throwable {
+  static Long longProp(final Properties props, final String name) throws Throwable {
     String propVal = props.getProperty(name);
     if (propVal == null) {
       return null;
@@ -549,7 +609,7 @@ public class TzServerUtil {
     return Long.valueOf(propVal);
   }
 
-  static boolean boolProp(Properties props, String name) throws Throwable {
+  static boolean boolProp(final Properties props, final String name) throws Throwable {
     String propVal = props.getProperty(name);
     if (propVal == null) {
       return false;
@@ -569,7 +629,7 @@ public class TzServerUtil {
    *
    * @param msg
    */
-  static void debugMsg(String msg) {
+  static void debugMsg(final String msg) {
     getLogger().debug(msg);
   }
 
@@ -577,19 +637,19 @@ public class TzServerUtil {
    *
    * @param msg
    */
-  static void logIt(String msg) {
+  static void logIt(final String msg) {
     getLogger().info(msg);
   }
 
-  static void error(String msg) {
+  static void error(final String msg) {
     getLogger().error(msg);
   }
 
-  static void error(Throwable t) {
+  static void error(final Throwable t) {
     getLogger().error(TzServerUtil.class, t);
   }
 
-  private static void digit2(StringBuilder sb, int val) throws Throwable {
+  private static void digit2(final StringBuilder sb, final int val) throws Throwable {
     if (val > 99) {
       throw new Exception("Bad date");
     }
@@ -599,7 +659,7 @@ public class TzServerUtil {
     sb.append(val);
   }
 
-  private static void digit4(StringBuilder sb, int val) throws Throwable {
+  private static void digit4(final StringBuilder sb, final int val) throws Throwable {
     if (val > 9999) {
       throw new Exception("Bad date");
     }

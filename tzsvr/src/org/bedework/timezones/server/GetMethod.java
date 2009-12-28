@@ -41,7 +41,7 @@ public class GetMethod extends MethodBase {
   /**
    * @param debug
    */
-  public GetMethod(boolean debug) {
+  public GetMethod(final boolean debug) {
     super(debug);
   }
 
@@ -50,9 +50,10 @@ public class GetMethod extends MethodBase {
   /* (non-Javadoc)
    * @see org.bedework.timezones.server.MethodBase#doMethod(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, java.util.Properties)
    */
-  public void doMethod(HttpServletRequest req,
-                       HttpServletResponse resp,
-                       Properties props) throws ServletException {
+  @Override
+  public void doMethod(final HttpServletRequest req,
+                       final HttpServletResponse resp,
+                       final Properties props) throws ServletException {
     String path = getResourceUri(req);
 
     if (debug) {
@@ -97,7 +98,7 @@ public class GetMethod extends MethodBase {
     }
   }
 
-  private void doNames(HttpServletResponse resp) throws ServletException {
+  private void doNames(final HttpServletResponse resp) throws ServletException {
     try {
       resp.setHeader("ETag", TzServerUtil.getEtag());
 
@@ -114,7 +115,7 @@ public class GetMethod extends MethodBase {
     }
   }
 
-  private void doStats(HttpServletResponse resp) throws ServletException {
+  private void doStats(final HttpServletResponse resp) throws ServletException {
     try {
       Writer wtr = resp.getWriter();
 
@@ -160,7 +161,7 @@ public class GetMethod extends MethodBase {
     }
   }
 
-  private void doAliases(HttpServletResponse resp) throws ServletException {
+  private void doAliases(final HttpServletResponse resp) throws ServletException {
     try {
       resp.setHeader("ETag", TzServerUtil.getEtag());
 
@@ -174,9 +175,9 @@ public class GetMethod extends MethodBase {
     }
   }
 
-  private void statLine(Writer wtr,
-                        String name, long val,
-                        long millis) throws Throwable {
+  private void statLine(final Writer wtr,
+                        final String name, final long val,
+                        final long millis) throws Throwable {
     wtr.write("<tr>\r\n");
 
     wtr.write("  <td align=\"right\">");
@@ -209,10 +210,10 @@ public class GetMethod extends MethodBase {
     wtr.write("</tr>\r\n");
   }
 
-  private void doConvert(HttpServletResponse resp,
-                         String dateTime,
-                         String fromTzid,
-                         String toTzid) throws ServletException {
+  private void doConvert(final HttpServletResponse resp,
+                         final String dateTime,
+                         final String fromTzid,
+                         final String toTzid) throws ServletException {
     try {
       Writer wtr = resp.getWriter();
 
@@ -232,9 +233,9 @@ public class GetMethod extends MethodBase {
     }
   }
 
-  private void doToUtc(HttpServletResponse resp,
-                       String dateTime,
-                       String fromTzid) throws ServletException {
+  private void doToUtc(final HttpServletResponse resp,
+                       final String dateTime,
+                       final String fromTzid) throws ServletException {
     try {
       Writer wtr = resp.getWriter();
 
@@ -252,8 +253,8 @@ public class GetMethod extends MethodBase {
     }
   }
 
-  private void doTzids(HttpServletResponse resp,
-                       String[] tzids) throws ServletException {
+  private void doTzids(final HttpServletResponse resp,
+                       final String[] tzids) throws ServletException {
     if ((tzids == null) || (tzids.length == 0)) {
       return;
     }
@@ -283,8 +284,8 @@ public class GetMethod extends MethodBase {
   }
 
   /* Return true if data unchanged - status is set */
-  private boolean ifNoneMatchTest(HttpServletRequest req,
-                                  HttpServletResponse resp) {
+  private boolean ifNoneMatchTest(final HttpServletRequest req,
+                                  final HttpServletResponse resp) throws ServletException {
     String inEtag = req.getHeader("If-None-Match");
 
     if (inEtag == null) {
