@@ -9,6 +9,8 @@
 -->
 
 <project name="timezones" default="build">
+  <taskdef resource="net/sf/antcontrib/antcontrib.properties" />
+
   <property environment="env"/>
   <property name="base.name" value="timezones"/>
   <dirname property="project.home" file="${ant.file}"/>
@@ -22,6 +24,7 @@
 
   <property name="tzsvr.build.dir" location="${project.home}/build"/>
   <property name="buildjar" location="${tzsvr.build.dir}/buildjar.xml"/>
+  <property name="buildwar" location="${build.dir}/buildwar.xml"/>
 
   <import file="${tzsvr.build.dir}/getJar.xml"/>
 
@@ -41,7 +44,7 @@
     <getJar name="log4j" version="1.2.8" />
     <getJar name="servletapi" version="2.4" />
 
-    <getJar name="rpiutil" version="3.5" project="rpiutil" />
+    <getJar name="rpiutil" version="3.6" project="rpiutil" />
 
     <property name="org.bedework.tzsvr.base" location="${project.home}/tzsvr" />
 
