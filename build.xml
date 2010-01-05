@@ -22,31 +22,66 @@
   <property name="dist.home" location="${project.home}/dist"/>
   <property name="lib.dir" location="${project.home}/lib"/>
 
-  <property name="tzsvr.build.dir" location="${project.home}/build"/>
-  <property name="buildjar" location="${tzsvr.build.dir}/buildjar.xml"/>
+  <property name="build.dir" location="${project.home}/build"/>
+  <property name="buildjar" location="${build.dir}/buildjar.xml"/>
   <property name="buildwar" location="${build.dir}/buildwar.xml"/>
 
-  <import file="${tzsvr.build.dir}/getJar.xml"/>
+  <property name="org.bedework.libcache.dir"
+            location="${project.home}/libcache"/>
+
+	<!-- Used to select our properties --> 
+	<property name="org.bedework.deploy.name" value="tzsvr" />
+
+  <import file="${build.dir}/getJar.xml"/>
+  <import file="${build.dir}/loadDeployConfig.xml"/>
 
   <!-- =================================================================
        init:
        ================================================================= -->
 
   <target name="init" >
+    <property name="org.bedework.project.bedework"
+              location="${project.home}/../bedework" />
+
+    <loadDeployConfig />
+  	
+    <propertyset id="deploy-app-properties">
+      <propertyref prefix="org.bedework.app.${org.bedework.deploy.name}"/>
+      <globmapper from="org.bedework.app.${org.bedework.deploy.name}.*" to="propval.app.*"/>
+    </propertyset>
+  	
+    <!-- echo message="*** Options file: ${org.bedework.carddav.options}" / -->
+
     <delete dir="${lib.dir}" />
     <mkdir dir="${lib.dir}" />
+
+    <property name="org.bedework.getjar.property.prefix"
+              value="org.bedework.appjar" />
 
     <getJar name="commons-codec" version="1.3" />
     <getJar name="commons-httpclient" version="3.0" />
     <getJar name="commons-lang" version="2.1" />
-    <getJar name="ehcache" version="1.2.3" />
+    <getJar name="ehcache" version="1.6.2" />
     <getJar name="ical4j" version="head-dev" />
     <getJar name="log4j" version="1.2.8" />
     <getJar name="servletapi" version="2.4" />
 
-    <getJar name="rpiutil" version="3.6" project="rpiutil" />
+    <getJar name="bw-deployutil" version="3.6" />
 
-    <property name="org.bedework.tzsvr.base" location="${project.home}/tzsvr" />
+    <path id="app.xml.cp">
+      <pathelement location="${org.bedework.appjar.bw-deployutil}"/>
+    </path>
+
+    <taskdef name="resolveFile"
+             classname="org.bedework.deployment.ResolveFile">
+      <classpath refid="app.xml.cp"/>
+    </taskdef>
+
+    <getJar name="rpiutil" version="3.6" project="rpiutil" 
+            projecthome="${project.home}/../bedework/projects/rpiutil" />
+
+    <property name="org.bedework.tzsvr.base" 
+              location="${project.home}/tzsvr" />
 
     <mkdir dir="${dist.home}" />
 
@@ -172,8 +207,9 @@ tzsvc.vtimezones.cache.name=${org.bedework.app.tzsvr.vtimezones.cache.name}
                includes="*" />
     </copy>
 
-    <ant antfile="${tzsvr.build.dir}/buildwar.xml" inheritrefs="true"
+    <ant antfile="${build.dir}/buildwar.xml" inheritrefs="true"
          target="build" >
+      <propertyset refid="deploy-app-properties" />
       <property name="app.sou.dir" location="${org.bedework.tzsvr.base}" />
       <property name="propval.app.display.name"
                 value="Timezones service" />
@@ -185,10 +221,22 @@ tzsvc.vtimezones.cache.name=${org.bedework.app.tzsvr.vtimezones.cache.name}
      =================================================================== -->
 
   <target name="deploy" depends="build-war" >
-    <delete dir="${deploy.dir}/${propval.app.war.name}" />
-    <delete file="${deploy.dir}/${propval.app.war.name}.war" />
-    <copy todir="${deploy.dir}"
-          file="${dist.home}/${propval.app.war.name}.war" />
+    <if>
+      <isset property="org.bedework.appserver.deploy.dir"/>
+      <then>
+        <delete dir="${org.bedework.appserver.deploy.dir}/${propval.app.war.name}" />
+        <delete dir="${org.bedework.appserver.deploy.dir}/${propval.app.war.name}.war" />
+
+        <copy todir="${org.bedework.appserver.deploy.dir}">
+          <fileset dir="${dist.home}">
+            <include name="*.war" />
+         </fileset>
+        </copy>
+      </then>
+      <else>
+        <echo message="********* No deploy directory defined" />
+      </else>
+    </if>
   </target>
 
   <!-- ==================== Javadoc Target ===============================

@@ -37,6 +37,10 @@
      =================================================================== -->
 
 <project name="bedework.buildwar" default="build" >
+  <import file="${build.dir}/buildfilters.xml" />
+
+  <import file="${build.dir}/platforms/${org.bedework.global.deploy.platform}War.xml" />
+	
   <target name="init">
     <property name="temp.home" location="${dist.home}/temp" />
 
@@ -146,8 +150,8 @@ ${propval.app.war.name}.context=${propval.app.context.root}
       </fileset>
     </copy>
 
-    <!-- tomcat -->
-    <antcall target="add.tomcat" inheritRefs="true" />
+    <!-- Platform specific -->
+    <antcall target="doPlatform" inheritRefs="true" />
 
     <!-- build the war file -->
     <mkdir dir="${dist.home}" />
@@ -161,20 +165,6 @@ ${propval.app.war.name}.context=${propval.app.context.root}
 
   <target name="add.jdbcdriver" if="app.jdbcdriver.jar">
     <copy todir="${app.dest.lib}" file="${app.jdbcdriver.jar}"/>
-  </target>
-
-  <target name="add.tomcat" if="org.bedework.global.deploy.on.tomcat">
-    <property name="propval.app.tomcat.context.xml"
-              location="${app.sou.dir}/war/META-INF/context.xml" />
-    <resolveFile name="app.tomcat.context.xml"
-                 file="${propval.app.tomcat.context.xml}"
-                 base="${app.sou.dir}"/>
-
-    <copy tofile="${app.dest.metainf}/context.xml"
-          file="${app.tomcat.context.xml}"
-          overwrite="yes" >
-      <filterset refid="property.filters" />
-    </copy>
   </target>
 
   <target name="copy.properties" if="org.bedework.properties.dir.exists">
