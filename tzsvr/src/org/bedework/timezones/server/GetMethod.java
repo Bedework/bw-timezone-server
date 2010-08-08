@@ -103,6 +103,7 @@ public class GetMethod extends MethodBase {
 
   private void doNames(final HttpServletResponse resp) throws ServletException {
     try {
+      resp.setContentType("text/plain");
       resp.setHeader("ETag", TzServerUtil.getEtag());
 
       Writer wtr = resp.getWriter();
