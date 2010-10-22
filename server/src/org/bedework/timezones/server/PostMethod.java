@@ -26,8 +26,6 @@
 
 package org.bedework.timezones.server;
 
-import org.bedework.timezones.common.TzServerUtil;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -57,17 +55,7 @@ public class PostMethod extends MethodBase {
     }
 
     try {
-      String id = req.getParameter("id");
-
-      if ((id == null) || (!id.equals(TzServerUtil.pnamePostId))) {
-        resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
-      }
-
-      if (req.getParameter("refresh") == null) {
-        resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-      }
-
-      util.fireRefresh();
+      resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
     } catch (Throwable t) {
       throw new ServletException(t);
     }

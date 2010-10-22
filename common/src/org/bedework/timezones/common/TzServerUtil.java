@@ -59,6 +59,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.zip.ZipEntry;
@@ -80,26 +81,6 @@ public class TzServerUtil {
   private TzsvrConfig config;
 
   private static TzServerUtil instance;
-
-  /* ======================= property names ======================= */
-
-  /** Property defining location of the zipped data */
-  public static final String pnameTzdataURL = "tzsvc.tzdata.url";
-
-  /** Property defining integer seconds refetch of data
-   */
-  public static final String pnameRefetchInterval = "tzsvc.refetch.interval";
-
-  /** Property defining a key to allow POST */
-  public static final String pnamePostId = "tzsvc.post.id";
-
-  /** name of vtimezone cache
-   */
-  public static final String pnameVtzCache = "tzsvc.vtimezones.cache.name";
-
-  /** name of zoneinfo cache
-   */
-  public static final String pnameZoneInfoCache = "tzsvc.zoneinfo.cache.name";
 
   /* ======================= Error codes ======================= */
 
@@ -128,7 +109,9 @@ public class TzServerUtil {
 
   private Map<String, TimeZone> tzs = new HashMap<String, TimeZone>();
 
-  private String aliases;
+  private Properties aliases;
+
+  private String aliasesStr;
 
   private Collection<String> tzinfo;
 
@@ -404,13 +387,56 @@ public class TzServerUtil {
   }
 
   /**
+   * @param tzid - possible alias
+   * @return actual timezone id
+   * @throws ServletException
+   */
+  public String unalias(String tzid) throws ServletException {
+    if (tzid == null) {
+      throw new ServletException("Null id for unalias");
+    }
+
+    /* First transform the name if it follows a known pattern, for example
+     * we used to get     /mozilla.org/20070129_1/America/New_York
+     */
+
+    tzid = transformTzid(tzid);
+
+    // Allow chains of aliases
+
+    String target = tzid;
+
+    if (aliases == null) {
+      loadAliases();
+    }
+
+    for (int i = 0; i < 100; i++) {   // Just in case we get a circular chain
+      String unaliased = aliases.getProperty(target);
+
+      if (unaliased == null) {
+        return target;
+      }
+
+      if (unaliased.equals(tzid)) {
+        break;
+      }
+
+      target = unaliased;
+    }
+
+    error("Possible circular alias chain looking for " + tzid);
+
+    return null;
+  }
+
+  /**
    * @return aliases
    * @throws ServletException
    */
   public String getAliases() throws ServletException {
     try {
       /* Do this the right way round we don't need to synch */
-      String a = aliases;
+      String a = aliasesStr;
 
       if (a != null) {
         return a;
@@ -424,7 +450,7 @@ public class TzServerUtil {
       }
 
       a = entryToString(ze);
-      aliases = a;
+      aliasesStr = a;
 
       return a;
     } catch (Throwable t) {
@@ -659,7 +685,7 @@ public class TzServerUtil {
   private void cacheRefresh() throws ServletException {
     cacheRefresh(vtzCache);
     tzs.clear();
-    aliases = null;
+    aliasesStr = null;
     nameList = null;
   }
 
@@ -682,6 +708,45 @@ public class TzServerUtil {
   /* ====================================================================
    *                   Private methods
    * ==================================================================== */
+
+  private static String transformTzid(String tzid) {
+    int len = tzid.length();
+
+    if ((len > 13) && (tzid.startsWith("/mozilla.org/"))) {
+      int pos = tzid.indexOf('/', 13);
+
+      if ((pos < 0) || (pos == len - 1)) {
+        return tzid;
+      }
+      return tzid.substring(pos + 1);
+    }
+
+    /* Special to get James Andrewartha going */
+    String ss = "/softwarestudio.org/Tzfile/";
+
+    if ((len > ss.length()) &&
+        (tzid.startsWith(ss))) {
+      return tzid.substring(ss.length());
+    }
+
+    return tzid;
+  }
+
+  private void loadAliases() throws ServletException {
+    try {
+      Properties a = new Properties();
+
+      a.load(new StringReader(getAliases()));
+
+      aliases = a;
+    } catch (ServletException se) {
+      throw se;
+    } catch (Throwable t) {
+      error("loadTimezones error: " + t.getMessage());
+      t.printStackTrace();
+      throw new ServletException(t);
+    }
+  }
 
   private String entryToString(final ZipEntry ze) throws Throwable {
     InputStreamReader is = new InputStreamReader(tzDefsZipFile.getInputStream(ze),

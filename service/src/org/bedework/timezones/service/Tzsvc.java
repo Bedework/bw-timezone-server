@@ -79,6 +79,17 @@ public class Tzsvc implements TzsvcMBean {
     }
   }
 
+  public String refreshData() {
+    try {
+      util.fireRefresh();
+      util.refresh();
+      return "Ok";
+    } catch (Throwable t) {
+      error(t);
+      return "Refresh error: " + t.getLocalizedMessage();
+    }
+  }
+
   /* an example say's we need this  - we should probably implement some system
    * independent jmx support which will build this using introspection and/or lists
   public MBeanInfo getMBeanInfo() throws Exception {

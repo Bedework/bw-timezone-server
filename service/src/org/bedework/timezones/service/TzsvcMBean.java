@@ -56,11 +56,21 @@ public interface TzsvcMBean {
    */
   public String getAppname();
 
+  /* ========================================================================
+   * Operations
+   * ======================================================================== */
+
   /** Get the current stats
    *
    * @return List of Stat
    */
   public List<Stat> getStats();
+
+  /** Refresh the data from the source
+   *
+   * @return completion code.
+   */
+  public String refreshData();
 
   /* ========================================================================
    * Lifecycle

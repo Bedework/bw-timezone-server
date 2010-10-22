@@ -83,6 +83,8 @@ public class GetMethod extends MethodBase {
       }
 
       doAliases(resp);
+    } else if (req.getParameter("unalias") != null) {
+      doUnalias(resp, req.getParameter("id"));
     } else if (req.getParameter("convert") != null) {
       doConvert(resp, req.getParameter("dt"),
                 req.getParameter("fromtzid"),
@@ -168,6 +170,26 @@ public class GetMethod extends MethodBase {
       Writer wtr = resp.getWriter();
 
       wtr.write(util.getAliases());
+    } catch (ServletException se) {
+      throw se;
+    } catch (Throwable t) {
+      throw new ServletException(t);
+    }
+  }
+
+  private void doUnalias(final HttpServletResponse resp,
+                         String id) throws ServletException {
+    try {
+      resp.setContentType("text/plain");
+
+      Writer wtr = resp.getWriter();
+
+      String tzid = util.unalias(id);
+      if (tzid == null) {
+        tzid = "** error **";
+      }
+      wtr.write(tzid);
+      wtr.write("\n");
     } catch (ServletException se) {
       throw se;
     } catch (Throwable t) {
@@ -325,7 +347,7 @@ public class GetMethod extends MethodBase {
       boolean found = false;
 
       for (String tzid: tzids) {
-        String tz = util.getTz(tzid);
+        String tz = util.getTz(util.unalias(tzid));
 
         if (tz != null) {
           found = true;

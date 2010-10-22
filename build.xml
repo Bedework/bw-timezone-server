@@ -257,6 +257,12 @@
      Deploy if an application server is defined.
      =================================================================== -->
 
+  <target name="deploy.zoneinfo" depends="deploy-init"
+          description="Deploy zoneinfo data">
+  	<copy file="${project.home}/resources/tzdata.zip"
+  	      todir="${org.bedework.server.resource.root.dir}" />
+  </target>
+
   <target name="deploy" depends="deploy-init,build"
                description="Deploy generated files">
     <ant antfile="${build.dir}/deploy.xml" target="deployFiles" inheritRefs="true" />
