@@ -76,6 +76,7 @@
           any jars on the package classpath are newer.
          ============================================================== -->
 
+    <echo message="build.jar.file=${build.jar.file}" />
     <uptodate property="build.jar.uptodate"
               targetfile="${build.jar.file}" >
       <srcfiles refid="buildjar.java.sources" />

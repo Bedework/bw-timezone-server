@@ -11,6 +11,9 @@
     <filter token="QUICKSTART_DIR"
             value="${quickstart.dir}"/>
 
+    <filter token="APPSERVER-DATA-DIR"
+            value="${org.bedework.data.dir}"/>
+  	
     <filter token="BW-APP-NAME"
             value="${org.bedework.deploy.name}"/>
 
@@ -49,6 +52,9 @@
 
     <filter token="LIFERAY-COMPANY-ID"
             value="${org.bedework.global.liferay.company-id}"/>
+
+    <filter token="JBOSS-CARDDB-DATASOURCE"
+            value="${org.bedework.global.jboss.carddb.datasource.jndiname}"/>
 
     <!--      Application settings            -->
 
@@ -95,6 +101,12 @@
             <!-- ???????
     <filter token="CALFILE-NAME"
             value="${propval.app.calfile.name}" /> -->
+    <filter token="ADMIN-URI"
+            value="${org.bedework.global.public.admin.uri}" />
+    <filter token="PUBEVENTS-URI"
+            value="${org.bedework.global.public.calendar.uri}" />
+    <filter token="PERSONAL-URI"
+            value="${org.bedework.global.personal.calendar.uri}" />
 
     <!--      Shell script settings            -->
 

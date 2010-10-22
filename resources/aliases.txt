@@ -6,8 +6,9 @@
 
 # Add any extra aliases below here...
 
+# ==============================================================================
 # Here we have the Exchange timezones (or so I believe).
-# As far as I can tell they can occur with the "." in the time pr the ":"
+# As far as I can tell they can occur with the "." in the time or the ":"
 
 #(UTC)\ Universal\ Coordinated\ Time
 (GMT)\ Casablanca,\ Monrovia=Africa/Casablanca
@@ -165,6 +166,13 @@
 (GMT-11.00)\ Midway\ Island,\ Samoa=Pacific/Pago_Pago
 (GMT-12.00)\ Eniwetok,\ Kwajalein,\ Dateline\ Time=Pacific/Kwajalein
 
+# ==============================================================================
+# Events exported from Outlook appear to have their own names for events they
+# are fetching from Exchange
+
+Eastern\ Standard\ Time=America/New_York
+
+# ==============================================================================
 # The following is a copy of the ical4j tz.alias file
 
 Pacific/Samoa=Pacific/Pago_Pago

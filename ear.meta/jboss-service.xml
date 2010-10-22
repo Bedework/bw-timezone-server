@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<server>
+  <mbean code="org.bedework.timezones.service.Tzsvc"
+         name="org.bedework:service=Tzsvr">
+    <attribute name="Appname">tzsvr</attribute>
+    
+    <!-- We need activemq 
+    <depends>jboss.jca:service=ConnectionFactoryBinding,name=activemq/QueueConnectionFactory</depends>
+    -->    
+  </mbean>
+</server>

@@ -2,19 +2,21 @@
 
 <!-- This is the ant build file for the timezones package.
 
-     The target of interest is build which should leave a jar file
-     in the dist directory..
-
-     Authors: Mike Douglass   douglm - rpi.edu
+     Authors: Mike Douglass   douglm  rpi.edu
 -->
 
-<project name="timezones" default="build">
+<project name="tzsvr" default="deploy">
   <taskdef resource="net/sf/antcontrib/antcontrib.properties" />
 
   <property environment="env"/>
-  <property name="base.name" value="timezones"/>
+  <!-- These may already be set from calling dir -->
+  <dirname property="org.bedework.project.tzsvr" file="${ant.file}"/>
   <dirname property="project.home" file="${ant.file}"/>
+
   <property file="${project.home}/build.properties" />
+  
+  <property name="bedework.home"
+            location="${project.home}/../bedework" />
 
   <property name="project.name" value="${org.bedework.package.name}"/>
   <property name="project.version" value="${org.bedework.version}"/>
@@ -23,34 +25,56 @@
   <property name="lib.dir" location="${project.home}/lib"/>
 
   <property name="build.dir" location="${project.home}/build"/>
-  <property name="buildjar" location="${build.dir}/buildjar.xml"/>
+  <property name="buildjar" location="${build.dir}/buildTools/buildjar.xml"/>
   <property name="buildwar" location="${build.dir}/buildwar.xml"/>
+  <property name="buildsh" location="${build.dir}/buildsh.xml"/>
+
+  <property name="resources.dir" location="${project.home}/resources"/>
+
+  <property name="ear.meta.dir" location="${project.home}/ear.meta"/>
+
+  <property name="org.bedework.temp.dir"
+            location="${dist.home}/temp" />
+  
+  <delete dir="${org.bedework.temp.dir}" />
+  <mkdir dir="${org.bedework.temp.dir}" />
 
   <property name="org.bedework.libcache.dir"
             location="${project.home}/libcache"/>
 
-	<!-- Used to select our properties --> 
-	<property name="org.bedework.deploy.name" value="tzsvr" />
-
-  <import file="${build.dir}/getJar.xml"/>
+  <import file="${build.dir}/buildTools/getJar.xml"/>
   <import file="${build.dir}/loadDeployConfig.xml"/>
+
+  <property name="org.bedework.deployutil.jar"
+            location="${build.dir}/bw-deployutil-3.6.jar" />
 
   <!-- =================================================================
        init:
        ================================================================= -->
 
-  <target name="init" >
+  <target name="init">
     <property name="org.bedework.project.bedework"
               location="${project.home}/../bedework" />
 
     <loadDeployConfig />
   	
-    <propertyset id="deploy-app-properties">
-      <propertyref prefix="org.bedework.app.${org.bedework.deploy.name}"/>
-      <globmapper from="org.bedework.app.${org.bedework.deploy.name}.*" to="propval.app.*"/>
-    </propertyset>
-  	
-    <!-- echo message="*** Options file: ${org.bedework.carddav.options}" / -->
+    <property name="org.bedework.temp.wars.home"
+              location="${dist.home}/temp/wars" />
+    
+    <if>
+      <not>
+        <isset property="org.bedework.global.context.roots" />
+      </not>
+      <then>
+        <tempfile property="org.bedework.global.context.roots"
+                  destdir="${org.bedework.temp.dir}"
+                  prefix="context-roots" suffix=".properties" />
+      </then>
+    </if>
+
+  	<property name="org.bedework.service.options.file"
+  	          value="${org.bedework.config.options}" />
+    <echo message="*** Options file: ${org.bedework.service.options.file}" />
 
     <delete dir="${lib.dir}" />
     <mkdir dir="${lib.dir}" />
@@ -62,26 +86,21 @@
     <getJar name="commons-httpclient" version="3.0" />
     <getJar name="commons-lang" version="2.1" />
     <getJar name="ehcache" version="1.6.2" />
-    <getJar name="ical4j" version="head-dev" />
+    <getJar name="ical4j" version="1.0-rc3-SNAPSHOT" />
     <getJar name="log4j" version="1.2.8" />
     <getJar name="servletapi" version="2.4" />
-
-    <getJar name="bw-deployutil" version="3.6" />
-
-    <path id="app.xml.cp">
-      <pathelement location="${org.bedework.appjar.bw-deployutil}"/>
-    </path>
-
-    <taskdef name="resolveFile"
-             classname="org.bedework.deployment.ResolveFile">
-      <classpath refid="app.xml.cp"/>
-    </taskdef>
 
     <getJar name="rpiutil" version="3.6" project="rpiutil" 
             projecthome="${project.home}/../bedework/projects/rpiutil" />
 
-    <property name="org.bedework.tzsvr.base" 
-              location="${project.home}/tzsvr" />
+    <property name="org.bedework.module.common.base"
+              location="${project.home}/common" />
+
+    <property name="org.bedework.module.server.base" 
+              location="${project.home}/server" />
+
+    <property name="org.bedework.module.service.base"
+              location="${project.home}/service" />
 
     <mkdir dir="${dist.home}" />
 
@@ -94,28 +113,98 @@
 
     <fileset id="empty.fileset" dir="${edu.rpi.cmt.empty.dir}"
              excludes="*" />
+             
     <!-- default to empty -->
-    <fileset id="base.resource.files" refid="empty.fileset" />
+    <fileset id="buildjar.resource.files" refid="empty.fileset" />
+    <fileset id="buildjar.generated.java.sources" refid="empty.fileset" />
 
-    <property name="tzsvr.jar"
-              location="${dist.home}/${org.bedework.timezonessvr.jar}-${project.version}.jar" />
+    <property name="common.jar"
+              location="${dist.home}/${org.bedework.module.common.jar}-${project.version}.jar" />
 
-    <!-- Name of our war file -->
-    <property name="propval.app.war.name" value="tzsvr" />
+    <property name="server.jar"
+              location="${dist.home}/${org.bedework.module.server.jar}-${project.version}.jar" />
+
+    <property name="service.jar"
+              location="${dist.home}/${org.bedework.module.service.jar}-${project.version}.jar" />
 
     <!-- ==================== Compilation Classpath ==================== -->
 
     <path id="compile.classpath">
       <fileset dir="${lib.dir}">
-         <include name="*.jar"/>
+         <include name="**/*.jar"/>
       </fileset>
       <fileset dir="${dist.home}">
          <include name="*.jar"/>
       </fileset>
-      <fileset dir="${java.home}">
-         <include name="lib/tools.jar"/>
-      </fileset>
     </path>
+  </target>
+
+  <target name="deploy-init" depends="init">
+
+    <!-- ========= Stuff in main bedework deployment build file =========   -->
+    <!-- Where we put ear stuff -->
+    <if>
+      <isset property="org.bedework.global.build.ear" />
+      <then>
+        <property name="app.ear.file.name"
+                  value="${org.bedework.global.ear.name}-${ant.project.name}.ear" />
+
+        <property name="service.app.zip.name"
+                  value="${org.bedework.global.ear.name}-${ant.project.name}svc" />
+
+        <if>
+          <equals arg1="${org.bedework.global.ear.zipped}"
+                  arg2="yes" />
+          <then>
+            <property name="org.bedework.ear.dir"
+                      location="${dist.home}/${org.bedework.global.ear.name}-${ant.project.name}" />
+            <property name="org.bedework.ear.file"
+                      location="${dist.home}/${org.bedework.global.ear.name}-${ant.project.name}.ear" />
+          </then>
+          <else>
+            <property name="org.bedework.ear.dir"
+                      location="${dist.home}/${org.bedework.global.ear.name}-${ant.project.name}.ear" />
+          </else>
+        </if>
+
+        <property name="org.bedework.ear.templib"
+                  location="${org.bedework.temp.dir}/earlib" />
+
+        <property name="org.bedework.ear.properties.dir"
+                  location="${org.bedework.temp.dir}/ear-properties" />
+
+        <property name="org.bedework.ear.properties.jar"
+                  location="${org.bedework.ear.dir}/bw-ear-properties.jar"/>
+
+        <delete dir="${org.bedework.ear.dir}" />
+        <mkdir dir="${org.bedework.ear.dir}" />
+
+        <delete dir="${org.bedework.ear.templib}" />
+        <mkdir dir="${org.bedework.ear.templib}" />
+
+        <delete dir="${org.bedework.ear.properties.dir}" />
+        <mkdir dir="${org.bedework.ear.properties.dir}" />
+      </then>
+    </if>
+    
+    <property name="org.bedework.temp.shellscr.home"
+              location="${org.bedework.temp.dir}/shellscr" />
+
+    <property name="org.bedework.temp.extrajars.dir"
+              location="${org.bedework.temp.dir}/extrajars" />
+
+    <!-- Preserve extra jars for ear builds -->
+    <property name="org.bedework.temp.ear.extrajars.dir"
+              location="${org.bedework.temp.dir}/earextrajars" />
+    
+    <property name="org.bedework.global.context.roots"
+              location="${org.bedework.temp.dir}/context-roots.properties" />
+
+    <!-- ===== End of stuff in main bedework deployment build file ======   -->
+    
+    <!-- Clean up before we start -->
+    <delete dir="${org.bedework.temp.wars.home}" />
+    <mkdir dir="${org.bedework.temp.wars.home}" />
   </target>
 
   <!-- =================================================================
@@ -134,7 +223,6 @@
        ================================================================= -->
   <target name="clean">
     <delete dir="${dist.home}" />
-    <delete dir="${libapi.dir}" />
   </target>
 
   <!-- =================================================================
@@ -150,93 +238,53 @@
        ================================================================= -->
 
   <target name="clean-build" depends="clean,build"
-          description="Clean and compile timezone classes"/>
+          description="Clean and compile classes"/>
 
-  <target name="clean-build-all" depends="clean,build-all"
-          description="Clean and compile timezone classes"/>
+  <target name="clean-build-all" depends="clean,build"
+          description="Clean and compile classes"/>
 
-  <target name="build" depends="init,build-source,build-war,cleanup"
-          description="Compile timezone classes"/>
+  <target name="build" depends="init,build-source,cleanup"
+          description="Compile classes"/>
 
-  <target name="build-all" depends="build"
-          description="Compile timezone classes"/>
-
-  <!-- ===================== build.source Target ===============================
+  <!-- ===================== build.all Target ===============================
      This target builds jar files ready for the deploy target.
      =================================================================== -->
 
-  <target name="build-source" depends="init,bld.tzsvr"  />
-
-  <!-- ===================== build.war Target ===============================
-     This target builds war files ready for the deploy target.
-     =================================================================== -->
-
-  <target name="build-war" depends="build-source" >
-    <!-- Create a servlet.properties file -->
-
-    <mkdir dir="${dist.home}/temp/properties"/>
-
-    <echo file="${dist.home}/temp/properties/tzsvr.properties">
-# ========================================================================
-# Properties file for the timezone server
-# ========================================================================
-#
-# Generated by the build process
-
-# Property defining location of the registry
-tzsvc.tzdata.url=${org.bedework.app.tzsvr.tzdata.url}
-
-# Property defining integer seconds refetch interval for data
-tzsvc.refetch.interval=${org.bedework.app.tzsvr.refetch.interval}
-
-# Property defining a key to allow POST
-tzsvc.post.id=${org.bedework.app.tzsvr.post.id}
-
-# =========================================================================
-# Caching information - most of this is in ehcache.xml
-# =========================================================================
-
-tzsvc.vtimezones.cache.name=${org.bedework.app.tzsvr.vtimezones.cache.name}
-
-#tzsvc.zoneinfo.cache.name=${}
-
-    </echo>
-
-    <copy todir="${dist.home}/temp/properties">
-      <fileset dir="${project.home}/resources/properties"
-               includes="*" />
-    </copy>
-
-    <ant antfile="${build.dir}/buildwar.xml" inheritrefs="true"
-         target="build" >
-      <propertyset refid="deploy-app-properties" />
-      <property name="app.sou.dir" location="${org.bedework.tzsvr.base}" />
-      <property name="propval.app.display.name"
-                value="Timezones service" />
-    </ant>
-  </target>
-
+  <target name="build-source" 
+               depends="init,bld.common,bld.service,bld.server"  />
+ 
   <!-- ===================== deploy Target ===============================
-     This target deploys a war file to our app server.
+     Deploy if an application server is defined.
      =================================================================== -->
 
-  <target name="deploy" depends="build-war" >
-    <if>
-      <isset property="org.bedework.appserver.deploy.dir"/>
-      <then>
-        <delete dir="${org.bedework.appserver.deploy.dir}/${propval.app.war.name}" />
-        <delete dir="${org.bedework.appserver.deploy.dir}/${propval.app.war.name}.war" />
+  <target name="deploy" depends="deploy-init,build"
+               description="Deploy generated files">
+    <ant antfile="${build.dir}/deploy.xml" target="deployFiles" inheritRefs="true" />
+  	
+  	<!-- Service defined in ear file.
+    <ant antfile="${build.dir}/deployService.xml" target="deploy" inheritRefs="true" >
+      <property name="propval.app.zip.name"
+                value="${service.app.zip.name}" />
+      <property name="propval.app.options.path"
+                value="properties/exsynch" />
+      <property name="app.service.base" 
+                location="${org.bedework.module.service.base}" />
+      <property name="app.global.properties.dir" 
+                location="${resources.dir}" />
+   </ant>
+   -->
 
-        <copy todir="${org.bedework.appserver.deploy.dir}">
-          <fileset dir="${dist.home}">
-            <include name="*.war" />
-         </fileset>
-        </copy>
-      </then>
-      <else>
-        <echo message="********* No deploy directory defined" />
-      </else>
-    </if>
+    <getJar lib="${org.bedework.temp.extrajars.dir}"
+            libcache="${org.bedework.libcache.dir}"
+            name="bw-davio" version="3.6"
+            projecthome="${bedework.home}/projects/davutil" />
+    
+    <getJar lib="${org.bedework.temp.extrajars.dir}"
+            libcache="${org.bedework.libcache.dir}"
+            name="log4j" version="1.2.8"/>
+    
+    <ant antfile="${build.dir}/deployTermination.xml" 
+    	   target="deployTerminate" inheritRefs="true" />
   </target>
 
   <!-- ==================== Javadoc Target ===============================
@@ -251,7 +299,7 @@ tzsvc.vtimezones.cache.name=${org.bedework.app.tzsvr.vtimezones.cache.name}
     <property name="destdir" location="${dist.home}/docs/api"/>
     <mkdir dir="${destdir}"/>
 
-    <javadoc sourcepath="${org.bedework.tzsvr.base}/src:"
+    <javadoc sourcepath="${org.bedework.module.common.base}/src:${org.bedework.module.service.base}/src:${org.bedework.module.server.base}/src:"
            classpathref="compile.classpath"
                 destdir="${destdir}"
                overview="${project.home}/overview.html"
@@ -268,13 +316,48 @@ tzsvc.vtimezones.cache.name=${org.bedework.app.tzsvr.vtimezones.cache.name}
     </javadoc>
   </target>
 
-  <!-- ======================== component build targets =======================
+  <!-- ===================== internal build targets ====================
        ================================================================= -->
 
-  <target name="bld.tzsvr" >
-    <ant antfile="${org.bedework.tzsvr.base}/build.xml" inheritrefs="true"
+  <target name="bld.common">
+    <ant antfile="${org.bedework.module.common.base}/build.xml" inheritrefs="true"
+           target="build" >
+      <property name="build.jar.file" location="${common.jar}" />
+    </ant>
+  </target>
+
+  <target name="bld.server">
+    <ant antfile="${org.bedework.module.server.base}/build.xml" inheritrefs="true"
          target="build" >
-      <property name="build.jar.file" location="${tzsvr.jar}" />
+      <property name="build.jar.file" location="${server.jar}" />
+    </ant>
+
+    <!-- ===============================================================
+         Build the war
+         =============================================================== -->
+         
+    <property name="app.sou.dir"
+              location="${org.bedework.module.server.base}" />
+
+    <ant antfile="${buildwar}" inheritRefs="true" target="build" >
+      <property name="propval.app.context.root"
+                value="${org.bedework.module.context.root}" />
+      <property name="propval.app.properties.path"
+                value="properties/${ant.project.name}" />
+      <property name="propval.app.war.name"
+                value="${org.bedework.module.war.name}" />
+      <property name="propval.app.web.xml"
+                location="${app.sou.dir}/war/WEB-INF/web.xml" />
+
+      <property name="org.bedework.deploy.name"
+                value="${ant.project.name}" />
+    </ant>
+  </target>
+
+  <target name="bld.service">
+    <ant antfile="${org.bedework.module.service.base}/build.xml" inheritrefs="true"
+         target="build"  >
+      <property name="build.jar.file" location="${service.jar}" />
     </ant>
   </target>
 </project>

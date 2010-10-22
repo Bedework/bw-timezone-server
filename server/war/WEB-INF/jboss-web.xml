@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<jboss-web>
+  <!-- Virtual host -->
+
+  <security-domain>java:/jaas/@SECURITY-DOMAIN@</security-domain>
+
+</jboss-web>
