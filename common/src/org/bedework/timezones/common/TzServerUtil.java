@@ -91,12 +91,12 @@ public class TzServerUtil {
 
   private static CacheManager manager;
   static {
-    URL u = TzServerUtil.class.getResource("/tzsvrEhcache.xml");
+    URL u = TzServerUtil.class.getResource("/properties/tzsvrEhcache.xml");
 
     manager = CacheManager.create(u);
   }
 
-  private static Cache vtzCache;
+  private Cache vtzCache;
 
   private static SortedSet<String> nameList;
 
@@ -689,7 +689,7 @@ public class TzServerUtil {
     nameList = null;
   }
 
-  static String getCachedVtz(final String name) throws ServletException {
+  private String getCachedVtz(final String name) throws ServletException {
     Element el = vtzCache.get(name);
 
     if (el == null) {
@@ -699,7 +699,7 @@ public class TzServerUtil {
     return (String)el.getValue();
   }
 
-  static void putCachedVtz(final String name, final String vtz) throws ServletException {
+  private void putCachedVtz(final String name, final String vtz) throws ServletException {
     Element el = new Element(name, vtz);
 
     vtzCache.put(el);
