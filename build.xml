@@ -259,8 +259,8 @@
 
   <target name="deploy.zoneinfo" depends="deploy-init"
           description="Deploy zoneinfo data">
-  	<copy file="${project.home}/resources/tzdata.zip"
-  	      todir="${org.bedework.server.resource.root.dir}" />
+  	<copy file="${project.home}/tzdata.zip"
+  	      todir="${org.bedework.appserver.dir}/${org.bedework.server.resource.root.dir}" />
   </target>
 
   <target name="deploy" depends="deploy-init,build"
