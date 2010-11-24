@@ -19,7 +19,7 @@
             location="${project.home}/../bedework" />
 
   <property name="project.name" value="${org.bedework.package.name}"/>
-  <property name="project.version" value="${org.bedework.version}"/>
+  <property name="project.version" value="${org.bedework.bwtzsvr.version}"/>
 
   <property name="dist.home" location="${project.home}/dist"/>
   <property name="lib.dir" location="${project.home}/lib"/>
@@ -90,7 +90,7 @@
     <getJar name="log4j" version="1.2.8" />
     <getJar name="servletapi" version="2.4" />
 
-    <getJar name="rpiutil" version="3.6" project="rpiutil" 
+    <getJar name="rpiutil" version="${org.bedework.rpiutil.version}" project="rpiutil" 
             projecthome="${project.home}/../bedework/projects/rpiutil" />
 
     <property name="org.bedework.module.common.base"
