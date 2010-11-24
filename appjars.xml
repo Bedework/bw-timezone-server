@@ -16,35 +16,37 @@
     	
       <getJar lib="${org.bedework.temp.extrajars.dir}"
               libcache="${org.bedework.libcache.dir}"
-              name="bw-tzsvr-cmn" version="3.7"
+              name="bw-tzsvr-cmn" version="${org.bedework.bwtzsvr.version}"
               projecthome="${project.home}" />
       
       <getJar lib="${org.bedework.temp.extrajars.dir}"
               libcache="${org.bedework.libcache.dir}"
-              name="bw-tzsvr" version="3.7"
+              name="bw-tzsvr" version="${org.bedework.bwtzsvr.version}"
               projecthome="${project.home}" />
 
       <getJar lib="${org.bedework.temp.extrajars.dir}"
               libcache="${org.bedework.libcache.dir}"
-              name="bw-tzsvr-svc" version="3.7"
+              name="bw-tzsvr-svc" version="${org.bedework.bwtzsvr.version}"
               projecthome="${project.home}" />
 
       <!-- Bedework jars -->
       
       <getJar lib="${org.bedework.temp.extrajars.dir}"
               libcache="${org.bedework.libcache.dir}"
-              name="rpiutil" version="3.6" project="rpiutil"
+              name="rpiutil" version="${org.bedework.rpiutil.version}" project="rpiutil"
               projecthome="${bedework.home}/projects/rpiutil" />
       
+    	<!--
       <getJar lib="${org.bedework.temp.extrajars.dir}"
               libcache="${org.bedework.libcache.dir}"
-              name="bw-annotations" version="3.6" project="calendarapi" 
+              name="bw-annotations" version="${org.bedework.calendarapi.version}" project="calendarapi" 
               projecthome="${project.home}/../bedework/projects/calendarapi"/>
     	
       <getJar lib="${org.bedework.temp.extrajars.dir}"
               libcache="${org.bedework.libcache.dir}"
-              name="bw-calfacade" version="3.6" project="calendarapi" 
+              name="bw-calfacade" version="${org.bedework.calendarapi.version}" project="calendarapi" 
               projecthome="${project.home}/../bedework/projects/calendarapi" />
+              -->
 
       <!-- Other jars -->
 
