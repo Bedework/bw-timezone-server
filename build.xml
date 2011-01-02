@@ -9,44 +9,33 @@
   <taskdef resource="net/sf/antcontrib/antcontrib.properties" />
 
   <property environment="env"/>
-  <!-- These may already be set from calling dir -->
-  <dirname property="org.bedework.project.tzsvr" file="${ant.file}"/>
   <dirname property="project.home" file="${ant.file}"/>
 
+  <!-- These may already be set from calling dir -->
+  <dirname property="org.bedework.project.tzsvr" file="${ant.file}"/>
   <property file="${project.home}/build.properties" />
   
   <property name="bedework.home"
             location="${project.home}/../bedework" />
 
-  <property name="project.name" value="${org.bedework.package.name}"/>
-  <property name="project.version" value="${org.bedework.bwtzsvr.version}"/>
+  <property name="build.dir" location="${bedework.home}/build"/>
 
-  <property name="dist.home" location="${project.home}/dist"/>
-  <property name="lib.dir" location="${project.home}/lib"/>
+  <import file="${build.dir}/buildTools/deftasks.xml"/>
 
-  <property name="build.dir" location="${project.home}/build"/>
-  <property name="buildjar" location="${build.dir}/buildTools/buildjar.xml"/>
-  <property name="buildwar" location="${build.dir}/buildwar.xml"/>
-  <property name="buildsh" location="${build.dir}/buildsh.xml"/>
-
-  <property name="resources.dir" location="${project.home}/resources"/>
-
-  <property name="ear.meta.dir" location="${project.home}/ear.meta"/>
-
-  <property name="org.bedework.temp.dir"
-            location="${dist.home}/temp" />
-  
-  <delete dir="${org.bedework.temp.dir}" />
-  <mkdir dir="${org.bedework.temp.dir}" />
-
-  <property name="org.bedework.libcache.dir"
-            location="${project.home}/libcache"/>
+  <projectDefs name="${org.bedework.package.name}"
+               version="${org.bedework.bwtzsvr.version}" 
+               deployment-name="tzsvr"
+  />
 
   <import file="${build.dir}/buildTools/getJar.xml"/>
   <import file="${build.dir}/loadDeployConfig.xml"/>
 
-  <property name="org.bedework.deployutil.jar"
-            location="${build.dir}/bw-deployutil-3.6.jar" />
+  <import file="${project.home}/appjars.xml" />
+
+  <property name="org.bedework.sou.classpath.properties"
+            location="${project.home}/resources" />
+
+  <property name="ear.meta.dir" location="${project.home}/ear.meta"/>
 
   <!-- =================================================================
        init:
@@ -72,9 +61,8 @@
       </then>
     </if>
 
-  	<property name="org.bedework.service.options.file"
+  	<property name="org.bedework.options.file"
   	          value="${org.bedework.config.options}" />
-    <echo message="*** Options file: ${org.bedework.service.options.file}" />
 
     <delete dir="${lib.dir}" />
     <mkdir dir="${lib.dir}" />
@@ -152,32 +140,14 @@
         <property name="service.app.zip.name"
                   value="${org.bedework.global.ear.name}-${ant.project.name}svc" />
 
-        <if>
-          <equals arg1="${org.bedework.global.ear.zipped}"
-                  arg2="yes" />
-          <then>
-            <property name="org.bedework.ear.dir"
-                      location="${dist.home}/${org.bedework.global.ear.name}-${ant.project.name}" />
-            <property name="org.bedework.ear.file"
-                      location="${dist.home}/${org.bedework.global.ear.name}-${ant.project.name}.ear" />
-          </then>
-          <else>
-            <property name="org.bedework.ear.dir"
-                      location="${dist.home}/${org.bedework.global.ear.name}-${ant.project.name}.ear" />
-          </else>
-        </if>
+        <property name="org.bedework.ear.name"
+                  value="${org.bedework.global.ear.name}-${ant.project.name}" />
 
         <property name="org.bedework.ear.templib"
                   location="${org.bedework.temp.dir}/earlib" />
 
         <property name="org.bedework.ear.properties.dir"
                   location="${org.bedework.temp.dir}/ear-properties" />
-
-        <property name="org.bedework.ear.properties.jar"
-                  location="${org.bedework.ear.dir}/bw-ear-properties.jar"/>
-
-        <delete dir="${org.bedework.ear.dir}" />
-        <mkdir dir="${org.bedework.ear.dir}" />
 
         <delete dir="${org.bedework.ear.templib}" />
         <mkdir dir="${org.bedework.ear.templib}" />
@@ -265,8 +235,8 @@
 
   <target name="deploy" depends="deploy-init,build"
                description="Deploy generated files">
-    <ant antfile="${build.dir}/deploy.xml" target="deployFiles" inheritRefs="true" />
-  	
+    <getExtraJars/>
+    
   	<!-- Service defined in ear file.
     <ant antfile="${build.dir}/deployService.xml" target="deploy" inheritRefs="true" >
       <property name="propval.app.zip.name"
@@ -288,9 +258,13 @@
     <getJar lib="${org.bedework.temp.extrajars.dir}"
             libcache="${org.bedework.libcache.dir}"
             name="log4j" version="1.2.8"/>
+
+    <ant antfile="${build.dir}/../deployment/termination/webapp/build.xml" 
+         target="deploy" inheritRefs="true" />
     
-    <ant antfile="${build.dir}/deployTermination.xml" 
-    	   target="deployTerminate" inheritRefs="true" />
+    <!-- Platform specific -->
+    <ant antfile="${build.dir}/../deployment/termination/build.xml" 
+         target="deploy" inheritRefs="true" />
   </target>
 
   <!-- ==================== Javadoc Target ===============================
@@ -333,6 +307,8 @@
   </target>
 
   <target name="bld.server">
+    <getExtraJars/>
+
     <ant antfile="${org.bedework.module.server.base}/build.xml" inheritrefs="true"
          target="build" >
       <property name="build.jar.file" location="${server.jar}" />
@@ -348,8 +324,6 @@
     <ant antfile="${buildwar}" inheritRefs="true" target="build" >
       <property name="propval.app.context.root"
                 value="${org.bedework.module.context.root}" />
-      <property name="propval.app.properties.path"
-                value="properties/${ant.project.name}" />
       <property name="propval.app.war.name"
                 value="${org.bedework.module.war.name}" />
       <property name="propval.app.web.xml"
