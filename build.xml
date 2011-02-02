@@ -11,8 +11,6 @@
   <property environment="env"/>
   <dirname property="project.home" file="${ant.file}"/>
 
-  <!-- These may already be set from calling dir -->
-  <dirname property="org.bedework.project.tzsvr" file="${ant.file}"/>
   <property file="${project.home}/build.properties" />
   
   <property name="bedework.home"
@@ -22,12 +20,13 @@
 
   <import file="${build.dir}/buildTools/deftasks.xml"/>
 
+  <deftasks/>
+
   <projectDefs name="${org.bedework.package.name}"
                version="${org.bedework.bwtzsvr.version}" 
                deployment-name="tzsvr"
   />
 
-  <import file="${build.dir}/buildTools/getJar.xml"/>
   <import file="${build.dir}/loadDeployConfig.xml"/>
 
   <import file="${project.home}/appjars.xml" />
@@ -42,6 +41,8 @@
        ================================================================= -->
 
   <target name="init">
+    <projectInit/>
+    
     <property name="org.bedework.project.bedework"
               location="${project.home}/../bedework" />
 
@@ -63,9 +64,6 @@
 
   	<property name="org.bedework.options.file"
   	          value="${org.bedework.config.options}" />
-
-    <delete dir="${lib.dir}" />
-    <mkdir dir="${lib.dir}" />
 
     <property name="org.bedework.getjar.property.prefix"
               value="org.bedework.appjar" />
@@ -90,22 +88,6 @@
     <property name="org.bedework.module.service.base"
               location="${project.home}/service" />
 
-    <mkdir dir="${dist.home}" />
-
-    <property name="test.data.dir"
-              location="${dist.home}/test-data" />
-
-    <property name="edu.rpi.cmt.empty.dir"
-              location="${dist.home}/empty-dir" />
-    <mkdir dir="${edu.rpi.cmt.empty.dir}" />
-
-    <fileset id="empty.fileset" dir="${edu.rpi.cmt.empty.dir}"
-             excludes="*" />
-             
-    <!-- default to empty -->
-    <fileset id="buildjar.resource.files" refid="empty.fileset" />
-    <fileset id="buildjar.generated.java.sources" refid="empty.fileset" />
-
     <property name="common.jar"
               location="${dist.home}/${org.bedework.module.common.jar}-${project.version}.jar" />
 
@@ -114,17 +96,6 @@
 
     <property name="service.jar"
               location="${dist.home}/${org.bedework.module.service.jar}-${project.version}.jar" />
-
-    <!-- ==================== Compilation Classpath ==================== -->
-
-    <path id="compile.classpath">
-      <fileset dir="${lib.dir}">
-         <include name="**/*.jar"/>
-      </fileset>
-      <fileset dir="${dist.home}">
-         <include name="*.jar"/>
-      </fileset>
-    </path>
   </target>
 
   <target name="deploy-init" depends="init">
@@ -175,53 +146,49 @@
     <!-- Clean up before we start -->
     <delete dir="${org.bedework.temp.wars.home}" />
     <mkdir dir="${org.bedework.temp.wars.home}" />
+
+    <delete dir="${org.bedework.temp.ear.extrajars.dir}" />
+    <mkdir dir="${org.bedework.temp.ear.extrajars.dir}" />
+
+    <delete dir="${org.bedework.temp.extrajars.dir}" />
+    <mkdir dir="${org.bedework.temp.extrajars.dir}" />
   </target>
 
-  <!-- =================================================================
-       Clean out all library files from other projects and all generated
-       files in preparation for a complete rebuild.
-
-       Needed because switching versions leaves a load of old bedework
-       generated stuff in the libraries.
-       ================================================================= -->
-  <target name="deep-clean" depends="clean">
-    <delete dir="${lib.dir}" />
-  </target>
-
-  <!-- =================================================================
-       Clean all generated files
-       ================================================================= -->
-  <target name="clean">
-    <delete dir="${dist.home}" />
-  </target>
-
-  <!-- =================================================================
-       Clean up after a build.
-       ================================================================= -->
-  <target name="cleanup">
-    <delete dir="${edu.rpi.cmt.empty.dir}" />
-  </target>
-
-  <!-- ========================== Base build Targets ===================
-       Here we have one target building the classes and interfaces that make
-       up the access control suite.
-       ================================================================= -->
-
-  <target name="clean-build" depends="clean,build"
-          description="Clean and compile classes"/>
-
-  <target name="clean-build-all" depends="clean,build"
-          description="Clean and compile classes"/>
-
-  <target name="build" depends="init,build-source,cleanup"
-          description="Compile classes"/>
-
-  <!-- ===================== build.all Target ===============================
+  <!-- ===================== build-source Target ===============================
      This target builds jar files ready for the deploy target.
      =================================================================== -->
 
-  <target name="build-source" 
-               depends="init,bld.common,bld.service,bld.server"  />
+  <target name="build-source"  depends="init" >
+    <build-jar module-base="${org.bedework.module.common.base}" 
+               jar-file="${common.jar}" />
+    
+    <build-jar module-base="${org.bedework.module.server.base}" 
+               jar-file="${server.jar}" />
+    
+    <build-jar module-base="${org.bedework.module.service.base}" 
+               jar-file="${service.jar}" />
+    
+    <getExtraJars/>
+
+    <!-- ===============================================================
+         Build the war
+         =============================================================== -->
+         
+    <property name="app.sou.dir"
+              location="${org.bedework.module.server.base}" />
+
+    <ant antfile="${buildwar}" inheritRefs="true" target="build" >
+      <property name="propval.app.context.root"
+                value="${org.bedework.module.context.root}" />
+      <property name="propval.app.war.name"
+                value="${org.bedework.module.war.name}" />
+      <property name="propval.app.web.xml"
+                location="${app.sou.dir}/war/WEB-INF/web.xml" />
+
+      <property name="org.bedework.deploy.name"
+                value="${ant.project.name}" />
+    </ant>
+  </target>
  
   <!-- ===================== deploy Target ===============================
      Deploy if an application server is defined.
@@ -260,7 +227,9 @@
             name="log4j" version="1.2.8"/>
 
     <ant antfile="${build.dir}/../deployment/termination/webapp/build.xml" 
-         target="deploy" inheritRefs="true" />
+         target="deploy" inheritRefs="true"  >
+      <property name="org.bedework.no.extra.ear.jars" value="yes" />
+    </ant>
     
     <!-- Platform specific -->
     <ant antfile="${build.dir}/../deployment/termination/build.xml" 
@@ -294,50 +263,5 @@
       <header><![CDATA[${project.name} ${project.version}<br/>Timezones Documentation]]></header>
       <link href="${env.JAVA_HOME}/docs/api" />
     </javadoc>
-  </target>
-
-  <!-- ===================== internal build targets ====================
-       ================================================================= -->
-
-  <target name="bld.common">
-    <ant antfile="${org.bedework.module.common.base}/build.xml" inheritrefs="true"
-           target="build" >
-      <property name="build.jar.file" location="${common.jar}" />
-    </ant>
-  </target>
-
-  <target name="bld.server">
-    <getExtraJars/>
-
-    <ant antfile="${org.bedework.module.server.base}/build.xml" inheritrefs="true"
-         target="build" >
-      <property name="build.jar.file" location="${server.jar}" />
-    </ant>
-
-    <!-- ===============================================================
-         Build the war
-         =============================================================== -->
-         
-    <property name="app.sou.dir"
-              location="${org.bedework.module.server.base}" />
-
-    <ant antfile="${buildwar}" inheritRefs="true" target="build" >
-      <property name="propval.app.context.root"
-                value="${org.bedework.module.context.root}" />
-      <property name="propval.app.war.name"
-                value="${org.bedework.module.war.name}" />
-      <property name="propval.app.web.xml"
-                location="${app.sou.dir}/war/WEB-INF/web.xml" />
-
-      <property name="org.bedework.deploy.name"
-                value="${ant.project.name}" />
-    </ant>
-  </target>
-
-  <target name="bld.service">
-    <ant antfile="${org.bedework.module.service.base}/build.xml" inheritrefs="true"
-         target="build"  >
-      <property name="build.jar.file" location="${service.jar}" />
-    </ant>
   </target>
 </project>
