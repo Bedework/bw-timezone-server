@@ -28,6 +28,7 @@
   />
 
   <import file="${build.dir}/loadDeployConfig.xml"/>
+  <import file="${build.dir}/buildTools/xjc.xml"/>
 
   <import file="${project.home}/appjars.xml" />
 
@@ -79,6 +80,9 @@
     <getJar name="rpiutil" version="${org.bedework.rpiutil.version}" project="rpiutil" 
             projecthome="${project.home}/../bedework/projects/rpiutil" />
 
+    <property name="org.bedework.module.gensrc.base"
+              location="${project.home}/gensrc" />
+
     <property name="org.bedework.module.common.base"
               location="${project.home}/common" />
 
@@ -87,6 +91,12 @@
 
     <property name="org.bedework.module.service.base"
               location="${project.home}/service" />
+    
+    <property name="org.bedework.module.schema.dir" 
+              location="${bedework.home}/resources/timezones" />
+
+    <property name="gensrc.jar"
+              location="${dist.home}/${org.bedework.module.gensrc.jar}-${project.version}.jar" />
 
     <property name="common.jar"
               location="${dist.home}/${org.bedework.module.common.jar}-${project.version}.jar" />
@@ -159,6 +169,12 @@
      =================================================================== -->
 
   <target name="build-source"  depends="init" >
+    <xjc schema="${org.bedework.module.schema.dir}/tzservice.xsd"
+         module-base="${org.bedework.module.gensrc.base}"
+         jar-file="${gensrc.jar}"
+         bindingsdir="${org.bedework.module.schema.dir}/bindings"
+    />
+
     <build-jar module-base="${org.bedework.module.common.base}" 
                jar-file="${common.jar}" />
     

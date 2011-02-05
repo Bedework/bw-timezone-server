@@ -29,18 +29,185 @@ package org.bedework.timezones.server;
 import org.bedework.timezones.common.Stat;
 import org.bedework.timezones.common.TzServerUtil;
 
+import ietf.params.xml.ns.timezone_service.Capabilities;
+import ietf.params.xml.ns.timezone_service.CapabilitiesAcceptParameterType;
+import ietf.params.xml.ns.timezone_service.CapabilitiesOperationType;
+
 import java.io.Writer;
 import java.util.Collection;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
 
 /** Class called to handle GET.
  *
  *   @author Mike Douglass
  */
 public class GetMethod extends MethodBase {
+  /* Define capabilities as static objects */
+  static final Capabilities capabilities = new Capabilities();
+
+  static {
+    addCapability(capabilities, "capabilities",
+                  "This operation returns the capabilities of the server, " +
+                    "allowing clients to determine if a specific feature has been" +
+                    " deployed and/or enabled.",
+                  makePar("action",
+                          true,
+                          false,
+                          "capabilities",
+                          "Specify the action to be carried out."));
+
+    addCapability(capabilities, "list",
+                  "This operation lists all timezone identifiers, in summary " +
+                    "format, with optional localized data. In addition, it " +
+                    "returns a timestamp which is the current server global " +
+                    "last modification value. ",
+                  makePar("action",
+                          true,
+                          false,
+                          "list",
+                          "Specify the action to be carried out."),
+                  makePar("lang",
+                          false,
+                          true,
+                          null,
+                          "OPTIONAL, but MUST occur only once. If present, " +
+                            "indicates that timezone aliases should be returned " +
+                            "in the list. "),
+                  makePar("returnall",
+                          false,
+                          false,
+                          null,
+                          "OPTIONAL, but MUST occur only once. If present, " +
+                            "indicates that all, including inactive, timezones " +
+                            "should be returned in the response. The " +
+                            "TZ:inactive XML element will flag those timezones " +
+                            "no longer in use. "),
+                  makePar("changedsince",
+                          false,
+                          false,
+                          null,
+                          "OPTIONAL, but MUST occur only once. If present, " +
+                            "limits the response to timezones changed since " +
+                            "the given timestamp."));
+
+    addCapability(capabilities, "get",
+                  "    This operation returns a timezone. Clients must be " +
+                    "prepared to accept a timezone with a different identifier " +
+                    "if the requested identifier is an alias. ",
+                  makePar("action",
+                          true,
+                          false,
+                          "get",
+                          "Specify the action to be carried out."),
+                  makePar("format",
+                          false,
+                          false,
+                          null,
+                          "OPTIONAL, but MUST occur only once. Return " +
+                            "information using the specified media-type. In " +
+                            "the absence of this parameter, the value " +
+                            "\"text/calendar\" MUST be assumed."),
+                  makePar("lang",
+                          false,
+                          true,
+                          null,
+                          "OPTIONAL, but MUST occur only once. If present, " +
+                            "indicates that timezone aliases should be returned " +
+                            "in the list. "),
+                  makePar("tzid",
+                          true,
+                          true,
+                          null,
+                          "REQUIRED, but MAY occur multiple times. Identifies " +
+                            "the timezone for which information is returned. " +
+                            "Alternatively, if a single value of \"*\" is " +
+                            "given, returns information for all timezones. " +
+                            "The \"*\" option will typically be used by servers" +
+                            "that wish to retrieve the entire set of timezones " +
+                            "supported by another server to re-synchronize " +
+                            "their entire data cache. Clients will typically " +
+                            "only retrieve individual timezone data on a " +
+                            "case-by-case basis."));
+
+    addCapability(capabilities, "expand",
+                  "    This operation expands the specified timezone(s) into a " +
+                    "list of onset start date/time and offset. ",
+                  makePar("action",
+                          true,
+                          false,
+                          "expand",
+                          "Specify the action to be carried out."),
+                  makePar("tzid",
+                          true,
+                          true,
+                          null,
+                          "REQUIRED, but MAY occur multiple times. Identifies " +
+                            "the timezones for which information is returned. " +
+                            "The value \"*\", which has a special meaning in " +
+                            "the \"get\" operation, is not supported by this " +
+                            "operation."),
+                  makePar("lang",
+                          false,
+                          true,
+                          null,
+                          "OPTIONAL, but MUST occur only once. If present, " +
+                            "indicates that timezone aliases should be returned " +
+                            "in the list. "),
+                  makePar("start",
+                          false,
+                          true,
+                          "date or date-time",
+                          "OPTIONAL, but MUST occur only once. If present, " +
+                            "specifies the start of the period of interest. " +
+                            "If omitted, the current year is assumed. "),
+                  makePar("end",
+                          false,
+                          true,
+                          "date or date-time",
+                          "OPTIONAL, but MUST occur only once. If present, " +
+                            "specifies the end of the period of interest. " +
+                            "If omitted, the current year + 10 is assumed. "));
+  }
+
+  private static void addCapability(Capabilities capabilities,
+                                    String action,
+                                    String description,
+                                    CapabilitiesAcceptParameterType... pars) {
+    CapabilitiesOperationType cot = new CapabilitiesOperationType();
+
+    cot.setAction(action);
+    cot.setDescription(description);
+
+    if (pars != null) {
+      for (CapabilitiesAcceptParameterType par: pars) {
+        cot.getAcceptParameters().add(par);
+      }
+    }
+
+    capabilities.getOperations().add(cot);
+  }
+
+  private static CapabilitiesAcceptParameterType makePar(String name,
+                                                         boolean required,
+                                                         boolean multi,
+                                                         String value,
+                                                         String description) {
+    CapabilitiesAcceptParameterType capt = new CapabilitiesAcceptParameterType();
+
+    capt.setName(name);
+    capt.setRequired(required);
+    capt.setMulti(multi);
+    capt.setValue(value);
+    capt.setDescription(description);
+
+    return capt;
+  }
+
   /**
    * @param debug
    * @throws ServletException
@@ -65,6 +232,12 @@ public class GetMethod extends MethodBase {
 
     if (path == null) {
       path = "";
+    }
+
+    String action = req.getParameter("action");
+
+    if ("capabilities".equals(action)) {
+      doCapabilities(resp);
     }
 
     if (req.getParameter("names") != null) {
@@ -102,6 +275,18 @@ public class GetMethod extends MethodBase {
       doTzids(resp, ids);
     } else {
       doTzids(resp, req.getParameterValues("tzid"));
+    }
+  }
+
+  private void doCapabilities(final HttpServletResponse resp) throws ServletException {
+    try {
+      JAXBContext jc = JAXBContext.newInstance("ietf.params.xml.ns.timezone_service");
+
+      Marshaller m = jc.createMarshaller();
+      m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+      m.marshal(capabilities, resp.getOutputStream());
+    } catch (Throwable t) {
+      throw new ServletException(t);
     }
   }
 
