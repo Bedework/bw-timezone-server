@@ -28,8 +28,16 @@ package org.bedework.timezones.common;
 import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.data.UnfoldingReader;
 import net.fortuna.ical4j.model.Component;
+import net.fortuna.ical4j.model.ComponentList;
+import net.fortuna.ical4j.model.DateTime;
+import net.fortuna.ical4j.model.Dur;
+import net.fortuna.ical4j.model.Period;
+import net.fortuna.ical4j.model.PeriodList;
 import net.fortuna.ical4j.model.TimeZone;
+import net.fortuna.ical4j.model.component.Observance;
 import net.fortuna.ical4j.model.component.VTimeZone;
+import net.fortuna.ical4j.model.property.DtStamp;
+import net.fortuna.ical4j.model.property.LastModified;
 import net.fortuna.ical4j.util.TimeZones;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
@@ -41,6 +49,12 @@ import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.log4j.Logger;
+
+import ietf.params.xml.ns.timezone_service.AliasType;
+import ietf.params.xml.ns.timezone_service.ObservanceType;
+import ietf.params.xml.ns.timezone_service.SummaryType;
+import ietf.params.xml.ns.timezone_service.Timezones;
+import ietf.params.xml.ns.timezone_service.TzdataType;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -104,6 +118,8 @@ public class TzServerUtil {
   public static long lastDataFetch;
 
   static String etagValue;
+
+  static String dtstamp;
 
   /* ======================= TimeZone objects ======================= */
 
@@ -231,6 +247,37 @@ public class TzServerUtil {
     val.append("\"");
 
     return val.toString();
+  }
+
+  /**
+   * @return the data dtsamp
+   * @throws ServletException
+   */
+  public String getDtstamp() throws ServletException {
+    if (dtstamp == null) {
+      Collection<String> info = tzinfo;
+
+      if (info == null) {
+        info = getInfo();
+      }
+
+      if (info != null) {
+        for (String s: info) {
+          if (s.startsWith("buildTime=")) {
+            dtstamp = s.substring("buildTime=".length());
+            break;
+          }
+        }
+      }
+
+      if (dtstamp == null) {
+        DtStamp dt =  new DtStamp(new DateTime(lastDataFetch));
+
+        dtstamp = dt.getValue();
+      }
+    }
+
+    return dtstamp;
   }
 
   /**
@@ -458,6 +505,60 @@ public class TzServerUtil {
     }
   }
 
+  private static class AliasMaps {
+    Map<String, List<String>> byTzid;
+    Map<String, String> byAlias;
+  }
+
+  private static AliasMaps aliasMaps;
+
+  private void buildAliasMaps(AliasMaps maps) throws ServletException {
+    try {
+      maps.byTzid = new HashMap<String, List<String>>();
+      maps.byAlias = new HashMap<String, String>();
+      Properties p = new Properties();
+
+      StringReader sr = new StringReader(getAliases());
+
+      p.load(sr);
+
+      for (String a: p.stringPropertyNames()) {
+        String id = p.getProperty(a);
+
+        maps.byAlias.put(a, id);
+
+        List<String> as = maps.byTzid.get(id);
+
+        if (as == null) {
+          as = new ArrayList<String>();
+          maps.byTzid.put(id, as);
+        }
+
+        as.add(a);
+      }
+    } catch (Throwable t) {
+      throw new ServletException(t);
+    }
+  }
+
+  /**
+   * @param tzid
+   * @return list of aliases or null
+   * @throws ServletException
+   */
+  public List<String> findAliases(String tzid) throws ServletException {
+    AliasMaps amaps = aliasMaps;
+
+    if (amaps == null) {
+      amaps = new AliasMaps();
+
+      buildAliasMaps(amaps);
+      aliasMaps = amaps;
+    }
+
+    return amaps.byTzid.get(tzid);
+  }
+
   /**
    * @return info
    * @throws ServletException
@@ -587,6 +688,159 @@ public class TzServerUtil {
     conversionsMillis += System.currentTimeMillis() - smillis;
 
     return cdt;
+  }
+
+  private static List<SummaryType> summaries;
+
+  /**
+   * @return list of summary info
+   * @throws Throwable
+   */
+  public List<SummaryType> getSummaries() throws Throwable {
+    if (summaries != null) {
+      return summaries;
+    }
+
+    List<SummaryType> sts = new ArrayList<SummaryType>();
+    SortedSet<String> names = getNames();
+
+    for (String nm: names) {
+      TimeZone tz = fetchTimeZone(nm);
+
+      SummaryType st = new SummaryType();
+
+      st.setTzid(nm);
+
+      VTimeZone vtz = tz.getVTimeZone();
+      LastModified lm = (LastModified)vtz.getProperty(LastModified.LAST_MODIFIED);
+      if (lm!= null) {
+        st.setLastModified(lm.getValue());
+      }
+
+      List<String> aliases = findAliases(nm);
+
+      // XXX Need to have list of local names per timezone
+      //String ln = vtz.
+      if (aliases != null) {
+        for (String a: aliases) {
+          AliasType at = new AliasType();
+
+          // XXX Need locale as well as name
+          at.setValue(a);
+          st.getAlias().add(at);
+        }
+      }
+
+      sts.add(st);
+    }
+
+    summaries = sts;
+    return sts;
+  }
+
+  private static class ObservanceWrapper implements Comparable<ObservanceWrapper> {
+    ObservanceType ot;
+
+    ObservanceWrapper(ObservanceType ot) {
+      this.ot = ot;
+    }
+
+    @Override
+    public int compareTo(ObservanceWrapper o) {
+      return ot.getOnset().compareTo(o.ot.getOnset());
+    }
+  }
+
+  /**
+   * @param tzid
+   * @param start
+   * @param end
+   * @return expansion or null
+   * @throws Throwable
+   */
+  public Timezones getExpanded(String tzid,
+                               String start,
+                               String end) throws Throwable {
+    TimeZone tz = fetchTimeZone(tzid);
+    if (tz == null) {
+      return null;
+    }
+
+    VTimeZone vtz = tz.getVTimeZone();
+
+    DateTime dtstart;
+    DateTime dtend;
+
+    if (start == null) {
+      String date = new net.fortuna.ical4j.model.Date().toString();
+
+      dtstart = new DateTime(date + "T000000Z");
+    } else {
+      dtstart = new DateTime(start);
+    }
+
+    if (end == null) {
+      Dur dur = new Dur("P520W");
+
+      String date = new net.fortuna.ical4j.model.Date(dur.getTime(new Date())).toString();
+      dtend = new DateTime(date + "T000000Z");
+    } else {
+      dtend = new DateTime(end);
+    }
+
+    dtstart.setTimeZone(tz);
+    dtend.setTimeZone(tz);
+
+    Period p = new Period(dtstart, dtend);
+
+    ComponentList cl = vtz.getObservances();
+
+    TreeSet<ObservanceWrapper> obws = new TreeSet<ObservanceWrapper>();
+
+    for (Object o: cl) {
+      Observance ob = (Observance)o;
+
+      PeriodList pl = ob.calculateRecurrenceSet(p);
+
+      for (Object po: pl) {
+        Period onsetPer = (Period)po;
+
+        ObservanceType ot = new ObservanceType();
+
+        ot.setName(ob.getName());
+        ot.setOnset(onsetPer.getStart().toString());
+
+        String offset = ob.getOffsetFrom().getOffset().toString();
+
+        if (offset.length() > 5) {
+          offset = offset.substring(0, offset.length() - 2);
+        }
+        ot.setUtcOffsetFrom(offset);
+
+        offset = ob.getOffsetTo().getOffset().toString();
+
+        if (offset.length() > 5) {
+          offset = offset.substring(0, offset.length() - 2);
+        }
+        ot.setUtcOffsetTo(offset);
+
+        obws.add(new ObservanceWrapper(ot));
+      }
+    }
+
+    TzdataType tzd = new TzdataType();
+
+    tzd.setTzid(tzid);
+    for (ObservanceWrapper ow: obws) {
+      tzd.getObservances().add(ow.ot);
+    }
+
+    Timezones tzs = new Timezones();
+
+    tzs.setDtstamp(getDtstamp());
+    tzs.getTzdatas().add(tzd);
+
+    return tzs;
   }
 
   /** Get a timezone object from the server given the id.

@@ -32,6 +32,8 @@ import org.bedework.timezones.common.TzServerUtil;
 import ietf.params.xml.ns.timezone_service.Capabilities;
 import ietf.params.xml.ns.timezone_service.CapabilitiesAcceptParameterType;
 import ietf.params.xml.ns.timezone_service.CapabilitiesOperationType;
+import ietf.params.xml.ns.timezone_service.TimezoneList;
+import ietf.params.xml.ns.timezone_service.Timezones;
 
 import java.io.Writer;
 import java.util.Collection;
@@ -238,6 +240,17 @@ public class GetMethod extends MethodBase {
 
     if ("capabilities".equals(action)) {
       doCapabilities(resp);
+      return;
+    }
+
+    if ("list".equals(action)) {
+      doList(resp);
+      return;
+    }
+
+    if ("expand".equals(action)) {
+      doExpand(req,resp);
+      return;
     }
 
     if (req.getParameter("names") != null) {
@@ -285,6 +298,41 @@ public class GetMethod extends MethodBase {
       Marshaller m = jc.createMarshaller();
       m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
       m.marshal(capabilities, resp.getOutputStream());
+    } catch (Throwable t) {
+      throw new ServletException(t);
+    }
+  }
+
+  private void doList(final HttpServletResponse resp) throws ServletException {
+    try {
+      TimezoneList tzl = new TimezoneList();
+
+      tzl.setDtstamp(util.getDtstamp());
+      tzl.getSummaries().addAll(util.getSummaries());
+
+      JAXBContext jc = JAXBContext.newInstance("ietf.params.xml.ns.timezone_service");
+
+      Marshaller m = jc.createMarshaller();
+      m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+      m.marshal(tzl, resp.getOutputStream());
+    } catch (Throwable t) {
+      throw new ServletException(t);
+    }
+  }
+
+  private void doExpand(final HttpServletRequest req,
+                        final HttpServletResponse resp) throws ServletException {
+    try {
+      String tzid = req.getParameter("tzid");
+      String start = req.getParameter("start");
+      String end = req.getParameter("end");
+      Timezones tzs = util.getExpanded(tzid, start, end);
+
+      JAXBContext jc = JAXBContext.newInstance("ietf.params.xml.ns.timezone_service");
+
+      Marshaller m = jc.createMarshaller();
+      m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+      m.marshal(tzs, resp.getOutputStream());
     } catch (Throwable t) {
       throw new ServletException(t);
     }
