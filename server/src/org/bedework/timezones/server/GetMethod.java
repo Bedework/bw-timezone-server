@@ -328,6 +328,11 @@ public class GetMethod extends MethodBase {
       String end = req.getParameter("end");
       Timezones tzs = util.getExpanded(tzid, start, end);
 
+      if (tzs == null) {
+        resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        return;
+      }
+
       JAXBContext jc = JAXBContext.newInstance("ietf.params.xml.ns.timezone_service");
 
       Marshaller m = jc.createMarshaller();
@@ -402,7 +407,7 @@ public class GetMethod extends MethodBase {
 
       Writer wtr = resp.getWriter();
 
-      wtr.write(util.getAliases());
+      wtr.write(util.getAliasesStr());
     } catch (ServletException se) {
       throw se;
     } catch (Throwable t) {
@@ -437,7 +442,7 @@ public class GetMethod extends MethodBase {
 
       Writer wtr = resp.getWriter();
 
-      Collection<String> info = util.getInfo();
+      Collection<String> info = util.getDataInfo();
 
       wtr.write("<html>\r\n");
       wtr.write("  <head>\r\n");

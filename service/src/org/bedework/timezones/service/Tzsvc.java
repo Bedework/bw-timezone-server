@@ -65,6 +65,21 @@ public class Tzsvc implements TzsvcMBean {
     return TzServerUtil.getAppname();
   }
 
+  /** Tzdata url
+   *
+   * @param val
+   */
+  public void setTzdataUrl(String val) {
+    TzServerUtil.setTzdataUrl(val);
+  }
+
+  /**
+   * @return String tzdata url
+   */
+  public String getTzdataUrl() {
+    return TzServerUtil.getTzdataUrl();
+  }
+
   /* ========================================================================
    * Operations
    * ======================================================================== */
@@ -82,7 +97,6 @@ public class Tzsvc implements TzsvcMBean {
   public String refreshData() {
     try {
       util.fireRefresh();
-      util.refresh();
       return "Ok";
     } catch (Throwable t) {
       error(t);

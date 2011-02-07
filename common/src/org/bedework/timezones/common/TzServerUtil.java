@@ -25,9 +25,6 @@
 */
 package org.bedework.timezones.common;
 
-import net.fortuna.ical4j.data.CalendarBuilder;
-import net.fortuna.ical4j.data.UnfoldingReader;
-import net.fortuna.ical4j.model.Component;
 import net.fortuna.ical4j.model.ComponentList;
 import net.fortuna.ical4j.model.DateTime;
 import net.fortuna.ical4j.model.Dur;
@@ -37,47 +34,24 @@ import net.fortuna.ical4j.model.TimeZone;
 import net.fortuna.ical4j.model.component.Observance;
 import net.fortuna.ical4j.model.component.VTimeZone;
 import net.fortuna.ical4j.model.property.DtStamp;
-import net.fortuna.ical4j.model.property.LastModified;
 import net.fortuna.ical4j.util.TimeZones;
-import net.sf.ehcache.Cache;
-import net.sf.ehcache.CacheManager;
-import net.sf.ehcache.Element;
 
-import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.log4j.Logger;
 
-import ietf.params.xml.ns.timezone_service.AliasType;
 import ietf.params.xml.ns.timezone_service.ObservanceType;
 import ietf.params.xml.ns.timezone_service.SummaryType;
 import ietf.params.xml.ns.timezone_service.Timezones;
 import ietf.params.xml.ns.timezone_service.TzdataType;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.net.URL;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
-import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import javax.servlet.ServletException;
 
@@ -103,16 +77,7 @@ public class TzServerUtil {
 
   /* ======================= Caching ======================= */
 
-  private static CacheManager manager;
-  static {
-    URL u = TzServerUtil.class.getResource("/properties/tzsvrEhcache.xml");
-
-    manager = CacheManager.create(u);
-  }
-
-  private Cache vtzCache;
-
-  private static SortedSet<String> nameList;
+  private CachedData cache;
 
   /** Time we last fetched the data */
   public static long lastDataFetch;
@@ -121,23 +86,11 @@ public class TzServerUtil {
 
   static String dtstamp;
 
+  static String tzdataUrl;
+
   /* ======================= TimeZone objects ======================= */
 
-  private Map<String, TimeZone> tzs = new HashMap<String, TimeZone>();
-
-  private Properties aliases;
-
-  private String aliasesStr;
-
-  private Collection<String> tzinfo;
-
-  private ZipFile tzDefsZipFile;
-
-  private File tzDefsFile;
-
   private static Object zipLock = new Object();
-
-  volatile boolean refreshNow;
 
   /* ======================= Stats ======================= */
 
@@ -149,8 +102,37 @@ public class TzServerUtil {
   static long conversions;
   static long conversionsMillis;
   static long tzfetches;
-  static long tzbuilds;
-  static long tzbuildsMillis;
+  static long reloads;
+  static long reloadsMillis;
+  static long expandFetches;
+  static long expandHits;
+  static long expands;
+  static long expandsMillis;
+
+  /**
+   * @throws ServletException
+   */
+  private TzServerUtil() throws ServletException {
+    /* Note that the options factory returns a static object and we should
+     * initialise the config once only
+     */
+    OptionsI opts;
+    try {
+      opts = TzsvrOptionsFactory.getOptions(false);
+      config = (TzsvrConfig)opts.getAppProperty(appname);
+      if (config == null) {
+        config = new TzsvrConfig();
+      }
+    } catch (OptionsException e) {
+      throw new ServletException(e);
+    }
+
+    if (tzdataUrl == null) {
+      tzdataUrl = config.getTzdataUrl();
+    }
+
+    cache = new CachedData(tzdataUrl);
+  }
 
   /**
    * @return a singleton instance
@@ -187,31 +169,29 @@ public class TzServerUtil {
     return appname;
   }
 
-  /**
-   * @throws ServletException
+  /** Set before calling getInstance if overriding config
+   *
+   * @param val
    */
-  private TzServerUtil() throws ServletException {
-    /* Note that the options factory returns a static object and we should
-     * initialise the config once only
-     */
-    OptionsI opts;
-    try {
-      opts = TzsvrOptionsFactory.getOptions(false);
-      config = (TzsvrConfig)opts.getAppProperty(appname);
-      if (config == null) {
-        config = new TzsvrConfig();
-      }
-    } catch (OptionsException e) {
-      throw new ServletException(e);
-    }
+  public static void setTzdataUrl(final String val) {
+    tzdataUrl = val;
 
-    cacheInit();
+    if (instance != null) {
+      instance.cache.setTzdataUrl(val);
+    }
+  }
+
+  /**
+   * @return tzdataUrl
+   */
+  public static String getTzdataUrl() {
+    return tzdataUrl;
   }
 
   /** Cause a refresh of the data
    */
   public void fireRefresh() {
-    refreshNow = true;
+    cache.refresh();
   }
 
   /**
@@ -220,18 +200,12 @@ public class TzServerUtil {
    */
   public String getEtag() throws ServletException {
     if (etagValue == null) {
-      Collection<String> info = tzinfo;
+      Collection<String> info = cache.getDataInfo();
 
-      if (info == null) {
-        info = getInfo();
-      }
-
-      if (info != null) {
-        for (String s: info) {
-          if (s.startsWith("buildTime=")) {
-            etagValue = s.substring("buildTime=".length());
-            break;
-          }
+      for (String s: info) {
+        if (s.startsWith("buildTime=")) {
+          etagValue = s.substring("buildTime=".length());
+          break;
         }
       }
 
@@ -255,18 +229,12 @@ public class TzServerUtil {
    */
   public String getDtstamp() throws ServletException {
     if (dtstamp == null) {
-      Collection<String> info = tzinfo;
+      Collection<String> info = cache.getDataInfo();
 
-      if (info == null) {
-        info = getInfo();
-      }
-
-      if (info != null) {
-        for (String s: info) {
-          if (s.startsWith("buildTime=")) {
-            dtstamp = s.substring("buildTime=".length());
-            break;
-          }
+      for (String s: info) {
+        if (s.startsWith("buildTime=")) {
+          dtstamp = s.substring("buildTime=".length());
+          break;
         }
       }
 
@@ -302,105 +270,24 @@ public class TzServerUtil {
                        String.valueOf(conversions),
                        String.valueOf(conversionsMillis)));
     stats.add(new Stat("tzfetches", String.valueOf(tzfetches)));
-    stats.add(new Stat("tzbuilds",
-                       String.valueOf(tzbuilds),
-                       String.valueOf(tzbuildsMillis)));
+    stats.add(new Stat("tzreloads",
+                       String.valueOf(reloads),
+                       String.valueOf(reloadsMillis)));
+    stats.add(new Stat("expands",
+                       String.valueOf(expands),
+                       String.valueOf(expandsMillis)));
 
     return stats;
   }
 
-  /** Retrieve the data and store in a temp file. Return the file object.
-   *
-   * @return File
-   * @throws ServletException
-   */
-  public File getdata() throws ServletException {
-    try {
-      String dataUrl = config.getTzdataUrl();
-      if (dataUrl == null) {
-        throw new ServletException("No data url defined");
-      }
-
-      /* Fetch the data */
-      HttpClient client = new HttpClient();
-
-      HttpMethod get = new GetMethod(dataUrl);
-
-      client.getParams().setParameter(HttpMethodParams.RETRY_HANDLER,
-                                      new DefaultHttpMethodRetryHandler());
-
-      client.executeMethod(get);
-
-      InputStream is = get.getResponseBodyAsStream();
-
-      File f = File.createTempFile("bwtzserver", "zip");
-
-      FileOutputStream fos = new  FileOutputStream(f);
-
-      byte[] buff = new byte[4096];
-
-      for (;;) {
-        int num = is.read(buff);
-
-        if (num < 0) {
-          break;
-        }
-
-        if (num > 0) {
-          fos.write(buff, 0, num);
-        }
-      }
-
-      fos.close();
-      is.close();
-
-      get.releaseConnection();
-
-      logIt("Data (re)fetched");
-
-      return f;
-    } catch (Throwable t) {
-      throw new ServletException(t);
-    }
-  }
-
   /**
-   * @return names fromthe zip file.
+   * @return names from the zip file.
    * @throws ServletException
    */
   public SortedSet<String> getNames() throws ServletException {
     nameLists++;
 
-    /* Do this the right way round we don't need to synch */
-    SortedSet<String> nl = nameList;
-
-    if (nl != null) {
-      return nl;
-    }
-
-    try {
-      nl = new TreeSet<String>();
-
-      Enumeration<? extends ZipEntry> zes = tzDefsZipFile.entries();
-
-      while (zes.hasMoreElements()) {
-        ZipEntry ze = zes.nextElement();
-
-        if (!ze.isDirectory()) {
-          String n = ze.getName();
-
-          if (n.startsWith("zoneinfo/") && n.endsWith(".ics")) {
-            nl.add(n.substring(9, n.length() - 4));
-          }
-        }
-      }
-
-      nameList = nl;
-
-      return nl;
-    } catch (Throwable t) {
-      throw new ServletException(t);
-    }
+    return cache.getNameList();
   }
 
   /**
@@ -409,28 +296,7 @@ public class TzServerUtil {
    * @throws ServletException
    */
   public String getTz(final String name) throws ServletException {
-    String s = getCachedVtz(name);
-    if (s != null) {
-      cacheHits++;
-      return s;
-    }
-
-    try {
-      reads++;
-      ZipEntry ze = tzDefsZipFile.getEntry("zoneinfo/" + name + ".ics");
-
-      if (ze == null) {
-        return null;
-      }
-
-      s = entryToString(ze);
-
-      putCachedVtz(name, s);
-
-      return s;
-    } catch (Throwable t) {
-      throw new ServletException(t);
-    }
+    return cache.getCachedVtz(name);
   }
 
   /**
@@ -453,12 +319,8 @@ public class TzServerUtil {
 
     String target = tzid;
 
-    if (aliases == null) {
-      loadAliases();
-    }
-
     for (int i = 0; i < 100; i++) {   // Just in case we get a circular chain
-      String unaliased = aliases.getProperty(target);
+      String unaliased = cache.fromAlias(target);
 
       if (unaliased == null) {
         return target;
@@ -477,68 +339,19 @@ public class TzServerUtil {
   }
 
   /**
-   * @return aliases
+   * @return data info
    * @throws ServletException
    */
-  public String getAliases() throws ServletException {
-    try {
-      /* Do this the right way round we don't need to synch */
-      String a = aliasesStr;
-
-      if (a != null) {
-        return a;
-      }
-
-      aliasReads++;
-      ZipEntry ze = tzDefsZipFile.getEntry("aliases.txt");
-
-      if (ze == null) {
-        return null;
-      }
-
-      a = entryToString(ze);
-      aliasesStr = a;
-
-      return a;
-    } catch (Throwable t) {
-      throw new ServletException(t);
-    }
+  public Collection<String> getDataInfo() throws ServletException {
+    return cache.getDataInfo();
   }
 
-  private static class AliasMaps {
-    Map<String, List<String>> byTzid;
-    Map<String, String> byAlias;
-  }
-
-  private static AliasMaps aliasMaps;
-
-  private void buildAliasMaps(AliasMaps maps) throws ServletException {
-    try {
-      maps.byTzid = new HashMap<String, List<String>>();
-      maps.byAlias = new HashMap<String, String>();
-      Properties p = new Properties();
-
-      StringReader sr = new StringReader(getAliases());
-
-      p.load(sr);
-
-      for (String a: p.stringPropertyNames()) {
-        String id = p.getProperty(a);
-
-        maps.byAlias.put(a, id);
-
-        List<String> as = maps.byTzid.get(id);
-
-        if (as == null) {
-          as = new ArrayList<String>();
-          maps.byTzid.put(id, as);
-        }
-
-        as.add(a);
-      }
-    } catch (Throwable t) {
-      throw new ServletException(t);
-    }
+  /**
+   * @return String value of aliases file.
+   * @throws ServletException
+   */
+  public String getAliasesStr() throws ServletException {
+    return cache.getAliasesStr();
   }
 
   /**
@@ -547,52 +360,7 @@ public class TzServerUtil {
    * @throws ServletException
    */
   public List<String> findAliases(String tzid) throws ServletException {
-    AliasMaps amaps = aliasMaps;
-
-    if (amaps == null) {
-      amaps = new AliasMaps();
-
-      buildAliasMaps(amaps);
-      aliasMaps = amaps;
-    }
-
-    return amaps.byTzid.get(tzid);
-  }
-
-  /**
-   * @return info
-   * @throws ServletException
-   */
-  public Collection<String> getInfo() throws ServletException {
-    try {
-      /* Do this the right way round we don't need to synch */
-      Collection<String> a = tzinfo;
-
-      if (a != null) {
-        return a;
-      }
-
-      ZipEntry ze = tzDefsZipFile.getEntry("info.txt");
-
-      if (ze == null) {
-        return null;
-      }
-
-      String info = entryToString(ze);
-
-      String[] infoLines = info.split("\n");
-      a = new ArrayList<String>();
-
-      for (String s: infoLines) {
-        a.add(s);
-      }
-
-      tzinfo = a;
-
-      return a;
-    } catch (Throwable t) {
-      throw new ServletException(t);
-    }
+    return cache.findAliases(tzid);
   }
 
   /**
@@ -690,52 +458,12 @@ public class TzServerUtil {
     return cdt;
   }
 
-  private static List<SummaryType> summaries;
-
   /**
    * @return list of summary info
-   * @throws Throwable
+   * @throws ServletException
    */
-  public List<SummaryType> getSummaries() throws Throwable {
-    if (summaries != null) {
-      return summaries;
-    }
-
-    List<SummaryType> sts = new ArrayList<SummaryType>();
-    SortedSet<String> names = getNames();
-
-    for (String nm: names) {
-      TimeZone tz = fetchTimeZone(nm);
-
-      SummaryType st = new SummaryType();
-
-      st.setTzid(nm);
-
-      VTimeZone vtz = tz.getVTimeZone();
-      LastModified lm = (LastModified)vtz.getProperty(LastModified.LAST_MODIFIED);
-      if (lm!= null) {
-        st.setLastModified(lm.getValue());
-      }
-
-      List<String> aliases = findAliases(nm);
-
-      // XXX Need to have list of local names per timezone
-      //String ln = vtz.
-      if (aliases != null) {
-        for (String a: aliases) {
-          AliasType at = new AliasType();
-
-          // XXX Need locale as well as name
-          at.setValue(a);
-          st.getAlias().add(at);
-        }
-      }
-
-      sts.add(st);
-    }
-
-    summaries = sts;
-    return sts;
+  public List<SummaryType> getSummaries() throws ServletException {
+    return cache.getSummaries();
   }
 
   private static class ObservanceWrapper implements Comparable<ObservanceWrapper> {
@@ -761,6 +489,18 @@ public class TzServerUtil {
   public Timezones getExpanded(String tzid,
                                String start,
                                String end) throws Throwable {
+    expandFetches++;
+
+    ExpandedMapEntryKey emek = makeExpandedKey(tzid, start, end);
+
+    Timezones tzs = cache.getExpanded(emek);
+    if (tzs != null) {
+      expandHits++;
+      return tzs;
+    }
+
+    long smillis = System.currentTimeMillis();
+
     TimeZone tz = fetchTimeZone(tzid);
     if (tz == null) {
       return null;
@@ -768,25 +508,8 @@ public class TzServerUtil {
 
     VTimeZone vtz = tz.getVTimeZone();
 
-    DateTime dtstart;
-    DateTime dtend;
-
-    if (start == null) {
-      String date = new net.fortuna.ical4j.model.Date().toString();
-
-      dtstart = new DateTime(date + "T000000Z");
-    } else {
-      dtstart = new DateTime(start);
-    }
-
-    if (end == null) {
-      Dur dur = new Dur("P520W");
-
-      String date = new net.fortuna.ical4j.model.Date(dur.getTime(new Date())).toString();
-      dtend = new DateTime(date + "T000000Z");
-    } else {
-      dtend = new DateTime(end);
-    }
+    DateTime dtstart = new DateTime(emek.getStart());
+    DateTime dtend = new DateTime(emek.getEnd());
 
     dtstart.setTimeZone(tz);
     dtend.setTimeZone(tz);
@@ -835,10 +558,15 @@ public class TzServerUtil {
       tzd.getObservances().add(ow.ot);
     }
 
-    Timezones tzs = new Timezones();
+    tzs = new Timezones();
 
     tzs.setDtstamp(getDtstamp());
     tzs.getTzdatas().add(tzd);
+
+    cache.setExpanded(emek, tzs);
+
+    expandsMillis += System.currentTimeMillis() - smillis;
+    expands++;
 
     return tzs;
   }
@@ -847,121 +575,39 @@ public class TzServerUtil {
    *
    * @param tzid
    * @return TimeZone with id or null
-   * @throws Throwable
-   */
-  public TimeZone fetchTimeZone(final String tzid) throws Throwable {
-    tzfetches++;
-
-    TimeZone tz = tzs.get(tzid);
-    if (tz != null) {
-      return tz;
-    }
-
-    String tzdef = getTz(tzid);
-
-    if (tzdef == null) {
-      return null;
-    }
-
-    tzbuilds++;
-    long smillis = System.currentTimeMillis();
-
-    CalendarBuilder cb = new CalendarBuilder();
-
-    UnfoldingReader ufrdr = new UnfoldingReader(new StringReader(tzdef), true);
-
-    net.fortuna.ical4j.model.Calendar cal = cb.build(ufrdr);
-    VTimeZone vtz = (VTimeZone)cal.getComponents().getComponent(Component.VTIMEZONE);
-    if (vtz == null) {
-      throw new Exception("Incorrectly stored timezone");
-    }
-
-    tz = new TimeZone(vtz);
-    tzs.put(tzid, tz);
-
-    tzbuildsMillis += System.currentTimeMillis() - smillis;
-
-    return tz;
-  }
-
-  /**
    * @throws ServletException
    */
-  public void refresh() throws ServletException {
-    synchronized (zipLock) {
-      if ((tzDefsFile != null) && !refreshNow) {
-        if ((System.currentTimeMillis() - TzServerUtil.lastDataFetch) / 1000 < config.getRefetchInterval()) {
-          // No fetch needed
-          return;
-        }
-      }
+  public TimeZone fetchTimeZone(final String tzid) throws ServletException {
+    tzfetches++;
 
-      try {
-        File f = getdata();
-
-        ZipFile zf = new ZipFile(f);
-
-        if (tzDefsZipFile != null) {
-          try {
-            tzDefsZipFile.close();
-          } catch (Throwable t) {
-          }
-        }
-
-        if (tzDefsFile != null) {
-          try {
-            tzDefsFile.delete();
-          } catch (Throwable t) {
-          }
-        }
-
-        tzDefsFile = f;
-        tzDefsZipFile = zf;
-
-        TzServerUtil.lastDataFetch = System.currentTimeMillis();
-        refreshNow = false;
-      } catch (ServletException se) {
-        throw se;
-      } catch (Throwable t) {
-        throw new ServletException(t);
-      }
-    }
-  }
-
-  /* ====================================================================
-   *                   Caching
-   * ==================================================================== */
-
-  private void cacheInit() throws ServletException {
-    vtzCache = manager.getCache(config.getCacheName());
-  }
-
-  private void cacheRefresh() throws ServletException {
-    cacheRefresh(vtzCache);
-    tzs.clear();
-    aliasesStr = null;
-    nameList = null;
-  }
-
-  private String getCachedVtz(final String name) throws ServletException {
-    Element el = vtzCache.get(name);
-
-    if (el == null) {
-      return null;
-    }
-
-    return (String)el.getValue();
-  }
-
-  private void putCachedVtz(final String name, final String vtz) throws ServletException {
-    Element el = new Element(name, vtz);
-
-    vtzCache.put(el);
+    return cache.getTimeZone(tzid);
   }
 
   /* ====================================================================
    *                   Private methods
    * ==================================================================== */
+
+  private ExpandedMapEntryKey makeExpandedKey(String tzid,
+                                              String start,
+                                              String end) throws ServletException {
+    String st = start;
+
+    if (st == null) {
+      String date = new net.fortuna.ical4j.model.Date().toString();
+
+      st = date + "T000000Z";
+    }
+
+    String e = end;
+    if (e == null) {
+      Dur dur = new Dur("P520W");
+
+      String date = new net.fortuna.ical4j.model.Date(dur.getTime(new Date())).toString();
+      e = date + "T000000Z";
+    }
+
+    return new ExpandedMapEntryKey(tzid, st, e);
+  }
 
   private static String transformTzid(String tzid) {
     int len = tzid.length();
@@ -986,47 +632,6 @@ public class TzServerUtil {
     return tzid;
   }
 
-  private void loadAliases() throws ServletException {
-    try {
-      Properties a = new Properties();
-
-      a.load(new StringReader(getAliases()));
-
-      aliases = a;
-    } catch (ServletException se) {
-      throw se;
-    } catch (Throwable t) {
-      error("loadTimezones error: " + t.getMessage());
-      t.printStackTrace();
-      throw new ServletException(t);
-    }
-  }
-
-  private String entryToString(final ZipEntry ze) throws Throwable {
-    InputStreamReader is = new InputStreamReader(tzDefsZipFile.getInputStream(ze),
-                                                 "UTF-8");
-
-    StringWriter sw = new StringWriter();
-
-    char[] buff = new char[4096];
-
-    for (;;) {
-      int num = is.read(buff);
-
-      if (num < 0) {
-        break;
-      }
-
-      if (num > 0) {
-        sw.write(buff, 0, num);
-      }
-    }
-
-    is.close();
-
-    return sw.toString();
-  }
-
   private static Calendar cal = Calendar.getInstance();
   private static java.util.TimeZone utctz;
 
@@ -1037,12 +642,6 @@ public class TzServerUtil {
       throw new RuntimeException("Unable to initialise UTC timezone");
     }
     cal.setTimeZone(utctz);
-  }
-
-  private static void cacheRefresh(final Cache cache) throws ServletException {
-    if (cache != null) {
-      cache.flush();
-    }
   }
 
   /**

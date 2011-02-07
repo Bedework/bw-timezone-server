@@ -99,7 +99,6 @@ public class TzServer extends HttpServlet
       if (methodName.equals("OPTIONS")) {
         new OptionsMethod(debug).doMethod(req, resp);
       } else if (methodName.equals("GET")) {
-        util.refresh();
         new GetMethod(debug).doMethod(req, resp);
       } else if (methodName.equals("POST")) {
         new PostMethod(debug).doMethod(req, resp);

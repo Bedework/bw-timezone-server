@@ -56,6 +56,17 @@ public interface TzsvcMBean {
    */
   public String getAppname();
 
+  /** Tzdata url
+   *
+   * @param val
+   */
+  public void setTzdataUrl(String val);
+
+  /**
+   * @return String tzdata url
+   */
+  public String getTzdataUrl();
+
   /* ========================================================================
    * Operations
    * ======================================================================== */
