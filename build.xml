@@ -231,7 +231,6 @@
       <property name="app.global.properties.dir" 
                 location="${resources.dir}" />
    </ant>
-   -->
 
     <getJar lib="${org.bedework.temp.extrajars.dir}"
             libcache="${org.bedework.libcache.dir}"
@@ -241,6 +240,7 @@
     <getJar lib="${org.bedework.temp.extrajars.dir}"
             libcache="${org.bedework.libcache.dir}"
             name="log4j" version="1.2.8"/>
+   -->
 
     <ant antfile="${build.dir}/../deployment/termination/webapp/build.xml" 
          target="deploy" inheritRefs="true"  >
