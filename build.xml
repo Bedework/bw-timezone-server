@@ -48,7 +48,15 @@
               location="${project.home}/../bedework" />
 
     <loadDeployConfig />
+
+    <property name="org.bedework.deploy.name"
+              value="${ant.project.name}" />
   	
+    <propertyset id="deploy-app-properties">
+      <propertyref prefix="org.bedework.app.${org.bedework.deploy.name}"/>
+      <globmapper from="org.bedework.app.${org.bedework.deploy.name}.*" to="propval.app.*"/>
+    </propertyset>
+
     <property name="org.bedework.temp.wars.home"
               location="${dist.home}/temp/wars" />
     
@@ -194,15 +202,7 @@
               location="${org.bedework.module.server.base}" />
 
     <ant antfile="${buildwar}" inheritRefs="true" target="build" >
-      <property name="propval.app.context.root"
-                value="${org.bedework.module.context.root}" />
-      <property name="propval.app.war.name"
-                value="${org.bedework.module.war.name}" />
-      <property name="propval.app.web.xml"
-                location="${app.sou.dir}/war/WEB-INF/web.xml" />
-
-      <property name="org.bedework.deploy.name"
-                value="${ant.project.name}" />
+      <propertyset refid="deploy-app-properties" />
     </ant>
   </target>
  
@@ -219,37 +219,18 @@
   <target name="deploy" depends="deploy-init,build"
                description="Deploy generated files">
     <getExtraJars/>
-    
-  	<!-- Service defined in ear file.
-    <ant antfile="${build.dir}/deployService.xml" target="deploy" inheritRefs="true" >
-      <property name="propval.app.zip.name"
-                value="${service.app.zip.name}" />
-      <property name="propval.app.options.path"
-                value="properties/exsynch" />
-      <property name="app.service.base" 
-                location="${org.bedework.module.service.base}" />
-      <property name="app.global.properties.dir" 
-                location="${resources.dir}" />
-   </ant>
-
-    <getJar lib="${org.bedework.temp.extrajars.dir}"
-            libcache="${org.bedework.libcache.dir}"
-            name="bw-davio" version="3.6"
-            projecthome="${bedework.home}/projects/davutil" />
-    
-    <getJar lib="${org.bedework.temp.extrajars.dir}"
-            libcache="${org.bedework.libcache.dir}"
-            name="log4j" version="1.2.8"/>
-   -->
 
     <ant antfile="${build.dir}/../deployment/termination/webapp/build.xml" 
          target="deploy" inheritRefs="true"  >
       <property name="org.bedework.no.extra.ear.jars" value="yes" />
+      <propertyset refid="deploy-app-properties" />
     </ant>
     
     <!-- Platform specific -->
     <ant antfile="${build.dir}/../deployment/termination/build.xml" 
-         target="deploy" inheritRefs="true" />
+         target="deploy" inheritRefs="true" >
+      <propertyset refid="deploy-app-properties" />
+    </ant>
   </target>
 
   <!-- ==================== Javadoc Target ===============================
