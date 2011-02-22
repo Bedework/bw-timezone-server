@@ -74,6 +74,32 @@
   	<property name="org.bedework.options.file"
   	          value="${org.bedework.config.options}" />
 
+    <property name="org.bedework.module.common.base"
+              location="${project.home}/common" />
+
+    <property name="org.bedework.module.server.base" 
+              location="${project.home}/server" />
+
+    <property name="org.bedework.module.service.base"
+              location="${project.home}/service" />
+    
+    <property name="org.bedework.module.schema.dir" 
+              location="${bedework.home}/resources/timezones" />
+
+    <property name="common.jar"
+              location="${dist.home}/${org.bedework.module.common.jar}-${project.version}.jar" />
+
+    <property name="server.jar"
+              location="${dist.home}/${org.bedework.module.server.jar}-${project.version}.jar" />
+
+    <property name="service.jar"
+              location="${dist.home}/${org.bedework.module.service.jar}-${project.version}.jar" />
+    </target>
+    
+  <target name="build-init" depends="init">
+    <!-- Make sure bwxml is built -->
+    <ant antfile="${project.home}/../bwxml/build.xml" inheritall="false" />
+
     <property name="org.bedework.getjar.property.prefix"
               value="org.bedework.appjar" />
 
@@ -88,101 +114,20 @@
     <getJar name="rpiutil" version="${org.bedework.rpiutil.version}" project="rpiutil" 
             projecthome="${project.home}/../bedework/projects/rpiutil" />
 
-    <property name="org.bedework.module.gensrc.base"
-              location="${project.home}/gensrc" />
-
-    <property name="org.bedework.module.common.base"
-              location="${project.home}/common" />
-
-    <property name="org.bedework.module.server.base" 
-              location="${project.home}/server" />
-
-    <property name="org.bedework.module.service.base"
-              location="${project.home}/service" />
-    
-    <property name="org.bedework.module.schema.dir" 
-              location="${bedework.home}/resources/timezones" />
-
-    <property name="gensrc.jar"
-              location="${dist.home}/${org.bedework.module.gensrc.jar}-${project.version}.jar" />
-
-    <property name="common.jar"
-              location="${dist.home}/${org.bedework.module.common.jar}-${project.version}.jar" />
-
-    <property name="server.jar"
-              location="${dist.home}/${org.bedework.module.server.jar}-${project.version}.jar" />
-
-    <property name="service.jar"
-              location="${dist.home}/${org.bedework.module.service.jar}-${project.version}.jar" />
+    <getJar name="bw-tzschema" version="${org.bedework.bwxml.version}"
+            project="bwxml"
+            projecthome="${project.home}/../bwxml" />
   </target>
 
   <target name="deploy-init" depends="init">
-
-    <!-- ========= Stuff in main bedework deployment build file =========   -->
-    <!-- Where we put ear stuff -->
-    <if>
-      <isset property="org.bedework.global.build.ear" />
-      <then>
-        <property name="app.ear.file.name"
-                  value="${org.bedework.global.ear.name}-${ant.project.name}.ear" />
-
-        <property name="service.app.zip.name"
-                  value="${org.bedework.global.ear.name}-${ant.project.name}svc" />
-
-        <property name="org.bedework.ear.name"
-                  value="${org.bedework.global.ear.name}-${ant.project.name}" />
-
-        <property name="org.bedework.ear.templib"
-                  location="${org.bedework.temp.dir}/earlib" />
-
-        <property name="org.bedework.ear.properties.dir"
-                  location="${org.bedework.temp.dir}/ear-properties" />
-
-        <delete dir="${org.bedework.ear.templib}" />
-        <mkdir dir="${org.bedework.ear.templib}" />
-
-        <delete dir="${org.bedework.ear.properties.dir}" />
-        <mkdir dir="${org.bedework.ear.properties.dir}" />
-      </then>
-    </if>
-    
-    <property name="org.bedework.temp.shellscr.home"
-              location="${org.bedework.temp.dir}/shellscr" />
-
-    <property name="org.bedework.temp.extrajars.dir"
-              location="${org.bedework.temp.dir}/extrajars" />
-
-    <!-- Preserve extra jars for ear builds -->
-    <property name="org.bedework.temp.ear.extrajars.dir"
-              location="${org.bedework.temp.dir}/earextrajars" />
-    
-    <property name="org.bedework.global.context.roots"
-              location="${org.bedework.temp.dir}/context-roots.properties" />
-
-    <!-- ===== End of stuff in main bedework deployment build file ======   -->
-    
-    <!-- Clean up before we start -->
-    <delete dir="${org.bedework.temp.wars.home}" />
-    <mkdir dir="${org.bedework.temp.wars.home}" />
-
-    <delete dir="${org.bedework.temp.ear.extrajars.dir}" />
-    <mkdir dir="${org.bedework.temp.ear.extrajars.dir}" />
-
-    <delete dir="${org.bedework.temp.extrajars.dir}" />
-    <mkdir dir="${org.bedework.temp.extrajars.dir}" />
+    <deployInit ear-name="bw-${ant.project.name}" />
   </target>
 
   <!-- ===================== build-source Target ===============================
      This target builds jar files ready for the deploy target.
      =================================================================== -->
 
-  <target name="build-source"  depends="init" >
-    <xjc schema="${org.bedework.module.schema.dir}/tzservice.xsd"
-         module-base="${org.bedework.module.gensrc.base}"
-         jar-file="${gensrc.jar}"
-         bindingsdir="${org.bedework.module.schema.dir}/bindings"
-    />
-
+  <target name="build-source"  depends="build-init" >
     <build-jar module-base="${org.bedework.module.common.base}" 
                jar-file="${common.jar}" />
     

@@ -26,8 +26,6 @@
 
 package org.bedework.timezones.server;
 
-import org.bedework.timezones.common.TzServerUtil;
-
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -60,14 +58,10 @@ public class TzServer extends HttpServlet
 
   protected transient Logger log;
 
-  private TzServerUtil util;
-
   @Override
   public void init(ServletConfig config) throws ServletException {
     try {
       super.init(config);
-
-      util = TzServerUtil.getInstance();
 
       String debugStr = getInitParameter("debug");
       if (debugStr != null) {

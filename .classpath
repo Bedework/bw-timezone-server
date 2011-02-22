@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="gensrc/src"/>
 	<classpathentry kind="src" path="common/src"/>
 	<classpathentry kind="src" path="server/src"/>
 	<classpathentry kind="src" path="service/src"/>
@@ -13,5 +12,6 @@
 	<classpathentry kind="lib" path="lib/ehcache-1.6.2.jar"/>
 	<classpathentry kind="lib" path="lib/ical4j-1.0-rc3-SNAPSHOT.jar"/>
 	<classpathentry kind="lib" path="lib/rpiutil-3.7.jar"/>
+	<classpathentry kind="lib" path="lib/bw-tzschema-3.7.jar"/>
 	<classpathentry kind="output" path="bin/timezones/bwtzsvr/bwtzsvr"/>
 </classpath>

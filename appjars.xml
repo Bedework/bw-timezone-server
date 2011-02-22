@@ -16,11 +16,6 @@
       
       <getJar lib="${org.bedework.temp.extrajars.dir}"
               libcache="${org.bedework.libcache.dir}"
-              name="bw-tzsvr-gensrc" version="${org.bedework.bwtzsvr.version}"
-              projecthome="${project.home}" />
-    	
-      <getJar lib="${org.bedework.temp.extrajars.dir}"
-              libcache="${org.bedework.libcache.dir}"
               name="bw-tzsvr-cmn" version="${org.bedework.bwtzsvr.version}"
               projecthome="${project.home}" />
       
@@ -34,7 +29,14 @@
               name="bw-tzsvr-svc" version="${org.bedework.bwtzsvr.version}"
               projecthome="${project.home}" />
 
-      <!-- Bedework jars -->
+      <!-- ======================= Schema jars ============================= -->
+
+      <getJar lib="${org.bedework.temp.extrajars.dir}"
+              libcache="${org.bedework.libcache.dir}"
+              name="bw-tzschema" version="${org.bedework.bwxml.version}"
+              projecthome="${bedework.home}/../bwxml" />
+
+      <!-- ====================== Bedework jars ============================ -->
       
       <getJar lib="${org.bedework.temp.extrajars.dir}"
               libcache="${org.bedework.libcache.dir}"
