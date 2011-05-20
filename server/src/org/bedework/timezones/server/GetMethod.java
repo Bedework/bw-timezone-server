@@ -29,11 +29,12 @@ package org.bedework.timezones.server;
 import org.bedework.timezones.common.Stat;
 import org.bedework.timezones.common.TzServerUtil;
 
-import ietf.params.xml.ns.timezone_service.Capabilities;
 import ietf.params.xml.ns.timezone_service.CapabilitiesAcceptParameterType;
 import ietf.params.xml.ns.timezone_service.CapabilitiesOperationType;
-import ietf.params.xml.ns.timezone_service.TimezoneList;
-import ietf.params.xml.ns.timezone_service.Timezones;
+import ietf.params.xml.ns.timezone_service.CapabilitiesType;
+import ietf.params.xml.ns.timezone_service.ObjectFactory;
+import ietf.params.xml.ns.timezone_service.TimezoneListType;
+import ietf.params.xml.ns.timezone_service.TimezonesType;
 
 import java.io.Writer;
 import java.util.Collection;
@@ -50,7 +51,7 @@ import javax.xml.bind.Marshaller;
  */
 public class GetMethod extends MethodBase {
   /* Define capabilities as static objects */
-  static final Capabilities capabilities = new Capabilities();
+  static final CapabilitiesType capabilities = new CapabilitiesType();
 
   static {
     addCapability(capabilities, "capabilities",
@@ -176,7 +177,7 @@ public class GetMethod extends MethodBase {
                             "If omitted, the current year + 10 is assumed. "));
   }
 
-  private static void addCapability(Capabilities capabilities,
+  private static void addCapability(CapabilitiesType capabilities,
                                     String action,
                                     String description,
                                     CapabilitiesAcceptParameterType... pars) {
@@ -187,11 +188,11 @@ public class GetMethod extends MethodBase {
 
     if (pars != null) {
       for (CapabilitiesAcceptParameterType par: pars) {
-        cot.getAcceptParameters().add(par);
+        cot.getAcceptParameter().add(par);
       }
     }
 
-    capabilities.getOperations().add(cot);
+    capabilities.getOperation().add(cot);
   }
 
   private static CapabilitiesAcceptParameterType makePar(String name,
@@ -253,6 +254,13 @@ public class GetMethod extends MethodBase {
       return;
     }
 
+    if ("get".equals(action)) {
+      doTzids(resp, req.getParameterValues("tzid"));
+      return;
+    }
+
+    /* Follow all old and non-standard actions */
+
     if (req.getParameter("names") != null) {
       if (ifNoneMatchTest(req, resp)) {
         return;
@@ -269,8 +277,8 @@ public class GetMethod extends MethodBase {
       }
 
       doAliases(resp);
-    } else if (req.getParameter("unalias") != null) {
-      doUnalias(resp, req.getParameter("id"));
+    //} else if (req.getParameter("unalias") != null) {
+    //  doUnalias(resp, req.getParameter("id"));
     } else if (req.getParameter("convert") != null) {
       doConvert(resp, req.getParameter("dt"),
                 req.getParameter("fromtzid"),
@@ -293,11 +301,11 @@ public class GetMethod extends MethodBase {
 
   private void doCapabilities(final HttpServletResponse resp) throws ServletException {
     try {
-      JAXBContext jc = JAXBContext.newInstance("ietf.params.xml.ns.timezone_service");
-
-      Marshaller m = jc.createMarshaller();
+      Marshaller m = getJc().createMarshaller();
       m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-      m.marshal(capabilities, resp.getOutputStream());
+      m.marshal(getOf().createCapabilities(capabilities), resp.getOutputStream());
+    } catch (ServletException se) {
+      throw se;
     } catch (Throwable t) {
       throw new ServletException(t);
     }
@@ -305,16 +313,16 @@ public class GetMethod extends MethodBase {
 
   private void doList(final HttpServletResponse resp) throws ServletException {
     try {
-      TimezoneList tzl = new TimezoneList();
+      TimezoneListType tzl = new TimezoneListType();
 
       tzl.setDtstamp(util.getDtstamp());
-      tzl.getSummaries().addAll(util.getSummaries());
+      tzl.getSummary().addAll(util.getSummaries());
 
-      JAXBContext jc = JAXBContext.newInstance("ietf.params.xml.ns.timezone_service");
-
-      Marshaller m = jc.createMarshaller();
+      Marshaller m = getJc().createMarshaller();
       m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-      m.marshal(tzl, resp.getOutputStream());
+      m.marshal(getOf().createTimezoneList(tzl), resp.getOutputStream());
+    } catch (ServletException se) {
+      throw se;
     } catch (Throwable t) {
       throw new ServletException(t);
     }
@@ -326,18 +334,18 @@ public class GetMethod extends MethodBase {
       String tzid = req.getParameter("tzid");
       String start = req.getParameter("start");
       String end = req.getParameter("end");
-      Timezones tzs = util.getExpanded(tzid, start, end);
+      TimezonesType tzs = util.getExpanded(tzid, start, end);
 
       if (tzs == null) {
         resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
         return;
       }
 
-      JAXBContext jc = JAXBContext.newInstance("ietf.params.xml.ns.timezone_service");
-
-      Marshaller m = jc.createMarshaller();
+      Marshaller m = getJc().createMarshaller();
       m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-      m.marshal(tzs, resp.getOutputStream());
+      m.marshal(getOf().createTimezones(tzs), resp.getOutputStream());
+    } catch (ServletException se) {
+      throw se;
     } catch (Throwable t) {
       throw new ServletException(t);
     }
@@ -415,6 +423,7 @@ public class GetMethod extends MethodBase {
     }
   }
 
+  /*
   private void doUnalias(final HttpServletResponse resp,
                          String id) throws ServletException {
     try {
@@ -434,6 +443,7 @@ public class GetMethod extends MethodBase {
       throw new ServletException(t);
     }
   }
+  */
 
   private void doInfo(final HttpServletResponse resp) throws ServletException {
     try {
@@ -584,8 +594,23 @@ public class GetMethod extends MethodBase {
 
       boolean found = false;
 
+      if ((tzids.length == 1) && ("*".equals(tzids[0]))) {
+        // Return all
+        Collection<String> vtzs = util.getAllTzs();
+
+        for (String s: vtzs) {
+          wtr.write(s);
+        }
+
+        return;
+      }
+
       for (String tzid: tzids) {
-        String tz = util.getTz(util.unalias(tzid));
+        String tz = util.getTz(tzid);
+
+        if (tz == null) {
+          tz = util.getAliasedTz(tzid);
+        }
 
         if (tz != null) {
           found = true;
@@ -618,5 +643,49 @@ public class GetMethod extends MethodBase {
 
     resp.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
     return true;
+  }
+
+  private static JAXBContext jc;
+
+  private JAXBContext getJc() throws ServletException {
+    try {
+      if (jc != null) {
+        return jc;
+      }
+
+      synchronized (this) {
+        if (jc != null) {
+          return jc;
+        }
+
+        jc = JAXBContext.newInstance("ietf.params.xml.ns.timezone_service");
+      }
+
+      return jc;
+    } catch (Throwable t) {
+      throw new ServletException(t);
+    }
+  }
+
+  private static ObjectFactory of;
+
+  private ObjectFactory getOf() throws ServletException {
+    try {
+      if (of != null) {
+        return of;
+      }
+
+      synchronized (this) {
+        if (of != null) {
+          return of;
+        }
+
+        of = new ObjectFactory();
+      }
+
+      return of;
+    } catch (Throwable t) {
+      throw new ServletException(t);
+    }
   }
 }

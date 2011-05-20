@@ -31,6 +31,7 @@ import net.fortuna.ical4j.model.Component;
 import net.fortuna.ical4j.model.TimeZone;
 import net.fortuna.ical4j.model.component.VTimeZone;
 import net.fortuna.ical4j.model.property.LastModified;
+import net.fortuna.ical4j.model.property.TzId;
 
 import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
 import org.apache.commons.httpclient.HttpClient;
@@ -40,7 +41,7 @@ import org.apache.commons.httpclient.params.HttpMethodParams;
 
 import ietf.params.xml.ns.timezone_service.AliasType;
 import ietf.params.xml.ns.timezone_service.SummaryType;
-import ietf.params.xml.ns.timezone_service.Timezones;
+import ietf.params.xml.ns.timezone_service.TimezonesType;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -63,6 +64,8 @@ import java.util.zip.ZipFile;
 
 import javax.servlet.ServletException;
 
+import edu.rpi.cmt.calendar.XcalUtil;
+
 /** Cached data affected by the source data.
  *
  * @author douglm
@@ -82,10 +85,14 @@ public class CachedData implements Serializable {
 
   private Map<String, TimeZone> tzs = new HashMap<String, TimeZone>();
 
+  private Map<String, String> aliasedVtzs = new HashMap<String, String>();
+
+  private Map<String, TimeZone> aliasedTzs = new HashMap<String, TimeZone>();
+
   private SortedSet<String> nameList;
 
-  private Map<ExpandedMapEntryKey, Timezones> expansions =
-    new HashMap<ExpandedMapEntryKey, Timezones>();
+  private Map<ExpandedMapEntryKey, TimezonesType> expansions =
+    new HashMap<ExpandedMapEntryKey, TimezonesType>();
 
   private static class AliasMaps {
     String aliasesStr;
@@ -177,6 +184,27 @@ public class CachedData implements Serializable {
     return nameList;
   }
 
+  /**
+   * @param key
+   * @param tzs
+   * @throws ServletException
+   */
+  public void setExpanded(ExpandedMapEntryKey key,
+                          TimezonesType tzs) throws ServletException {
+    reload();
+    expansions.put(key, tzs);
+  }
+
+  /**
+   * @param key
+   * @return expanded or null
+   * @throws ServletException
+   */
+  public TimezonesType getExpanded(ExpandedMapEntryKey key) throws ServletException {
+    reload();
+    return expansions.get(key);
+  }
+
   /** Get cached VTIMEZONE specifications
    *
    * @param name
@@ -188,25 +216,14 @@ public class CachedData implements Serializable {
     return vtzs.get(name);
   }
 
-  /**
-   * @param key
-   * @param tzs
+  /** Get all cached VTIMEZONE specifications
+   *
+   * @return cached specs or null.
    * @throws ServletException
    */
-  public void setExpanded(ExpandedMapEntryKey key,
-                          Timezones tzs) throws ServletException {
+  public Collection<String> getAllCachedVtzs() throws ServletException {
     reload();
-    expansions.put(key, tzs);
-  }
-
-  /**
-   * @param key
-   * @return expanded or null
-   * @throws ServletException
-   */
-  public Timezones getExpanded(ExpandedMapEntryKey key) throws ServletException {
-    reload();
-    return expansions.get(key);
+    return vtzs.values();
   }
 
   /** Get a timezone object from the server given the id.
@@ -218,6 +235,28 @@ public class CachedData implements Serializable {
   public TimeZone getTimeZone(final String tzid) throws ServletException {
     reload();
     return tzs.get(tzid);
+  }
+
+  /** Get an aliased cached VTIMEZONE specifications
+   *
+   * @param name
+   * @return cached spec or null.
+   * @throws ServletException
+   */
+  public String getAliasedCachedVtz(final String name) throws ServletException {
+    reload();
+    return aliasedVtzs.get(name);
+  }
+
+  /** Get an aliased timezone object from the server given the id.
+   *
+   * @param tzid
+   * @return TimeZone with id or null
+   * @throws ServletException
+   */
+  public TimeZone getAliasedTimeZone(final String tzid) throws ServletException {
+    reload();
+    return aliasedTzs.get(tzid);
   }
 
   /**
@@ -369,8 +408,7 @@ public class CachedData implements Serializable {
           throw new Exception("Incorrectly stored timezone");
         }
 
-        TimeZone tz = new TimeZone(vtz);
-        tzs.put(id, tz);
+        tzs.put(id, new TimeZone(vtz));
 
         /* ================== Build summary info ======================== */
         SummaryType st = new SummaryType();
@@ -379,7 +417,7 @@ public class CachedData implements Serializable {
 
         LastModified lm = vtz.getLastModified();
         if (lm!= null) {
-          st.setLastModified(lm.getValue());
+          st.setLastModified(XcalUtil.getXMlUTCCal(lm.getValue()));
         }
 
         List<String> aliases = findAliases(id);
@@ -393,6 +431,17 @@ public class CachedData implements Serializable {
             // XXX Need locale as well as name
             at.setValue(a);
             st.getAlias().add(at);
+
+            /* Construct a new vtimezone with the alias as id and then
+             * add it and the string version to the alias table.
+             */
+            VTimeZone avtz = (VTimeZone)vtz.copy();
+
+            TzId tzid = avtz.getTimeZoneId();
+            tzid.setValue(a);
+
+            aliasedTzs.put(a, new TimeZone(avtz));
+            aliasedVtzs.put(a, avtz.toString());
           }
         }
 

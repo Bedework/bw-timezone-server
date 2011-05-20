@@ -40,7 +40,7 @@ import org.apache.log4j.Logger;
 
 import ietf.params.xml.ns.timezone_service.ObservanceType;
 import ietf.params.xml.ns.timezone_service.SummaryType;
-import ietf.params.xml.ns.timezone_service.Timezones;
+import ietf.params.xml.ns.timezone_service.TimezonesType;
 import ietf.params.xml.ns.timezone_service.TzdataType;
 
 import java.text.DateFormat;
@@ -54,7 +54,9 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import javax.servlet.ServletException;
+import javax.xml.datatype.XMLGregorianCalendar;
 
+import edu.rpi.cmt.calendar.XcalUtil;
 import edu.rpi.sss.util.DateTimeUtil;
 import edu.rpi.sss.util.OptionsException;
 import edu.rpi.sss.util.OptionsI;
@@ -84,7 +86,7 @@ public class TzServerUtil {
 
   static String etagValue;
 
-  static String dtstamp;
+  static XMLGregorianCalendar dtstamp;
 
   static String tzdataUrl;
 
@@ -227,21 +229,29 @@ public class TzServerUtil {
    * @return the data dtsamp
    * @throws ServletException
    */
-  public String getDtstamp() throws ServletException {
+  public XMLGregorianCalendar getDtstamp() throws ServletException {
     if (dtstamp == null) {
       Collection<String> info = cache.getDataInfo();
 
+      String dtst = null;
+
       for (String s: info) {
         if (s.startsWith("buildTime=")) {
-          dtstamp = s.substring("buildTime=".length());
+          dtst = s.substring("buildTime=".length());
           break;
         }
       }
 
-      if (dtstamp == null) {
+      if (dtst == null) {
         DtStamp dt =  new DtStamp(new DateTime(lastDataFetch));
 
-        dtstamp = dt.getValue();
+        dtst = dt.getValue();
+      }
+
+      try {
+        dtstamp = XcalUtil.fromDtval(dtst);
+      } catch (Throwable t) {
+        throw new ServletException(t);
       }
     }
 
@@ -300,10 +310,27 @@ public class TzServerUtil {
   }
 
   /**
+   * @return all specs
+   * @throws ServletException
+   */
+  public Collection<String> getAllTzs() throws ServletException {
+    return cache.getAllCachedVtzs();
+  }
+
+  /**
+   * @param name
+   * @return spec
+   * @throws ServletException
+   */
+  public String getAliasedTz(final String name) throws ServletException {
+    return cache.getAliasedCachedVtz(name);
+  }
+
+  /* *
    * @param tzid - possible alias
    * @return actual timezone id
    * @throws ServletException
-   */
+   * /
   public String unalias(String tzid) throws ServletException {
     if (tzid == null) {
       throw new ServletException("Null id for unalias");
@@ -311,7 +338,7 @@ public class TzServerUtil {
 
     /* First transform the name if it follows a known pattern, for example
      * we used to get     /mozilla.org/20070129_1/America/New_York
-     */
+     * /
 
     tzid = transformTzid(tzid);
 
@@ -336,7 +363,7 @@ public class TzServerUtil {
     error("Possible circular alias chain looking for " + tzid);
 
     return null;
-  }
+  } */
 
   /**
    * @return data info
@@ -475,7 +502,7 @@ public class TzServerUtil {
 
     @Override
     public int compareTo(ObservanceWrapper o) {
-      return ot.getOnset().compareTo(o.ot.getOnset());
+      return ot.getOnset().toXMLFormat().compareTo(o.ot.getOnset().toXMLFormat());
     }
   }
 
@@ -486,14 +513,14 @@ public class TzServerUtil {
    * @return expansion or null
    * @throws Throwable
    */
-  public Timezones getExpanded(String tzid,
-                               String start,
-                               String end) throws Throwable {
+  public TimezonesType getExpanded(String tzid,
+                                   String start,
+                                   String end) throws Throwable {
     expandFetches++;
 
     ExpandedMapEntryKey emek = makeExpandedKey(tzid, start, end);
 
-    Timezones tzs = cache.getExpanded(emek);
+    TimezonesType tzs = cache.getExpanded(emek);
     if (tzs != null) {
       expandHits++;
       return tzs;
@@ -531,7 +558,7 @@ public class TzServerUtil {
         ObservanceType ot = new ObservanceType();
 
         ot.setName(ob.getName());
-        ot.setOnset(onsetPer.getStart().toString());
+        ot.setOnset(XcalUtil.fromDtval(onsetPer.getStart().toString()));
 
         String offset = ob.getOffsetFrom().getOffset().toString();
 
@@ -555,13 +582,13 @@ public class TzServerUtil {
 
     tzd.setTzid(tzid);
     for (ObservanceWrapper ow: obws) {
-      tzd.getObservances().add(ow.ot);
+      tzd.getObservance().add(ow.ot);
     }
 
-    tzs = new Timezones();
+    tzs = new TimezonesType();
 
     tzs.setDtstamp(getDtstamp());
-    tzs.getTzdatas().add(tzd);
+    tzs.getTzdata().add(tzd);
 
     cache.setExpanded(emek, tzs);
 
