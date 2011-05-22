@@ -133,7 +133,7 @@ public class TzServerUtil {
       tzdataUrl = config.getTzdataUrl();
     }
 
-    cache = new CachedData(tzdataUrl);
+    cache = new HttpZipCachedData(tzdataUrl);
   }
 
   /**
@@ -179,7 +179,7 @@ public class TzServerUtil {
     tzdataUrl = val;
 
     if (instance != null) {
-      instance.cache.setTzdataUrl(val);
+      instance.cache = new HttpZipCachedData(tzdataUrl);;
     }
   }
 

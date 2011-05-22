@@ -592,7 +592,7 @@ public class GetMethod extends MethodBase {
     try {
       Writer wtr = resp.getWriter();
 
-      boolean found = false;
+      writeCalHdr(wtr);
 
       if ((tzids.length == 1) && ("*".equals(tzids[0]))) {
         // Return all
@@ -601,31 +601,44 @@ public class GetMethod extends MethodBase {
         for (String s: vtzs) {
           wtr.write(s);
         }
+      } else {
+        boolean found = false;
 
-        return;
-      }
+        for (String tzid: tzids) {
+          String tz = util.getTz(tzid);
 
-      for (String tzid: tzids) {
-        String tz = util.getTz(tzid);
+          if (tz == null) {
+            tz = util.getAliasedTz(tzid);
+          }
 
-        if (tz == null) {
-          tz = util.getAliasedTz(tzid);
+          if (tz != null) {
+            found = true;
+            wtr.write(tz);
+          }
         }
 
-        if (tz != null) {
-          found = true;
-          wtr.write(tz);
+        if (!found) {
+          resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
       }
 
-      if (!found) {
-        resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-      }
+      writeCalTlr(wtr);
     } catch (ServletException se) {
       throw se;
     } catch (Throwable t) {
       throw new ServletException(t);
     }
+  }
+
+  private void writeCalHdr(Writer wtr) throws Throwable  {
+    wtr.write("BEGIN:VCALENDAR\n");
+    wtr.write("VERSION:2.0\n");
+    wtr.write("CALSCALE:GREGORIAN\n");
+    wtr.write("PRODID:/bedework.org//NONSGML Bedework//EN\n");
+  }
+
+  private void writeCalTlr(Writer wtr) throws Throwable  {
+    wtr.write("END:VCALENDAR\n");
   }
 
   /* Return true if data unchanged - status is set */
