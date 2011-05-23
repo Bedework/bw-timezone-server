@@ -290,6 +290,8 @@ public class GetMethod extends MethodBase {
 
   private void doCapabilities(final HttpServletResponse resp) throws ServletException {
     try {
+      resp.setContentType("application/xml");
+
       Marshaller m = getJc().createMarshaller();
       m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
       m.marshal(getOf().createCapabilities(capabilities), resp.getOutputStream());
@@ -302,6 +304,8 @@ public class GetMethod extends MethodBase {
 
   private void doList(final HttpServletResponse resp) throws ServletException {
     try {
+      resp.setContentType("application/xml");
+
       TimezoneListType tzl = new TimezoneListType();
 
       tzl.setDtstamp(util.getDtstamp());
@@ -320,6 +324,8 @@ public class GetMethod extends MethodBase {
   private void doExpand(final HttpServletRequest req,
                         final HttpServletResponse resp) throws ServletException {
     try {
+      resp.setContentType("application/xml");
+
       String tzid = req.getParameter("tzid");
       String start = req.getParameter("start");
       String end = req.getParameter("end");
@@ -579,6 +585,8 @@ public class GetMethod extends MethodBase {
     }
 
     try {
+      resp.setContentType("application/xml");
+
       Writer wtr = resp.getWriter();
 
       if ("*".equals(tzid)) {
