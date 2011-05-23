@@ -285,10 +285,14 @@ public class HttpZipCachedData implements CachedData {
       String info = entryToString(ze);
 
       String[] infoLines = info.split("\n");
+      String buildTime = null;
       dataInfo = new ArrayList<String>();
 
       for (String s: infoLines) {
         dataInfo.add(s);
+        if (s.startsWith("buildTime=")) {
+          buildTime = s.substring("buildTime=".length());
+        }
       }
 
       /* ===================== Rebuild the alias maps ======================= */
@@ -297,7 +301,7 @@ public class HttpZipCachedData implements CachedData {
 
       /* ===================== All tzs into the table ======================= */
 
-      unzipTzs(tzDefsZipFile);
+      unzipTzs(tzDefsZipFile, buildTime);
       expansions.clear();
 
       TzServerUtil.reloadsMillis += System.currentTimeMillis() - smillis;
@@ -343,7 +347,8 @@ public class HttpZipCachedData implements CachedData {
     }
   }
 
-  private void unzipTzs(ZipFile tzDefsZipFile) throws ServletException {
+  private void unzipTzs(ZipFile tzDefsZipFile,
+                        String buildTime) throws ServletException {
     try {
       nameList = new TreeSet<String>();
 
@@ -390,6 +395,8 @@ public class HttpZipCachedData implements CachedData {
         LastModified lm = vtz.getLastModified();
         if (lm!= null) {
           st.setLastModified(XcalUtil.getXMlUTCCal(lm.getValue()));
+        } else {
+          st.setLastModified(XcalUtil.getXMlUTCCal(buildTime));
         }
 
         List<String> aliases = findAliases(id);
