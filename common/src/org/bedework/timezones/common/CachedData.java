@@ -134,8 +134,9 @@ public interface CachedData extends Serializable {
   TimeZone getAliasedTimeZone(final String tzid) throws ServletException;
 
   /**
+   * @param changedSince - null or dtstamp value
    * @return list of summary info
    * @throws ServletException
    */
-  List<SummaryType> getSummaries() throws ServletException;
+  List<SummaryType> getSummaries(String changedSince) throws ServletException;
 }

@@ -233,11 +233,37 @@ public class HttpZipCachedData implements CachedData {
   }
 
   /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#getSummaries()
+   * @see org.bedework.timezones.common.CachedData#getSummaries(java.lang.String)
    */
-  public List<SummaryType> getSummaries() throws ServletException {
+  public List<SummaryType> getSummaries(String changedSince) throws ServletException {
     reload();
-    return summaries;
+
+    if (changedSince == null) {
+      return summaries;
+    }
+
+    List<SummaryType> ss = new ArrayList<SummaryType>();
+
+    for (SummaryType sum: summaries) {
+      if (sum.getLastModified() == null) {
+        ss.add(sum);
+        continue;
+      }
+
+      String lm = sum.getLastModified().toXMLFormat();
+
+      /*
+       * cs > lm +
+       * cs = lm 0
+       * cs < lm -
+       */
+
+      if (changedSince.compareTo(lm) < 0) {
+        ss.add(sum);
+      }
+    }
+
+    return ss;
   }
 
   /**

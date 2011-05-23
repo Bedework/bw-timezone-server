@@ -486,11 +486,12 @@ public class TzServerUtil {
   }
 
   /**
+   * @param changedSince - null or dtstamp value
    * @return list of summary info
    * @throws ServletException
    */
-  public List<SummaryType> getSummaries() throws ServletException {
-    return cache.getSummaries();
+  public List<SummaryType> getSummaries(String changedSince) throws ServletException {
+    return cache.getSummaries(changedSince);
   }
 
   private static class ObservanceWrapper implements Comparable<ObservanceWrapper> {

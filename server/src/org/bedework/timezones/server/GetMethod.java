@@ -237,7 +237,7 @@ public class GetMethod extends MethodBase {
     }
 
     if ("list".equals(action)) {
-      doList(resp);
+      doList(req, resp);
       return;
     }
 
@@ -302,14 +302,16 @@ public class GetMethod extends MethodBase {
     }
   }
 
-  private void doList(final HttpServletResponse resp) throws ServletException {
+  private void doList(final HttpServletRequest req,
+                      final HttpServletResponse resp) throws ServletException {
     try {
       resp.setContentType("application/xml");
 
       TimezoneListType tzl = new TimezoneListType();
 
       tzl.setDtstamp(util.getDtstamp());
-      tzl.getSummary().addAll(util.getSummaries());
+
+      tzl.getSummary().addAll(util.getSummaries(req.getParameter("changedsince")));
 
       Marshaller m = getJc().createMarshaller();
       m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
@@ -585,7 +587,7 @@ public class GetMethod extends MethodBase {
     }
 
     try {
-      resp.setContentType("application/xml");
+      resp.setContentType("text/icalendar");
 
       Writer wtr = resp.getWriter();
 
