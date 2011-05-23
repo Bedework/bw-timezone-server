@@ -255,7 +255,7 @@ public class GetMethod extends MethodBase {
     }
 
     if ("get".equals(action)) {
-      doTzids(resp, req.getParameterValues("tzid"));
+      doTzid(resp, req.getParameter("tzid"));
       return;
     }
 
@@ -290,12 +290,9 @@ public class GetMethod extends MethodBase {
                path.equals(tzspath + "/")) {
       doNames(resp);
     } else if (path.startsWith(tzspath + "/")) {
-      String[] ids = {
-         path.substring(tzspath.length() + 1)
-      };
-      doTzids(resp, ids);
+      doTzid(resp, path.substring(tzspath.length() + 1));
     } else {
-      doTzids(resp, req.getParameterValues("tzid"));
+      doTzid(resp, req.getParameter("tzid"));
     }
   }
 
@@ -583,46 +580,44 @@ public class GetMethod extends MethodBase {
     }
   }
 
-  private void doTzids(final HttpServletResponse resp,
-                       final String[] tzids) throws ServletException {
-    if ((tzids == null) || (tzids.length == 0)) {
+  private void doTzid(final HttpServletResponse resp,
+                      final String tzid) throws ServletException {
+    if (tzid == null) {
       return;
     }
 
     try {
       Writer wtr = resp.getWriter();
 
-      writeCalHdr(wtr);
-
-      if ((tzids.length == 1) && ("*".equals(tzids[0]))) {
+      if ("*".equals(tzid)) {
         // Return all
         Collection<String> vtzs = util.getAllTzs();
+
+        writeCalHdr(wtr);
 
         for (String s: vtzs) {
           wtr.write(s);
         }
-      } else {
-        boolean found = false;
 
-        for (String tzid: tzids) {
-          String tz = util.getTz(tzid);
-
-          if (tz == null) {
-            tz = util.getAliasedTz(tzid);
-          }
-
-          if (tz != null) {
-            found = true;
-            wtr.write(tz);
-          }
-        }
-
-        if (!found) {
-          resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-        }
+        writeCalTlr(wtr);
       }
 
-      writeCalTlr(wtr);
+      String tz = util.getTz(tzid);
+
+      if (tz == null) {
+        tz = util.getAliasedTz(tzid);
+      }
+
+      if (tz == null) {
+        resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+      } else {
+        resp.setHeader("ETag", "\"" + util.getDtstamp().toXMLFormat() + "\"");
+        writeCalHdr(wtr);
+
+        wtr.write(tz);
+
+        writeCalTlr(wtr);
+      }
     } catch (ServletException se) {
       throw se;
     } catch (Throwable t) {
