@@ -47,10 +47,10 @@ public interface CachedData extends Serializable {
   void refresh();
 
   /**
-   * @return data info
+   * @return XML formatted UTC dateTime
    * @throws ServletException
    */
-  Collection<String> getDataInfo() throws ServletException;
+  String getDtstamp() throws ServletException;
 
   /** Given an alias return the tzid for that alias
    *

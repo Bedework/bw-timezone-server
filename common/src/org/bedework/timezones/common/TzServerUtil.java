@@ -88,6 +88,7 @@ public class TzServerUtil {
 
   static XMLGregorianCalendar dtstamp;
 
+  /* A URL for retrieving the tzdata jar */
   static String tzdataUrl;
 
   /* ======================= TimeZone objects ======================= */
@@ -201,25 +202,10 @@ public class TzServerUtil {
    * @throws ServletException
    */
   public String getEtag() throws ServletException {
-    if (etagValue == null) {
-      Collection<String> info = cache.getDataInfo();
-
-      for (String s: info) {
-        if (s.startsWith("buildTime=")) {
-          etagValue = s.substring("buildTime=".length());
-          break;
-        }
-      }
-
-      if (etagValue == null) {
-        etagValue = String.valueOf(lastDataFetch);
-      }
-    }
-
     StringBuilder val = new StringBuilder();
 
     val.append("\"");
-    val.append(etagValue);
+    val.append(getDtstamp().toXMLFormat());
     val.append("\"");
 
     return val.toString();
@@ -231,16 +217,7 @@ public class TzServerUtil {
    */
   public XMLGregorianCalendar getDtstamp() throws ServletException {
     if (dtstamp == null) {
-      Collection<String> info = cache.getDataInfo();
-
-      String dtst = null;
-
-      for (String s: info) {
-        if (s.startsWith("buildTime=")) {
-          dtst = s.substring("buildTime=".length());
-          break;
-        }
-      }
+      String dtst = cache.getDtstamp();
 
       if (dtst == null) {
         DtStamp dt =  new DtStamp(new DateTime(lastDataFetch));
@@ -364,14 +341,6 @@ public class TzServerUtil {
 
     return null;
   } */
-
-  /**
-   * @return data info
-   * @throws ServletException
-   */
-  public Collection<String> getDataInfo() throws ServletException {
-    return cache.getDataInfo();
-  }
 
   /**
    * @return String value of aliases file.

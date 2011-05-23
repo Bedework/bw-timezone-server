@@ -1,27 +1,20 @@
-/* **********************************************************************
-    Copyright 2009 Rensselaer Polytechnic Institute. All worldwide rights reserved.
+/* ********************************************************************
+    Licensed to Jasig under one or more contributor license
+    agreements. See the NOTICE file distributed with this work
+    for additional information regarding copyright ownership.
+    Jasig licenses this file to you under the Apache License,
+    Version 2.0 (the "License"); you may not use this file
+    except in compliance with the License. You may obtain a
+    copy of the License at:
 
-    Redistribution and use of this distribution in source and binary forms,
-    with or without modification, are permitted provided that:
-       The above copyright notice and this permission notice appear in all
-        copies and supporting documentation;
+    http://www.apache.org/licenses/LICENSE-2.0
 
-        The name, identifiers, and trademarks of Rensselaer Polytechnic
-        Institute are not used in advertising or publicity without the
-        express prior written permission of Rensselaer Polytechnic Institute;
-
-    DISCLAIMER: The software is distributed" AS IS" without any express or
-    implied warranty, including but not limited to, any implied warranties
-    of merchantability or fitness for a particular purpose or any warrant)'
-    of non-infringement of any current or pending patent rights. The authors
-    of the software make no representations about the suitability of this
-    software for any particular purpose. The entire risk as to the quality
-    and performance of the software is with the user. Should the software
-    prove defective, the user assumes the cost of all necessary servicing,
-    repair or correction. In particular, neither Rensselaer Polytechnic
-    Institute, nor the authors of the software are liable for any indirect,
-    special, consequential, or incidental damages related to the software,
-    to the maximum extent the law permits.
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on
+    an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    KIND, either express or implied. See the License for the
+    specific language governing permissions and limitations
+    under the License.
 */
 package org.bedework.timezones.common;
 
@@ -78,7 +71,7 @@ public class HttpZipCachedData implements CachedData {
 
   private File tzDefsFile;
 
-  private Collection<String> dataInfo;
+  private String buildTime;
 
   private Map<String, String> vtzs = new HashMap<String, String>();
 
@@ -136,11 +129,11 @@ public class HttpZipCachedData implements CachedData {
   }
 
   /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#getDataInfo()
+   * @see org.bedework.timezones.common.CachedData#getDtstamp()
    */
-  public Collection<String> getDataInfo() throws ServletException {
+  public String getDtstamp() throws ServletException {
     reload();
-    return dataInfo;
+    return buildTime;
   }
 
   /* (non-Javadoc)
@@ -311,11 +304,8 @@ public class HttpZipCachedData implements CachedData {
       String info = entryToString(ze);
 
       String[] infoLines = info.split("\n");
-      String buildTime = null;
-      dataInfo = new ArrayList<String>();
 
       for (String s: infoLines) {
-        dataInfo.add(s);
         if (s.startsWith("buildTime=")) {
           buildTime = s.substring("buildTime=".length());
         }

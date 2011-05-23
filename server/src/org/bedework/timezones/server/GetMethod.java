@@ -290,7 +290,7 @@ public class GetMethod extends MethodBase {
 
   private void doCapabilities(final HttpServletResponse resp) throws ServletException {
     try {
-      resp.setContentType("application/xml");
+      resp.setContentType("application/xml; charset=UTF-8");
 
       Marshaller m = getJc().createMarshaller();
       m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
@@ -305,7 +305,7 @@ public class GetMethod extends MethodBase {
   private void doList(final HttpServletRequest req,
                       final HttpServletResponse resp) throws ServletException {
     try {
-      resp.setContentType("application/xml");
+      resp.setContentType("application/xml; charset=UTF-8");
 
       TimezoneListType tzl = new TimezoneListType();
 
@@ -326,7 +326,7 @@ public class GetMethod extends MethodBase {
   private void doExpand(final HttpServletRequest req,
                         final HttpServletResponse resp) throws ServletException {
     try {
-      resp.setContentType("application/xml");
+      resp.setContentType("application/xml; charset=UTF-8");
 
       String tzid = req.getParameter("tzid");
       String start = req.getParameter("start");
@@ -350,7 +350,7 @@ public class GetMethod extends MethodBase {
 
   private void doNames(final HttpServletResponse resp) throws ServletException {
     try {
-      resp.setContentType("text/plain");
+      resp.setContentType("text/plain; charset=UTF-8");
       resp.setHeader("ETag", util.getEtag());
 
       Writer wtr = resp.getWriter();
@@ -368,7 +368,7 @@ public class GetMethod extends MethodBase {
 
   private void doStats(final HttpServletResponse resp) throws ServletException {
     try {
-      resp.setContentType("text/html");
+      resp.setContentType("text/html; charset=UTF-8");
       Writer wtr = resp.getWriter();
 
       wtr.write("<html>\r\n");
@@ -408,7 +408,7 @@ public class GetMethod extends MethodBase {
   private void doAliases(final HttpServletResponse resp) throws ServletException {
     try {
       resp.setHeader("ETag", util.getEtag());
-      resp.setContentType("text/plain");
+      resp.setContentType("text/plain; charset=UTF-8");
 
       Writer wtr = resp.getWriter();
 
@@ -445,11 +445,9 @@ public class GetMethod extends MethodBase {
   private void doInfo(final HttpServletResponse resp) throws ServletException {
     try {
       resp.setHeader("ETag", util.getEtag());
-      resp.setContentType("text/html");
+      resp.setContentType("text/html; charset=UTF-8");
 
       Writer wtr = resp.getWriter();
-
-      Collection<String> info = util.getDataInfo();
 
       wtr.write("<html>\r\n");
       wtr.write("  <head>\r\n");
@@ -469,10 +467,7 @@ public class GetMethod extends MethodBase {
                 "cellspacing=\"0\"" +
                 " cellpadding=\"4\">\r\n");
 
-      for (String s: info) {
-        String[] nameVal = s.split("=");
-        infoLine(wtr, nameVal[0], nameVal[1]);
-      }
+      infoLine(wtr, "dtstamp", util.getDtstamp().toXMLFormat());
 
       wtr.write("</table>\r\n");
 
@@ -587,7 +582,7 @@ public class GetMethod extends MethodBase {
     }
 
     try {
-      resp.setContentType("text/icalendar");
+      resp.setContentType("text/icalendar; charset=UTF-8");
 
       Writer wtr = resp.getWriter();
 
