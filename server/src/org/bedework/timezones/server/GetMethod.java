@@ -582,7 +582,7 @@ public class GetMethod extends MethodBase {
     }
 
     try {
-      resp.setContentType("text/icalendar; charset=UTF-8");
+      resp.setContentType("text/calendar; charset=UTF-8");
 
       Writer wtr = resp.getWriter();
 
