@@ -36,8 +36,15 @@ import net.fortuna.ical4j.model.component.VTimeZone;
 import net.fortuna.ical4j.model.property.DtStamp;
 import net.fortuna.ical4j.util.TimeZones;
 
+import org.bedework.timezones.common.db.DbCachedData;
+import org.bedework.timezones.common.db.DbEmptyException;
+import org.bedework.timezones.common.db.TzAlias;
+import org.bedework.timezones.common.db.TzDbInfo;
+import org.bedework.timezones.common.db.TzDbSpec;
+
 import org.apache.log4j.Logger;
 
+import ietf.params.xml.ns.timezone_service.AliasType;
 import ietf.params.xml.ns.timezone_service.ObservanceType;
 import ietf.params.xml.ns.timezone_service.SummaryType;
 import ietf.params.xml.ns.timezone_service.TimezonesType;
@@ -66,6 +73,8 @@ import edu.rpi.sss.util.OptionsI;
  *   @author Mike Douglass
  */
 public class TzServerUtil {
+  private boolean tryDb = true;
+
   private static String appname = "tzsvr";
 
   private TzsvrConfig config;
@@ -134,7 +143,18 @@ public class TzServerUtil {
       tzdataUrl = config.getTzdataUrl();
     }
 
-    cache = new HttpZipCachedData(tzdataUrl);
+    getcache();
+  }
+
+  public String getCalHdr() {
+    return "BEGIN:VCALENDAR\n" +
+           "VERSION:2.0\n" +
+           "CALSCALE:GREGORIAN\n" +
+           "PRODID:/bedework.org//NONSGML Bedework//EN\n";
+  }
+
+  public String getCalTlr() {
+    return "END:VCALENDAR\n";
   }
 
   /**
@@ -175,12 +195,13 @@ public class TzServerUtil {
   /** Set before calling getInstance if overriding config
    *
    * @param val
+   * @throws ServletException
    */
-  public static void setTzdataUrl(final String val) {
+  public static void setTzdataUrl(final String val) throws ServletException {
     tzdataUrl = val;
 
     if (instance != null) {
-      instance.cache = new HttpZipCachedData(tzdataUrl);;
+      instance.getcache();
     }
   }
 
@@ -192,9 +213,14 @@ public class TzServerUtil {
   }
 
   /** Cause a refresh of the data
+   *
+   * @throws ServletException
    */
-  public void fireRefresh() {
-    cache.refresh();
+  public void fireRefresh() throws ServletException {
+
+    if (instance != null) {
+      instance.getcache();
+    }
   }
 
   /**
@@ -627,6 +653,101 @@ public class TzServerUtil {
     }
 
     return tzid;
+  }
+
+  private void getcache() throws ServletException {
+    if (tryDb) {
+      try {
+        cache = new DbCachedData(false);
+      } catch (DbEmptyException dbee) {
+        /* try to populate from zipped data */
+
+        if (addDbData()) {
+          try {
+            cache = new DbCachedData(false);
+          } catch (TzException te) {
+            error(te);
+          }
+        }
+      } catch (TzException te) {
+        error(te);
+      }
+    }
+
+    if (cache == null) {
+      cache = new HttpZipCachedData(tzdataUrl);
+    }
+  }
+
+  private boolean addDbData() {
+    DbCachedData db = null;
+
+    try {
+      CachedData z = new HttpZipCachedData(tzdataUrl);
+
+      db = new DbCachedData(true);
+
+      db.startAdd();
+
+      TzDbInfo dbi = new TzDbInfo();
+
+      dbi.setDtstamp(z.getDtstamp());
+      dbi.setVersion("1.0");
+      db.addTzInfo(dbi);
+
+      List<SummaryType> sums = z.getSummaries(null);
+
+      for (SummaryType sum: sums) {
+        if (sum.getAlias() != null) {
+          for (AliasType at: sum.getAlias()) {
+            TzAlias alias = new TzAlias();
+
+            alias.setFromId(at.getValue());
+            alias.setToId(sum.getTzid());
+
+            db.addTzAlias(alias);
+          }
+        }
+
+        TzDbSpec spec = new TzDbSpec();
+
+        spec.setName(sum.getTzid());
+
+        spec.setVtimezone(getCalHdr() +
+                          z.getCachedVtz(sum.getTzid()) +
+                          getCalTlr());
+        if (spec.getVtimezone() == null) {
+          error("No timezone spec for " + sum.getTzid());
+        }
+
+        spec.setDtstamp(z.getDtstamp());
+        spec.setActive(true);
+
+        db.addTzSpec(spec);
+      }
+
+      db.endAdd();
+
+      db = null;
+
+      return true;
+    } catch (ServletException se) {
+      getLogger().error("Unable to add tz data to db", se);
+      if (db !=  null) {
+        db.failAdd();
+      }
+      return false;
+    } catch (TzException te) {
+      getLogger().error("Unable to add tz data to db", te);
+      if (db !=  null) {
+        db.failAdd();
+      }
+      return false;
+    } finally {
+      if (db !=  null) {
+        db.endAdd();
+      }
+    }
   }
 
   private static Calendar cal = Calendar.getInstance();

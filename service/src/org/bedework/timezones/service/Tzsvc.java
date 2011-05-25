@@ -29,6 +29,8 @@ import org.bedework.timezones.common.Stat;
 import org.bedework.timezones.common.TzServerUtil;
 
 import org.apache.log4j.Logger;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.tool.hbm2ddl.SchemaExport;
 
 import java.util.List;
 
@@ -42,6 +44,8 @@ public class Tzsvc implements TzsvcMBean {
   private boolean running;
 
   private TzServerUtil util;
+
+  private Configuration cfg;
 
   /* ========================================================================
    * Attributes
@@ -70,7 +74,12 @@ public class Tzsvc implements TzsvcMBean {
    * @param val
    */
   public void setTzdataUrl(String val) {
-    TzServerUtil.setTzdataUrl(val);
+    try {
+      TzServerUtil.setTzdataUrl(val);
+    } catch (Throwable t) {
+      error("Error setting url");
+      error(t);
+    }
   }
 
   /**
@@ -117,6 +126,23 @@ public class Tzsvc implements TzsvcMBean {
     return info;
   }
   */
+
+  public String recreateDb() {
+    String res = schema(true);
+
+    if (res != null) {
+      return res;
+    }
+
+    res = schema(false);
+
+    if (res != null) {
+      return res;
+    }
+
+
+    return "Action complete: check logs";
+  }
 
   /* ========================================================================
    * Lifecycle
@@ -165,6 +191,36 @@ public class Tzsvc implements TzsvcMBean {
   /* ====================================================================
    *                   Private methods
    * ==================================================================== */
+
+  private String schema(boolean drop) {
+    String result = null;
+
+    try {
+      SchemaExport se = new SchemaExport(getConfiguration());
+
+      se.setDelimiter(";");
+
+      se.setHaltOnError(false);
+
+      se.execute(false, // script - causes write to System.out if true
+                 true,
+                 drop,
+                 !drop);
+    } catch (Throwable t) {
+      error(t);
+      result = "Exception: " + t.getLocalizedMessage();
+    }
+
+    return result;
+  }
+
+  private synchronized Configuration getConfiguration() {
+    if (cfg == null) {
+      cfg = new Configuration().configure();
+    }
+
+    return cfg;
+  }
 
   /* ====================================================================
    *                   Protected methods

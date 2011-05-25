@@ -34,6 +34,12 @@
 
   <property name="org.bedework.sou.classpath.properties"
             location="${project.home}/resources" />
+  
+  <property name="org.bedework.sou.hibernate.properties"
+            location="${project.home}/resources/hibernate" />
+
+  <property name="org.bedework.jboss.datasource.jndiname"
+            value="${org.bedework.global.jboss.tzdb.datasource.jndiname}" />
 
   <property name="ear.meta.dir" location="${project.home}/ear.meta"/>
 
@@ -107,6 +113,7 @@
     <getJar name="commons-httpclient" version="3.0" />
     <getJar name="commons-lang" version="2.1" />
     <getJar name="ehcache" version="1.6.2" />
+    <getJar name="hibernate" version="3.3.1.ga" />
     <getJar name="ical4j" version="1.0-rc3-SNAPSHOT" />
     <getJar name="log4j" version="1.2.8" />
     <getJar name="servletapi" version="2.4" />

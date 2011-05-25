@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-configuration
+    PUBLIC "-//Hibernate/Hibernate Configuration DTD//EN"
+    "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+
+<!-- ===================================================================
+     Hibernate mapping for the bedework tz server.
+     =================================================================== -->
+
+<hibernate-configuration>
+  <session-factory>
+    <property name="hibernate.query.substitutions">true 'T', false 'F', yes 'Y', no 'N'</property>
+
+    <!-- Mapping files -->
+    <mapping resource="Info.hbm.xml"/>
+    <mapping resource="Tzspec.hbm.xml"/>
+    <mapping resource="Tzaliases.hbm.xml"/>
+  </session-factory>
+</hibernate-configuration>

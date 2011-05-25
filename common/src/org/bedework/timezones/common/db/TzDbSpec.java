@@ -1,0 +1,163 @@
+/* ********************************************************************
+    Licensed to Jasig under one or more contributor license
+    agreements. See the NOTICE file distributed with this work
+    for additional information regarding copyright ownership.
+    Jasig licenses this file to you under the Apache License,
+    Version 2.0 (the "License"); you may not use this file
+    except in compliance with the License. You may obtain a
+    copy of the License at:
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on
+    an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+    KIND, either express or implied. See the License for the
+    specific language governing permissions and limitations
+    under the License.
+*/
+package org.bedework.timezones.common.db;
+
+import java.util.Set;
+
+/** Type for db info.
+ *
+ * @author Mike Douglass
+ * @version 1.0
+ */
+public class TzDbSpec extends TzDbentity<TzDbSpec> {
+  private String name;
+
+  private String dtstamp;
+
+  private boolean active;
+
+  private String vtimezone;
+
+  private Set<LocalizedString> displayNames;
+
+  /**
+   * @param val
+   */
+  public void setName(final String val) {
+    name = val;
+  }
+
+  /**
+   * @return Name of the spec
+   */
+  public String getName() {
+    return name;
+  }
+
+  /**
+   * @param val
+   */
+  public void setDtstamp(final String val) {
+    dtstamp = val;
+  }
+
+  /**
+   * @return String XML format dtstamp
+   */
+  public String getDtstamp() {
+    return dtstamp;
+  }
+
+  /**
+   * @param val
+   */
+  public void setActive(final boolean val) {
+    active = val;
+  }
+
+  /**
+   * @return boolean true for active
+   */
+  public boolean getActive() {
+    return active;
+  }
+
+  /**
+   * @param val
+   */
+  public void setVtimezone(final String val) {
+    vtimezone = val;
+  }
+
+  /**
+   * @return Name of the spec
+   */
+  public String getVtimezone() {
+    return vtimezone;
+  }
+
+  /**
+   * @param val
+   */
+  public void setDisplayNames(final Set<LocalizedString> val) {
+    displayNames = val;
+  }
+
+  /**
+   * @return display names
+   */
+  public Set<LocalizedString> getDisplayNames() {
+    return displayNames;
+  }
+
+  /* ====================================================================
+   *                   Convenience methods
+   * ==================================================================== */
+
+  /** Add our stuff to the StringBuilder
+   *
+   * @param sb    StringBuilder for result
+   */
+  @Override
+  protected void toStringSegment(final StringBuilder sb) {
+    super.toStringSegment(sb);
+
+    sb.append("name=");
+    sb.append(getName());
+
+    sb.append("dtstamp=");
+    sb.append(getDtstamp());
+
+    sb.append("active=");
+    sb.append(getActive());
+
+    sb.append("vtimezone=");
+    sb.append(getVtimezone());
+  }
+
+  /* ====================================================================
+   *                   Object methods
+   * The following are required for a db object.
+   * ==================================================================== */
+
+  @Override
+  public int compareTo(final TzDbSpec that) {
+    int res = getName().compareTo(that.getName());
+
+    if (res != 0) {
+      return res;
+    }
+
+    return getDtstamp().compareTo(that.getDtstamp());
+  }
+
+  @Override
+  public int hashCode() {
+    return dtstamp.hashCode();
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("BwUser{");
+
+    toStringSegment(sb);
+
+    return sb.toString();
+  }
+}

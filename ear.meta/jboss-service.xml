@@ -4,6 +4,9 @@
          name="org.bedework:service=Tzsvr">
     <attribute name="Appname">tzsvr</attribute>
     
+    <!-- We also need the database -->
+    <depends>jboss.jca:service=DataSourceBinding,name=TzDS</depends>
+    
     <!-- We need activemq 
     <depends>jboss.jca:service=ConnectionFactoryBinding,name=activemq/QueueConnectionFactory</depends>
     -->    

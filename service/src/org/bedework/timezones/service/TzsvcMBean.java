@@ -83,6 +83,12 @@ public interface TzsvcMBean {
    */
   public String refreshData();
 
+  /** Recreate the tzdb
+   *
+   * @return completion code.
+   */
+  public String recreateDb();
+
   /* ========================================================================
    * Lifecycle
    * ======================================================================== */

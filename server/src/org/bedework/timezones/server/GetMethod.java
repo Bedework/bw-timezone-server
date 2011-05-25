@@ -623,14 +623,11 @@ public class GetMethod extends MethodBase {
   }
 
   private void writeCalHdr(Writer wtr) throws Throwable  {
-    wtr.write("BEGIN:VCALENDAR\n");
-    wtr.write("VERSION:2.0\n");
-    wtr.write("CALSCALE:GREGORIAN\n");
-    wtr.write("PRODID:/bedework.org//NONSGML Bedework//EN\n");
+    wtr.write(util.getCalHdr());
   }
 
   private void writeCalTlr(Writer wtr) throws Throwable  {
-    wtr.write("END:VCALENDAR\n");
+    wtr.write(util.getCalTlr());
   }
 
   /* Return true if data unchanged - status is set */
