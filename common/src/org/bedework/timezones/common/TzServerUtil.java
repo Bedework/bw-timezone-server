@@ -73,36 +73,21 @@ import edu.rpi.sss.util.OptionsI;
  *   @author Mike Douglass
  */
 public class TzServerUtil {
-  private boolean tryDb = true;
+  /* Temp - allows disabling of db */
+  private static boolean tryDb = true;
 
   private static String appname = "tzsvr";
 
-  private TzsvrConfig config;
+  private static TzsvrConfig config;
 
   private static TzServerUtil instance;
-
-  /* ======================= Error codes ======================= */
-
-  /** Unable to retrieve the data */
-  public static final String errorNodata = "org.tserver.no.data";
-
-  /* ======================= Caching ======================= */
-
-  private CachedData cache;
-
-  /** Time we last fetched the data */
-  public static long lastDataFetch;
-
-  static String etagValue;
-
-  static XMLGregorianCalendar dtstamp;
 
   /* A URL for retrieving the tzdata jar */
   static String tzdataUrl;
 
-  /* ======================= TimeZone objects ======================= */
+  static String primaryUrl;
 
-  private static Object zipLock = new Object();
+  private static Object locker = new Object();
 
   /* ======================= Stats ======================= */
 
@@ -120,6 +105,20 @@ public class TzServerUtil {
   static long expandHits;
   static long expands;
   static long expandsMillis;
+
+  /* ======================= Error codes ======================= */
+
+  /** Unable to retrieve the data */
+  public static final String errorNodata = "org.tserver.no.data";
+
+  /* ======================= Caching ======================= */
+
+  private CachedData cache;
+
+  /** Time we last fetched the data */
+  public static long lastDataFetch;
+
+  static XMLGregorianCalendar dtstamp;
 
   /**
    * @throws ServletException
@@ -146,16 +145,9 @@ public class TzServerUtil {
     getcache();
   }
 
-  public String getCalHdr() {
-    return "BEGIN:VCALENDAR\n" +
-           "VERSION:2.0\n" +
-           "CALSCALE:GREGORIAN\n" +
-           "PRODID:/bedework.org//NONSGML Bedework//EN\n";
-  }
-
-  public String getCalTlr() {
-    return "END:VCALENDAR\n";
-  }
+  /* ====================================================================
+   *                   Static methods
+   * ==================================================================== */
 
   /**
    * @return a singleton instance
@@ -166,7 +158,7 @@ public class TzServerUtil {
       return instance;
     }
 
-    synchronized (zipLock) {
+    synchronized (locker) {
       if (instance != null) {
         return instance;
       }
@@ -195,14 +187,9 @@ public class TzServerUtil {
   /** Set before calling getInstance if overriding config
    *
    * @param val
-   * @throws ServletException
    */
-  public static void setTzdataUrl(final String val) throws ServletException {
+  public static void setTzdataUrl(final String val) {
     tzdataUrl = val;
-
-    if (instance != null) {
-      instance.getcache();
-    }
   }
 
   /**
@@ -212,30 +199,65 @@ public class TzServerUtil {
     return tzdataUrl;
   }
 
+  /** Url of server we refresh from. Null if we are a primary server
+   *
+   * @param val    String
+   */
+  public static void setPrimaryUrl(final String val) {
+    primaryUrl = val;
+  }
+
+  /**
+   * @return String
+   */
+  public static String getPrimaryUrl() {
+    return primaryUrl;
+  }
+
   /** Cause a refresh of the data
    *
    * @throws ServletException
    */
-  public void fireRefresh() throws ServletException {
+  public static void fireRefresh() throws ServletException {
+    getInstance().getcache();
+  }
 
-    if (instance != null) {
-      instance.getcache();
-    }
+  /** Cause an update of the data
+   *
+   * @throws ServletException
+   */
+  public static void fireUpdate() throws ServletException {
+    getInstance().cache.update();
   }
 
   /**
-   * @return an etag based on when we refreshed data
+   * @return stats for the service
    * @throws ServletException
    */
-  public String getEtag() throws ServletException {
-    StringBuilder val = new StringBuilder();
+  public static List<Stat> getStats() throws ServletException {
+    List<Stat> stats = new ArrayList<Stat>();
 
-    val.append("\"");
-    val.append(getDtstamp().toXMLFormat());
-    val.append("\"");
+    stats.add(new Stat("Gets", String.valueOf(gets)));
+    stats.add(new Stat("Hits", String.valueOf(cacheHits)));
+    stats.add(new Stat("Name lists", String.valueOf(nameLists)));
+    stats.add(new Stat("Reads", String.valueOf(reads)));
+    stats.add(new Stat("conversions",
+                       String.valueOf(conversions),
+                       String.valueOf(conversionsMillis)));
+    stats.add(new Stat("tzfetches", String.valueOf(tzfetches)));
+    stats.add(new Stat("tzreloads",
+                       String.valueOf(reloads),
+                       String.valueOf(reloadsMillis)));
+    stats.add(new Stat("expands",
+                       String.valueOf(expands),
+                       String.valueOf(expandsMillis)));
 
-    return val.toString();
+    return stats;
   }
+
+  /* ====================================================================
+   *                   Instance methods
+   * ==================================================================== */
 
   /**
    * @return the data dtsamp
@@ -266,31 +288,6 @@ public class TzServerUtil {
    */
   public TzsvrConfig getConfig() {
     return config;
-  }
-
-  /**
-   * @return stats for the service
-   * @throws ServletException
-   */
-  public static List<Stat> getStats() throws ServletException {
-    List<Stat> stats = new ArrayList<Stat>();
-
-    stats.add(new Stat("Gets", String.valueOf(gets)));
-    stats.add(new Stat("Hits", String.valueOf(cacheHits)));
-    stats.add(new Stat("Name lists", String.valueOf(nameLists)));
-    stats.add(new Stat("Reads", String.valueOf(reads)));
-    stats.add(new Stat("conversions",
-                       String.valueOf(conversions),
-                       String.valueOf(conversionsMillis)));
-    stats.add(new Stat("tzfetches", String.valueOf(tzfetches)));
-    stats.add(new Stat("tzreloads",
-                       String.valueOf(reloads),
-                       String.valueOf(reloadsMillis)));
-    stats.add(new Stat("expands",
-                       String.valueOf(expands),
-                       String.valueOf(expandsMillis)));
-
-    return stats;
   }
 
   /**
@@ -509,14 +506,14 @@ public class TzServerUtil {
    * @return expansion or null
    * @throws Throwable
    */
-  public TimezonesType getExpanded(String tzid,
-                                   String start,
-                                   String end) throws Throwable {
+  public ExpandedMapEntry getExpanded(String tzid,
+                                      String start,
+                                      String end) throws Throwable {
     expandFetches++;
 
     ExpandedMapEntryKey emek = makeExpandedKey(tzid, start, end);
 
-    TimezonesType tzs = cache.getExpanded(emek);
+    ExpandedMapEntry tzs = cache.getExpanded(emek);
     if (tzs != null) {
       expandHits++;
       return tzs;
@@ -581,10 +578,12 @@ public class TzServerUtil {
       tzd.getObservance().add(ow.ot);
     }
 
-    tzs = new TimezonesType();
+    TimezonesType tzt = new TimezonesType();
 
-    tzs.setDtstamp(getDtstamp());
-    tzs.getTzdata().add(tzd);
+    tzt.setDtstamp(getDtstamp());
+    tzt.getTzdata().add(tzd);
+
+    tzs = new ExpandedMapEntry(String.valueOf(smillis), tzt);
 
     cache.setExpanded(emek, tzs);
 
@@ -604,6 +603,35 @@ public class TzServerUtil {
     tzfetches++;
 
     return cache.getTimeZone(tzid);
+  }
+
+  /* ====================================================================
+   *                   Convenience methods
+   * ==================================================================== */
+
+  public String getCalHdr() {
+    return "BEGIN:VCALENDAR\n" +
+           "VERSION:2.0\n" +
+           "CALSCALE:GREGORIAN\n" +
+           "PRODID:/bedework.org//NONSGML Bedework//EN\n";
+  }
+
+  public String getCalTlr() {
+    return "END:VCALENDAR\n";
+  }
+
+  /**
+   * @return an etag based on when we refreshed data
+   * @throws ServletException
+   */
+  public String getEtag() throws ServletException {
+    StringBuilder val = new StringBuilder();
+
+    val.append("\"");
+    val.append(getDtstamp().toXMLFormat());
+    val.append("\"");
+
+    return val.toString();
   }
 
   /* ====================================================================
@@ -658,13 +686,13 @@ public class TzServerUtil {
   private void getcache() throws ServletException {
     if (tryDb) {
       try {
-        cache = new DbCachedData(false);
+        cache = new DbCachedData(false, primaryUrl);
       } catch (DbEmptyException dbee) {
         /* try to populate from zipped data */
 
         if (addDbData()) {
           try {
-            cache = new DbCachedData(false);
+            cache = new DbCachedData(false, primaryUrl);
           } catch (TzException te) {
             error(te);
           }
@@ -675,7 +703,7 @@ public class TzServerUtil {
     }
 
     if (cache == null) {
-      cache = new HttpZipCachedData(tzdataUrl);
+      cache = new ZipCachedData(tzdataUrl);
     }
   }
 
@@ -683,9 +711,9 @@ public class TzServerUtil {
     DbCachedData db = null;
 
     try {
-      CachedData z = new HttpZipCachedData(tzdataUrl);
+      CachedData z = new ZipCachedData(tzdataUrl);
 
-      db = new DbCachedData(true);
+      db = new DbCachedData(true, primaryUrl);
 
       db.startAdd();
 

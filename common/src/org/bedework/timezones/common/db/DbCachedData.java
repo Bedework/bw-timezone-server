@@ -27,6 +27,7 @@ import net.fortuna.ical4j.model.property.LastModified;
 import net.fortuna.ical4j.model.property.TzId;
 
 import org.bedework.timezones.common.CachedData;
+import org.bedework.timezones.common.ExpandedMapEntry;
 import org.bedework.timezones.common.ExpandedMapEntryKey;
 import org.bedework.timezones.common.TzException;
 import org.bedework.timezones.common.TzServerUtil;
@@ -36,8 +37,9 @@ import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
 import ietf.params.xml.ns.timezone_service.AliasType;
+import ietf.params.xml.ns.timezone_service.LocalNameType;
 import ietf.params.xml.ns.timezone_service.SummaryType;
-import ietf.params.xml.ns.timezone_service.TimezonesType;
+import ietf.params.xml.ns.timezone_service.TimezoneListType;
 
 import java.io.StringReader;
 import java.sql.Timestamp;
@@ -47,12 +49,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import javax.servlet.ServletException;
 
 import edu.rpi.cmt.calendar.XcalUtil;
+import edu.rpi.cmt.timezones.Timezones;
+import edu.rpi.cmt.timezones.TimezonesImpl;
+import edu.rpi.cmt.timezones.Timezones.TaggedTimeZone;
+import edu.rpi.cmt.timezones.Timezones.TimezonesException;
 
 /** Cached timezone data in a database.
  *
@@ -77,6 +84,8 @@ public class DbCachedData implements CachedData {
   /** */
   protected boolean open;
 
+  private String primaryUrl;
+
   private String dtstamp;
 
   private Map<String, String> vtzs = new HashMap<String, String>();
@@ -89,8 +98,8 @@ public class DbCachedData implements CachedData {
 
   private SortedSet<String> nameList;
 
-  private Map<ExpandedMapEntryKey, TimezonesType> expansions =
-    new HashMap<ExpandedMapEntryKey, TimezonesType>();
+  private Map<ExpandedMapEntryKey, ExpandedMapEntry> expansions =
+    new HashMap<ExpandedMapEntryKey, ExpandedMapEntry>();
 
   private static class AliasMaps {
     String aliasesStr;
@@ -108,19 +117,30 @@ public class DbCachedData implements CachedData {
   /** Throws an exception if db is not set up. Fall back is probably to use the
    * zipped data.
    *
-   * @param forAdd - tru eif we are going to add data
+   * @param forAdd - true if we are going to add data
+   * @param primaryUrl - if non-null location of primary server
    * @throws TzException
    */
-  public DbCachedData(boolean forAdd) throws TzException {
+  public DbCachedData(boolean forAdd,
+                      String primaryUrl) throws TzException {
     debug = getLogger().isDebugEnabled();
+
+    this.primaryUrl = primaryUrl;
+    refreshNow = true;
 
     if (forAdd) {
       return;
     }
 
     try {
-      if (!reload(true)) {
-        throw new DbEmptyException();
+      if (!reloadData(true)) {
+        if (primaryUrl != null) {
+          update();
+        }
+
+        if (!reloadData(true)) {
+          throw new DbEmptyException();
+        }
       }
     } catch (ServletException se) {
       if (se.getCause() instanceof TzException) {
@@ -142,27 +162,72 @@ public class DbCachedData implements CachedData {
     refreshNow = true;
   }
 
+  /**
+   * @throws TzException
+   */
   public void startAdd() throws TzException {
     open();
   }
 
+  /**
+   *
+   */
   public void endAdd() {
     close();
   }
 
+  /**
+   *
+   */
   public void failAdd() {
     fail();
   }
 
+  /**
+   * @param val
+   * @throws TzException
+   */
   public void addTzInfo(TzDbInfo val) throws TzException {
     sess.save(val);
   }
 
+  /**
+   * @param val
+   * @throws TzException
+   */
+  public void updateTzInfo(TzDbInfo val) throws TzException {
+    sess.update(val);
+  }
+
+  /**
+   * @param val
+   * @throws TzException
+   */
   public void addTzAlias(TzAlias val) throws TzException {
     sess.save(val);
   }
 
+  /**
+   * @param val
+   * @throws TzException
+   */
+  public void removeTzAlias(TzAlias val) throws TzException {
+    sess.delete(val);
+  }
+
+  /**
+   * @param val
+   * @throws TzException
+   */
   public void addTzSpec(TzDbSpec val) throws TzException {
+    sess.save(val);
+  }
+
+  /**
+   * @param val
+   * @throws TzException
+   */
+  public void updateTzSpec(TzDbSpec val) throws TzException {
     sess.save(val);
   }
 
@@ -178,10 +243,17 @@ public class DbCachedData implements CachedData {
   }
 
   /* (non-Javadoc)
+   * @see org.bedework.timezones.common.CachedData#update()
+   */
+  public void update() throws ServletException {
+    updateData();
+  }
+
+  /* (non-Javadoc)
    * @see org.bedework.timezones.common.CachedData#getDtstamp()
    */
   public String getDtstamp() throws ServletException {
-    reload();
+    reloadData();
     return dtstamp;
   }
 
@@ -189,7 +261,7 @@ public class DbCachedData implements CachedData {
    * @see org.bedework.timezones.common.CachedData#fromAlias(java.lang.String)
    */
   public String fromAlias(String val) throws ServletException {
-    reload();
+    reloadData();
     return aliasMaps.byAlias.get(val);
   }
 
@@ -197,7 +269,7 @@ public class DbCachedData implements CachedData {
    * @see org.bedework.timezones.common.CachedData#getAliasesStr()
    */
   public String getAliasesStr() throws ServletException {
-    reload();
+    reloadData();
     return aliasMaps.aliasesStr;
   }
 
@@ -205,7 +277,7 @@ public class DbCachedData implements CachedData {
    * @see org.bedework.timezones.common.CachedData#findAliases(java.lang.String)
    */
   public List<String> findAliases(String tzid) throws ServletException {
-    reload();
+    reloadData();
     return aliasMaps.byTzid.get(tzid);
   }
 
@@ -213,24 +285,18 @@ public class DbCachedData implements CachedData {
    * @see org.bedework.timezones.common.CachedData#getNameList()
    */
   public SortedSet<String> getNameList() throws ServletException {
-    reload();
+    reloadData();
     return nameList;
   }
 
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#setExpanded(org.bedework.timezones.common.ExpandedMapEntryKey, ietf.params.xml.ns.timezone_service.TimezonesType)
-   */
   public void setExpanded(ExpandedMapEntryKey key,
-                          TimezonesType tzs) throws ServletException {
-    reload();
+                          ExpandedMapEntry tzs) throws ServletException {
+    reloadData();
     expansions.put(key, tzs);
   }
 
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#getExpanded(org.bedework.timezones.common.ExpandedMapEntryKey)
-   */
-  public TimezonesType getExpanded(ExpandedMapEntryKey key) throws ServletException {
-    reload();
+  public ExpandedMapEntry getExpanded(ExpandedMapEntryKey key) throws ServletException {
+    reloadData();
     return expansions.get(key);
   }
 
@@ -238,7 +304,7 @@ public class DbCachedData implements CachedData {
    * @see org.bedework.timezones.common.CachedData#getCachedVtz(java.lang.String)
    */
   public String getCachedVtz(final String name) throws ServletException {
-    reload();
+    reloadData();
     return vtzs.get(name);
   }
 
@@ -246,7 +312,7 @@ public class DbCachedData implements CachedData {
    * @see org.bedework.timezones.common.CachedData#getAllCachedVtzs()
    */
   public Collection<String> getAllCachedVtzs() throws ServletException {
-    reload();
+    reloadData();
     return vtzs.values();
   }
 
@@ -254,7 +320,7 @@ public class DbCachedData implements CachedData {
    * @see org.bedework.timezones.common.CachedData#getTimeZone(java.lang.String)
    */
   public TimeZone getTimeZone(final String tzid) throws ServletException {
-    reload();
+    reloadData();
     return tzs.get(tzid);
   }
 
@@ -262,7 +328,7 @@ public class DbCachedData implements CachedData {
    * @see org.bedework.timezones.common.CachedData#getAliasedCachedVtz(java.lang.String)
    */
   public String getAliasedCachedVtz(final String name) throws ServletException {
-    reload();
+    reloadData();
     return aliasedVtzs.get(name);
   }
 
@@ -270,7 +336,7 @@ public class DbCachedData implements CachedData {
    * @see org.bedework.timezones.common.CachedData#getAliasedTimeZone(java.lang.String)
    */
   public TimeZone getAliasedTimeZone(final String tzid) throws ServletException {
-    reload();
+    reloadData();
     return aliasedTzs.get(tzid);
   }
 
@@ -278,7 +344,7 @@ public class DbCachedData implements CachedData {
    * @see org.bedework.timezones.common.CachedData#getSummaries(java.lang.String)
    */
   public List<SummaryType> getSummaries(String changedSince) throws ServletException {
-    reload();
+    reloadData();
 
     if (changedSince == null) {
       return summaries;
@@ -308,20 +374,162 @@ public class DbCachedData implements CachedData {
     return ss;
   }
 
+  /* ====================================================================
+   *                   Transaction methods
+   * ==================================================================== */
+
+  private void open() throws TzException {
+    if (isOpen()) {
+      return;
+    }
+    openSession();
+    open = true;
+  }
+
+  private void close() {
+    try {
+      endTransaction();
+    } catch (TzException wde) {
+      try {
+        rollbackTransaction();
+      } catch (TzException wde1) {}
+
+      getLogger().error("failed close", wde);
+    } finally {
+      try {
+        closeSession();
+      } catch (TzException wde1) {}
+    }
+  }
+
+  private void fail() {
+    try {
+      rollbackTransaction();
+    } catch (TzException wde) {
+      getLogger().error("failed fail", wde);
+    }
+  }
+
+  private boolean isOpen() {
+    return open;
+  }
+
+  /* ====================================================================
+   *                   Session methods
+   * ==================================================================== */
+
+  protected void checkOpen() throws TzException {
+    if (!isOpen()) {
+      throw new TzException("Session call when closed");
+    }
+  }
+
+  protected synchronized void openSession() throws TzException {
+    if (isOpen()) {
+      throw new TzException("Already open");
+    }
+
+    open = true;
+
+    if (sess != null) {
+      warn("Session is not null. Will close");
+      try {
+        close();
+      } finally {
+      }
+    }
+
+    if (sess == null) {
+      if (debug) {
+        trace("New hibernate session for " + objTimestamp);
+      }
+      sess = new HibSessionImpl();
+      sess.init(getSessionFactory(), getLogger());
+      trace("Open session for " + objTimestamp);
+    }
+
+    beginTransaction();
+  }
+
+  protected synchronized void closeSession() throws TzException {
+    if (!isOpen()) {
+      if (debug) {
+        trace("Close for " + objTimestamp + " closed session");
+      }
+      return;
+    }
+
+    if (debug) {
+      trace("Close for " + objTimestamp);
+    }
+
+    try {
+      if (sess != null) {
+        if (sess.rolledback()) {
+          sess = null;
+          return;
+        }
+
+        if (sess.transactionStarted()) {
+          sess.rollback();
+        }
+//        sess.disconnect();
+        sess.close();
+        sess = null;
+      }
+    } catch (Throwable t) {
+      try {
+        sess.close();
+      } catch (Throwable t1) {}
+      sess = null; // Discard on error
+    } finally {
+      open = false;
+    }
+  }
+
+  protected void beginTransaction() throws TzException {
+    checkOpen();
+
+    if (debug) {
+      trace("Begin transaction for " + objTimestamp);
+    }
+    sess.beginTransaction();
+  }
+
+  protected void endTransaction() throws TzException {
+    checkOpen();
+
+    if (debug) {
+      trace("End transaction for " + objTimestamp);
+    }
+
+    if (!sess.rolledback()) {
+      sess.commit();
+    }
+  }
+
+  protected void rollbackTransaction() throws TzException {
+    checkOpen();
+    sess.rollback();
+  }
+
+  /* ====================================================================
+   *                   private methods
+   * ==================================================================== */
+
   /**
    * @param aliasesStr
    * @throws ServletException
    */
-  private synchronized void reload() throws ServletException {
-    reload (false);
+  private synchronized void reloadData() throws ServletException {
+    reloadData(false);
   }
 
   /**
    * @param aliasesStr
    * @throws ServletException
    */
-  @SuppressWarnings("unchecked")
-  private synchronized boolean reload(boolean emptyReturn) throws ServletException {
+  private synchronized boolean reloadData(boolean emptyReturn) throws ServletException {
     if (!refreshNow) {
       return true;
     }
@@ -329,18 +537,14 @@ public class DbCachedData implements CachedData {
     try {
       open();
 
-      sess.createQuery("from " + TzDbInfo.class.getName());
-      List infos = sess.getList();
+      TzDbInfo inf = getDbInfo();
 
-      if (((infos == null) || (infos.size() == 0)) && emptyReturn) {
-        return false;
+      if (inf == null) {
+        if (emptyReturn) {
+          return false;
+        }
+        throw new TzException("Empty tz db");
       }
-
-      if ((infos == null) || (infos.size() != 1)) {
-        throw new TzException("Expected a single info entry");
-      }
-
-      TzDbInfo inf = (TzDbInfo)infos.get(0);
 
       dtstamp = inf.getDtstamp();
 
@@ -367,19 +571,188 @@ public class DbCachedData implements CachedData {
     }
   }
 
+  private void updateData() throws ServletException {
+    if (primaryUrl == null) {
+      return;
+    }
+
+    try {
+      Timezones tzs = new TimezonesImpl();
+      tzs.init(primaryUrl);
+      open();
+
+      TzDbInfo inf = getDbInfo();
+
+      String changedSince = null;
+      if (inf != null) {
+        changedSince = inf.getDtstamp();
+      }
+
+      TimezoneListType tzl = tzs.getList(changedSince);
+
+      String svrCs = tzl.getDtstamp().toXMLFormat();
+
+      if (inf == null) {
+        inf = new TzDbInfo();
+
+        inf.setDtstamp(svrCs);
+        inf.setVersion("1.0");
+
+        addTzInfo(inf);
+      } else if ((changedSince == null) ||
+                 !svrCs.equals(changedSince)) {
+        inf.setDtstamp(svrCs);
+
+        updateTzInfo(inf);
+      }
+
+      /* Go through the returned timezones and try to update.
+       * If we have the timezone and it has an etag do a conditional fetch.
+       * If we don't have the timezone do an unconditional fetch.
+       */
+
+      Map<String, TzAlias> dbaliases = getDbAliases();
+
+      for (SummaryType sum: tzl.getSummary()) {
+        String id = sum.getTzid();
+        if (debug) {
+          trace("Updating timezone " + id);
+        }
+
+        TzDbSpec dbspec = getSpec(id);
+
+        String etag = null;
+        if (dbspec != null) {
+          etag = dbspec.getEtag();
+        }
+
+        TaggedTimeZone ttz = tzs.getTimeZone(id, etag);
+
+        if ((ttz != null) && (ttz.vtz == null)) {
+          // No change
+          continue;
+        }
+
+        boolean add = dbspec == null;
+
+        if (add) {
+          // Create a new one
+          dbspec = new TzDbSpec();
+        }
+
+        dbspec.setName(id);
+        dbspec.setEtag(ttz.etag);
+        dbspec.setDtstamp(sum.getLastModified().toXMLFormat());
+        dbspec.setSource(primaryUrl);
+        dbspec.setActive(true);
+        dbspec.setVtimezone(ttz.vtz);
+
+        if (sum.getLocalName().size() > 0) {
+          Set<LocalizedString> dns = new TreeSet<LocalizedString>();
+
+          if (add) {
+            dns = new TreeSet<LocalizedString>();
+            dbspec.setDisplayNames(dns);
+          } else {
+            dns = dbspec.getDisplayNames();
+            dns.clear(); // XXX not good - forces delete and recreate
+          }
+          for (LocalNameType ln: sum.getLocalName()) {
+            LocalizedString ls = new LocalizedString(ln.getLang(), ln.getValue());
+
+            dns.add(ls);
+          }
+        }
+
+        if (add) {
+          addTzSpec(dbspec);
+        } else {
+          updateTzSpec(dbspec);
+        }
+
+        for (AliasType a: sum.getAlias()) {
+          TzAlias alias = dbaliases.get(a.getValue());
+
+          if (alias == null) {
+            alias = new TzAlias();
+
+            alias.setFromId(a.getValue());
+            alias.setToId(id);
+
+            addTzAlias(alias);
+
+            continue;
+          }
+
+          dbaliases.remove(a.getValue());
+        }
+
+        /* remaining aliases should be deleted */
+        for (TzAlias alias: dbaliases.values()) {
+          removeTzAlias(alias);
+        }
+      }
+    } catch (TimezonesException te) {
+      fail();
+      throw new ServletException(te);
+    } catch (Throwable t) {
+      fail();
+      throw new ServletException(t);
+    } finally {
+      close();
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private TzDbInfo getDbInfo() throws TzException {
+    sess.createQuery("from " + TzDbInfo.class.getName());
+    List infos = sess.getList();
+
+    if (infos == null) {
+      return null;
+    }
+
+    if (infos.size() == 0) {
+      return null;
+    }
+
+    if (infos.size() != 1) {
+      throw new TzException("Expected a single info entry");
+    }
+
+    return (TzDbInfo)infos.get(0);
+  }
+
+  private TzDbSpec getSpec(String id) throws TzException {
+    StringBuilder sb = new StringBuilder();
+
+    sb.append("from ");
+    sb.append(TzDbSpec.class.getName());
+    sb.append(" where name=:name");
+
+    sess.createQuery(sb.toString());
+
+    sess.setParameter("name", id);
+
+    return (TzDbSpec)sess.getUnique();
+  }
+
   @SuppressWarnings("unchecked")
   private AliasMaps buildAliasMaps() throws ServletException {
     try {
       AliasMaps maps = new AliasMaps();
 
-      sess.createQuery("from " + TzAlias.class.getName());
-      List<TzAlias> aliases = sess.getList();
-
-      StringBuilder aliasStr = new StringBuilder();
-
       maps.byTzid = new HashMap<String, List<String>>();
       maps.byAlias = new HashMap<String, String>();
       maps.aliases = new Properties();
+
+      sess.createQuery("from " + TzAlias.class.getName());
+      List<TzAlias> aliases = sess.getList();
+      if (aliases == null) {
+        return maps;
+      }
+
+      StringBuilder aliasStr = new StringBuilder();
 
       for (TzAlias alias: aliases) {
         String from = alias.getFromId();
@@ -406,6 +779,27 @@ public class DbCachedData implements CachedData {
       maps.aliasesStr = aliasStr.toString();
 
       return maps;
+    } catch (Throwable t) {
+      throw new ServletException(t);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private Map<String, TzAlias> getDbAliases() throws ServletException {
+    try {
+      Map<String, TzAlias> dbaliases = new HashMap<String, TzAlias>();
+
+      sess.createQuery("from " + TzAlias.class.getName());
+      List<TzAlias> aliases = sess.getList();
+      if (aliases == null) {
+        return dbaliases;
+      }
+
+      for (TzAlias alias: aliases) {
+        dbaliases.put(alias.getFromId(), alias);
+      }
+
+      return dbaliases;
     } catch (Throwable t) {
       throw new ServletException(t);
     }
@@ -550,152 +944,6 @@ public class DbCachedData implements CachedData {
         '0', '1', '2', '3', '4', '5', '6', '7',
         '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
    };
-
-  /* ====================================================================
-   *                   Transaction methods
-   * ==================================================================== */
-
-  private void open() throws TzException {
-    if (isOpen()) {
-      return;
-    }
-    openSession();
-    open = true;
-  }
-
-  private void close() {
-    try {
-      endTransaction();
-    } catch (TzException wde) {
-      try {
-        rollbackTransaction();
-      } catch (TzException wde1) {}
-
-      getLogger().error("failed close", wde);
-    } finally {
-      try {
-        closeSession();
-      } catch (TzException wde1) {}
-    }
-  }
-
-  private void fail() {
-    try {
-      rollbackTransaction();
-    } catch (TzException wde) {
-      getLogger().error("failed fail", wde);
-    }
-  }
-
-  private boolean isOpen() {
-    return open;
-  }
-
-  /* ====================================================================
-   *                   Session methods
-   * ==================================================================== */
-
-  protected void checkOpen() throws TzException {
-    if (!isOpen()) {
-      throw new TzException("Session call when closed");
-    }
-  }
-
-  protected synchronized void openSession() throws TzException {
-    if (isOpen()) {
-      throw new TzException("Already open");
-    }
-
-    open = true;
-
-    if (sess != null) {
-      warn("Session is not null. Will close");
-      try {
-        close();
-      } finally {
-      }
-    }
-
-    if (sess == null) {
-      if (debug) {
-        trace("New hibernate session for " + objTimestamp);
-      }
-      sess = new HibSessionImpl();
-      sess.init(getSessionFactory(), getLogger());
-      trace("Open session for " + objTimestamp);
-    }
-
-    beginTransaction();
-  }
-
-  protected synchronized void closeSession() throws TzException {
-    if (!isOpen()) {
-      if (debug) {
-        trace("Close for " + objTimestamp + " closed session");
-      }
-      return;
-    }
-
-    if (debug) {
-      trace("Close for " + objTimestamp);
-    }
-
-    try {
-      if (sess != null) {
-        if (sess.rolledback()) {
-          sess = null;
-          return;
-        }
-
-        if (sess.transactionStarted()) {
-          sess.rollback();
-        }
-//        sess.disconnect();
-        sess.close();
-        sess = null;
-      }
-    } catch (Throwable t) {
-      try {
-        sess.close();
-      } catch (Throwable t1) {}
-      sess = null; // Discard on error
-    } finally {
-      open = false;
-    }
-  }
-
-  protected void beginTransaction() throws TzException {
-    checkOpen();
-
-    if (debug) {
-      trace("Begin transaction for " + objTimestamp);
-    }
-    sess.beginTransaction();
-  }
-
-  protected void endTransaction() throws TzException {
-    checkOpen();
-
-    if (debug) {
-      trace("End transaction for " + objTimestamp);
-    }
-
-    if (!sess.rolledback()) {
-      sess.commit();
-    }
-  }
-
-  protected void rollbackTransaction() throws TzException {
-    try {
-      checkOpen();
-      sess.rollback();
-    } finally {
-    }
-  }
-
-  /* ====================================================================
-   *                   private methods
-   * ==================================================================== */
 
   private SessionFactory getSessionFactory() throws TzException {
     if (sessionFactory != null) {

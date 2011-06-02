@@ -37,6 +37,8 @@ public class TzsvrConfig implements Serializable {
 
   private String tzdataUrl;
 
+  private String primaryUrl;
+
   private int refetchInterval;
 
   private String cacheName;
@@ -69,6 +71,21 @@ public class TzsvrConfig implements Serializable {
    */
   public String getTzdataUrl() {
     return tzdataUrl;
+  }
+
+  /** Url of server we refresh from. Null if we are a primary server
+   *
+   * @param val    String
+   */
+  public void setPrimaryUrl(final String val) {
+    primaryUrl = val;
+  }
+
+  /**
+   * @return String
+   */
+  public String getPrimaryUrl() {
+    return primaryUrl;
   }
 
   /**

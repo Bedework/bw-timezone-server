@@ -28,7 +28,11 @@ import java.util.Set;
 public class TzDbSpec extends TzDbentity<TzDbSpec> {
   private String name;
 
+  private String etag;
+
   private String dtstamp;
+
+  private String source;
 
   private boolean active;
 
@@ -50,6 +54,21 @@ public class TzDbSpec extends TzDbentity<TzDbSpec> {
     return name;
   }
 
+  /** Etag value for last fetch from primary
+   *
+   * @param val
+   */
+  public void setEtag(final String val) {
+    etag = val;
+  }
+
+  /**
+   * @return etag or null
+   */
+  public String getEtag() {
+    return etag;
+  }
+
   /**
    * @param val
    */
@@ -62,6 +81,21 @@ public class TzDbSpec extends TzDbentity<TzDbSpec> {
    */
   public String getDtstamp() {
     return dtstamp;
+  }
+
+  /** Source of the timezone - a url
+   *
+   * @param val
+   */
+  public void setSource(final String val) {
+    source = val;
+  }
+
+  /**
+   * @return String source or null
+   */
+  public String getSource() {
+    return source;
   }
 
   /**
@@ -121,13 +155,19 @@ public class TzDbSpec extends TzDbentity<TzDbSpec> {
     sb.append("name=");
     sb.append(getName());
 
+    sb.append("etag=");
+    sb.append(getEtag());
+
     sb.append("dtstamp=");
     sb.append(getDtstamp());
+
+    sb.append("source=");
+    sb.append(getSource());
 
     sb.append("active=");
     sb.append(getActive());
 
-    sb.append("vtimezone=");
+    sb.append("\n   vtimezone=");
     sb.append(getVtimezone());
   }
 

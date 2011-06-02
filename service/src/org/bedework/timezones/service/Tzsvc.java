@@ -89,6 +89,21 @@ public class Tzsvc implements TzsvcMBean {
     return TzServerUtil.getTzdataUrl();
   }
 
+  /** Url of server we refresh from. Null if we are a primary server
+   *
+   * @param val    String
+   */
+  public void setPrimaryUrl(final String val) {
+    TzServerUtil.setPrimaryUrl(val);
+  }
+
+  /**
+   * @return String
+   */
+  public String getPrimaryUrl() {
+    return TzServerUtil.getPrimaryUrl();
+  }
+
   /* ========================================================================
    * Operations
    * ======================================================================== */
@@ -105,7 +120,7 @@ public class Tzsvc implements TzsvcMBean {
 
   public String refreshData() {
     try {
-      util.fireRefresh();
+      TzServerUtil.fireRefresh();
       return "Ok";
     } catch (Throwable t) {
       error(t);

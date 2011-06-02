@@ -4,6 +4,8 @@
          name="org.bedework:service=Tzsvr">
     <attribute name="Appname">tzsvr</attribute>
     
+    <attribute name="PrimaryUrl">http://dev.bedework.org/tzsvr</attribute>
+    
     <!-- We also need the database -->
     <depends>jboss.jca:service=DataSourceBinding,name=TzDS</depends>
     

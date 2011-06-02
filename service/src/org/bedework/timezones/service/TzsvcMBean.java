@@ -67,6 +67,17 @@ public interface TzsvcMBean {
    */
   public String getTzdataUrl();
 
+  /** Primary url
+   *
+   * @param val
+   */
+  public void setPrimaryUrl(String val);
+
+  /**
+   * @return String Primary url
+   */
+  public String getPrimaryUrl();
+
   /* ========================================================================
    * Operations
    * ======================================================================== */

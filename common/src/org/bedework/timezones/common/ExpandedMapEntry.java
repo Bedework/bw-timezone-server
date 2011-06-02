@@ -25,78 +25,68 @@
 */
 package org.bedework.timezones.common;
 
-import java.io.Serializable;
+import ietf.params.xml.ns.timezone_service.ObservanceType;
+import ietf.params.xml.ns.timezone_service.TimezonesType;
+import ietf.params.xml.ns.timezone_service.TzdataType;
 
-import edu.rpi.sss.util.Util;
-
-/** Allos us to cache expansions
+/** Allows us to cache expansions
  *
  * @author douglm
  */
-public class ExpandedMapEntryKey implements Comparable<ExpandedMapEntryKey>, Serializable {
-  private String tzid;
-  private String start;
-  private String end;
+public class ExpandedMapEntry {
+  private String etag;
+  private TimezonesType tzs;
 
   /**
-   * @param tzid
-   * @param start
-   * @param end
+   * @param etag
+   * @param tzs
    */
-  public ExpandedMapEntryKey(final String tzid,
-                          final String start,
-                          final String end) {
-    this.tzid = tzid;
-    this.start = start;
-    this.end = end;
+  public ExpandedMapEntry(final String etag,
+                          final TimezonesType tzs) {
+    this.etag = etag;
+    this.tzs = tzs;
   }
 
   /**
-   * @return tzid
+   * @return etag
    */
-  public String getTzid() {
-    return tzid;
+  public String getEtag() {
+    return etag;
   }
 
   /**
-   * @return start
+   * @return tzs
    */
-  public String getStart() {
-    return start;
-  }
-
-  /**
-   * @return end
-   */
-  public String getEnd() {
-    return end;
-  }
-
-  @Override
-  public int compareTo(ExpandedMapEntryKey o) {
-    int res = getTzid().compareTo(o.getTzid());
-
-    if (res != 0) {
-      return res;
-    }
-
-    res = Util.compareStrings(getStart(), o.getStart());
-    if (res != 0) {
-      return res;
-    }
-
-    return Util.compareStrings(getEnd(), o.getEnd());
+  public TimezonesType getTzs() {
+    return tzs;
   }
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("ExpandedMapEntryKey{");
+    StringBuilder sb = new StringBuilder("ExpandedMapEntry{");
 
-    sb.append(getTzid());
-    sb.append(", start=");
-    sb.append(getStart());
-    sb.append(", end=");
-    sb.append(getEnd());
+    sb.append(", etag=");
+    sb.append(getEtag());
+    sb.append(",\n   tzs=TimezonesType{");
+    sb.append(", dtstamp=");
+    sb.append(tzs.getDtstamp().toXMLFormat());
+
+    for (TzdataType tzd: tzs.getTzdata()){
+      sb.append(",\n       TzdataType{tzid=");
+      sb.append(tzd.getTzid());
+
+      for (ObservanceType ot: tzd.getObservance()) {
+        sb.append(",\n      {name=");
+        sb.append(ot.getName());
+        sb.append(", onset=");
+        sb.append(ot.getOnset().toXMLFormat());
+        sb.append(", offset-from=");
+        sb.append(ot.getUtcOffsetFrom());
+        sb.append(", offset-to=");
+        sb.append(ot.getUtcOffsetTo());
+        sb.append("}");
+      }
+    }
 
     sb.append("}");
 

@@ -20,6 +20,8 @@
     <property name="name" column="bw_name" type="string" length="500"
               index="bwidx_tz_name" />
 
+    <property name="etag" column="bw_etag" type="string" length="200" />
+
     <property name="dtstamp" column="bw_dtstamp" type="string" length="20" />
 
     <property name="active" column="bw_active" type="true_false"

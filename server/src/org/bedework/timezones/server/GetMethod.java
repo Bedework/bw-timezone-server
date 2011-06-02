@@ -18,6 +18,7 @@
 */
 package org.bedework.timezones.server;
 
+import org.bedework.timezones.common.ExpandedMapEntry;
 import org.bedework.timezones.common.Stat;
 import org.bedework.timezones.common.TzServerUtil;
 
@@ -26,7 +27,6 @@ import ietf.params.xml.ns.timezone_service.CapabilitiesOperationType;
 import ietf.params.xml.ns.timezone_service.CapabilitiesType;
 import ietf.params.xml.ns.timezone_service.ObjectFactory;
 import ietf.params.xml.ns.timezone_service.TimezoneListType;
-import ietf.params.xml.ns.timezone_service.TimezonesType;
 
 import java.io.Writer;
 import java.util.Collection;
@@ -331,16 +331,18 @@ public class GetMethod extends MethodBase {
       String tzid = req.getParameter("tzid");
       String start = req.getParameter("start");
       String end = req.getParameter("end");
-      TimezonesType tzs = util.getExpanded(tzid, start, end);
+      ExpandedMapEntry tzs = util.getExpanded(tzid, start, end);
 
       if (tzs == null) {
         resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
         return;
       }
 
+      resp.setHeader("ETag", tzs.getEtag());
+
       Marshaller m = getJc().createMarshaller();
       m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-      m.marshal(getOf().createTimezones(tzs), resp.getOutputStream());
+      m.marshal(getOf().createTimezones(tzs.getTzs()), resp.getOutputStream());
     } catch (ServletException se) {
       throw se;
     } catch (Throwable t) {

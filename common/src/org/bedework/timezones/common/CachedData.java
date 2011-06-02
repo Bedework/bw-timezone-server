@@ -27,7 +27,6 @@ package org.bedework.timezones.common;
 
 import net.fortuna.ical4j.model.TimeZone;
 import ietf.params.xml.ns.timezone_service.SummaryType;
-import ietf.params.xml.ns.timezone_service.TimezonesType;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -41,10 +40,15 @@ import javax.servlet.ServletException;
  * @author douglm
  */
 public interface CachedData extends Serializable {
-  /**
-   *
+  /** Flag a refresh..
    */
   void refresh();
+
+  /** Update fromprimary source if any.
+   *
+   * @throws ServletException
+   */
+  void update() throws ServletException;
 
   /**
    * @return XML formatted UTC dateTime
@@ -85,14 +89,14 @@ public interface CachedData extends Serializable {
    * @throws ServletException
    */
   void setExpanded(ExpandedMapEntryKey key,
-                   TimezonesType tzs) throws ServletException;
+                   ExpandedMapEntry tzs) throws ServletException;
 
   /**
    * @param key
    * @return expanded or null
    * @throws ServletException
    */
-  TimezonesType getExpanded(ExpandedMapEntryKey key) throws ServletException;
+  ExpandedMapEntry getExpanded(ExpandedMapEntryKey key) throws ServletException;
 
   /** Get cached VTIMEZONE specifications
    *

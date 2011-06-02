@@ -34,7 +34,6 @@ import org.apache.commons.httpclient.params.HttpMethodParams;
 
 import ietf.params.xml.ns.timezone_service.AliasType;
 import ietf.params.xml.ns.timezone_service.SummaryType;
-import ietf.params.xml.ns.timezone_service.TimezonesType;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -62,7 +61,7 @@ import edu.rpi.cmt.calendar.XcalUtil;
  *
  * @author douglm
  */
-public class HttpZipCachedData implements CachedData {
+public class ZipCachedData implements CachedData {
   private volatile boolean refreshNow = true;
 
   private String tzdataUrl;
@@ -83,8 +82,8 @@ public class HttpZipCachedData implements CachedData {
 
   private SortedSet<String> nameList;
 
-  private Map<ExpandedMapEntryKey, TimezonesType> expansions =
-    new HashMap<ExpandedMapEntryKey, TimezonesType>();
+  private Map<ExpandedMapEntryKey, ExpandedMapEntry> expansions =
+    new HashMap<ExpandedMapEntryKey, ExpandedMapEntry>();
 
   private static class AliasMaps {
     String aliasesStr;
@@ -102,7 +101,7 @@ public class HttpZipCachedData implements CachedData {
   /**
    * @param tzdataUrl
    */
-  public HttpZipCachedData(String tzdataUrl) {
+  public ZipCachedData(String tzdataUrl) {
     this.tzdataUrl = tzdataUrl;
   }
 
@@ -129,10 +128,17 @@ public class HttpZipCachedData implements CachedData {
   }
 
   /* (non-Javadoc)
+   * @see org.bedework.timezones.common.CachedData#update()
+   */
+  public void update() {
+    refreshNow = true;
+  }
+
+  /* (non-Javadoc)
    * @see org.bedework.timezones.common.CachedData#getDtstamp()
    */
   public String getDtstamp() throws ServletException {
-    reload();
+    reloadData();
     return buildTime;
   }
 
@@ -140,7 +146,7 @@ public class HttpZipCachedData implements CachedData {
    * @see org.bedework.timezones.common.CachedData#fromAlias(java.lang.String)
    */
   public String fromAlias(String val) throws ServletException {
-    reload();
+    reloadData();
     return aliasMaps.byAlias.get(val);
   }
 
@@ -148,7 +154,7 @@ public class HttpZipCachedData implements CachedData {
    * @see org.bedework.timezones.common.CachedData#getAliasesStr()
    */
   public String getAliasesStr() throws ServletException {
-    reload();
+    reloadData();
     return aliasMaps.aliasesStr;
   }
 
@@ -156,7 +162,7 @@ public class HttpZipCachedData implements CachedData {
    * @see org.bedework.timezones.common.CachedData#findAliases(java.lang.String)
    */
   public List<String> findAliases(String tzid) throws ServletException {
-    reload();
+    reloadData();
     return aliasMaps.byTzid.get(tzid);
   }
 
@@ -164,24 +170,18 @@ public class HttpZipCachedData implements CachedData {
    * @see org.bedework.timezones.common.CachedData#getNameList()
    */
   public SortedSet<String> getNameList() throws ServletException {
-    reload();
+    reloadData();
     return nameList;
   }
 
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#setExpanded(org.bedework.timezones.common.ExpandedMapEntryKey, ietf.params.xml.ns.timezone_service.TimezonesType)
-   */
   public void setExpanded(ExpandedMapEntryKey key,
-                          TimezonesType tzs) throws ServletException {
-    reload();
+                          ExpandedMapEntry tzs) throws ServletException {
+    reloadData();
     expansions.put(key, tzs);
   }
 
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#getExpanded(org.bedework.timezones.common.ExpandedMapEntryKey)
-   */
-  public TimezonesType getExpanded(ExpandedMapEntryKey key) throws ServletException {
-    reload();
+  public ExpandedMapEntry getExpanded(ExpandedMapEntryKey key) throws ServletException {
+    reloadData();
     return expansions.get(key);
   }
 
@@ -189,7 +189,7 @@ public class HttpZipCachedData implements CachedData {
    * @see org.bedework.timezones.common.CachedData#getCachedVtz(java.lang.String)
    */
   public String getCachedVtz(final String name) throws ServletException {
-    reload();
+    reloadData();
     return vtzs.get(name);
   }
 
@@ -197,7 +197,7 @@ public class HttpZipCachedData implements CachedData {
    * @see org.bedework.timezones.common.CachedData#getAllCachedVtzs()
    */
   public Collection<String> getAllCachedVtzs() throws ServletException {
-    reload();
+    reloadData();
     return vtzs.values();
   }
 
@@ -205,7 +205,7 @@ public class HttpZipCachedData implements CachedData {
    * @see org.bedework.timezones.common.CachedData#getTimeZone(java.lang.String)
    */
   public TimeZone getTimeZone(final String tzid) throws ServletException {
-    reload();
+    reloadData();
     return tzs.get(tzid);
   }
 
@@ -213,7 +213,7 @@ public class HttpZipCachedData implements CachedData {
    * @see org.bedework.timezones.common.CachedData#getAliasedCachedVtz(java.lang.String)
    */
   public String getAliasedCachedVtz(final String name) throws ServletException {
-    reload();
+    reloadData();
     return aliasedVtzs.get(name);
   }
 
@@ -221,7 +221,7 @@ public class HttpZipCachedData implements CachedData {
    * @see org.bedework.timezones.common.CachedData#getAliasedTimeZone(java.lang.String)
    */
   public TimeZone getAliasedTimeZone(final String tzid) throws ServletException {
-    reload();
+    reloadData();
     return aliasedTzs.get(tzid);
   }
 
@@ -229,7 +229,7 @@ public class HttpZipCachedData implements CachedData {
    * @see org.bedework.timezones.common.CachedData#getSummaries(java.lang.String)
    */
   public List<SummaryType> getSummaries(String changedSince) throws ServletException {
-    reload();
+    reloadData();
 
     if (changedSince == null) {
       return summaries;
@@ -263,7 +263,7 @@ public class HttpZipCachedData implements CachedData {
    * @param aliasesStr
    * @throws ServletException
    */
-  private synchronized void reload() throws ServletException {
+  private synchronized void reloadData() throws ServletException {
     if (!refreshNow) {
       return;
     }
@@ -459,42 +459,46 @@ public class HttpZipCachedData implements CachedData {
         throw new ServletException("No data url defined");
       }
 
-      /* Fetch the data */
-      HttpClient client = new HttpClient();
+      if (dataUrl.startsWith("http:")) {
+        /* Fetch the data */
+        HttpClient client = new HttpClient();
 
-      HttpMethod get = new GetMethod(dataUrl);
+        HttpMethod get = new GetMethod(dataUrl);
 
-      client.getParams().setParameter(HttpMethodParams.RETRY_HANDLER,
-                                      new DefaultHttpMethodRetryHandler());
+        client.getParams().setParameter(HttpMethodParams.RETRY_HANDLER,
+                                        new DefaultHttpMethodRetryHandler());
 
-      client.executeMethod(get);
+        client.executeMethod(get);
 
-      InputStream is = get.getResponseBodyAsStream();
+        InputStream is = get.getResponseBodyAsStream();
 
-      File f = File.createTempFile("bwtzserver", "zip");
+        File f = File.createTempFile("bwtzserver", "zip");
 
-      FileOutputStream fos = new FileOutputStream(f);
+        FileOutputStream fos = new FileOutputStream(f);
 
-      byte[] buff = new byte[4096];
+        byte[] buff = new byte[4096];
 
-      for (;;) {
-        int num = is.read(buff);
+        for (;;) {
+          int num = is.read(buff);
 
-        if (num < 0) {
-          break;
+          if (num < 0) {
+            break;
+          }
+
+          if (num > 0) {
+            fos.write(buff, 0, num);
+          }
         }
 
-        if (num > 0) {
-          fos.write(buff, 0, num);
-        }
+        fos.close();
+        is.close();
+
+        get.releaseConnection();
+
+        return f;
       }
 
-      fos.close();
-      is.close();
-
-      get.releaseConnection();
-
-      return f;
+      return new File(dataUrl);
     } catch (Throwable t) {
       throw new ServletException(t);
     }
