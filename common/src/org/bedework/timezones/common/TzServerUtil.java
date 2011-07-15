@@ -31,6 +31,7 @@ import net.fortuna.ical4j.model.Dur;
 import net.fortuna.ical4j.model.Period;
 import net.fortuna.ical4j.model.PeriodList;
 import net.fortuna.ical4j.model.TimeZone;
+import net.fortuna.ical4j.model.UtcOffset;
 import net.fortuna.ical4j.model.component.Observance;
 import net.fortuna.ical4j.model.component.VTimeZone;
 import net.fortuna.ical4j.model.property.DtStamp;
@@ -553,19 +554,9 @@ public class TzServerUtil {
         ot.setName(ob.getName());
         ot.setOnset(XcalUtil.fromDtval(onsetPer.getStart().toString()));
 
-        String offset = ob.getOffsetFrom().getOffset().toString();
+        ot.setUtcOffsetFrom(delimited(ob.getOffsetFrom().getOffset()));
 
-        if (offset.length() > 5) {
-          offset = offset.substring(0, offset.length() - 2);
-        }
-        ot.setUtcOffsetFrom(offset);
-
-        offset = ob.getOffsetTo().getOffset().toString();
-
-        if (offset.length() > 5) {
-          offset = offset.substring(0, offset.length() - 2);
-        }
-        ot.setUtcOffsetTo(offset);
+        ot.setUtcOffsetTo(delimited(ob.getOffsetTo().getOffset()));
 
         obws.add(new ObservanceWrapper(ot));
       }
@@ -591,6 +582,31 @@ public class TzServerUtil {
     expands++;
 
     return tzs;
+  }
+
+  private String delimited(UtcOffset val) {
+    String offset = val.toString();
+
+    int pos = 0;
+    StringBuilder sb = new StringBuilder();
+
+    if (offset.startsWith("-") || offset.startsWith("+")) {
+      sb.append(offset.charAt(0));
+      pos = 1;
+    }
+
+    sb.append(offset.substring(pos, pos + 2));
+    sb.append(':');
+    pos += 2;
+    sb.append(offset.substring(pos, pos + 2));
+    pos += 2;
+
+    if (pos < offset.length()) {
+      sb.append(':');
+      sb.append(offset.substring(pos, pos + 2));
+    }
+
+    return sb.toString();
   }
 
   /** Get a timezone object from the server given the id.
