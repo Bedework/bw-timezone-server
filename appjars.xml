@@ -41,7 +41,7 @@
       <getJar lib="${org.bedework.temp.extrajars.dir}"
               libcache="${org.bedework.libcache.dir}"
               name="rpiutil" version="${org.bedework.rpiutil.version}" project="rpiutil"
-              projecthome="${bedework.home}/projects/rpiutil" />
+              projecthome="${bedework.home}/../rpiutil" />
       
     	<!--
       <getJar lib="${org.bedework.temp.extrajars.dir}"

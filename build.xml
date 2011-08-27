@@ -119,7 +119,7 @@
     <getJar name="servletapi" version="2.4" />
 
     <getJar name="rpiutil" version="${org.bedework.rpiutil.version}" project="rpiutil" 
-            projecthome="${project.home}/../bedework/projects/rpiutil" />
+            projecthome="${project.home}/../rpiutil" />
 
     <getJar name="bw-tzschema" version="${org.bedework.bwxml.version}"
             project="bwxml"
