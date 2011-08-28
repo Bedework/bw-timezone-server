@@ -258,7 +258,6 @@ public interface HibSession extends Serializable {
    * @return List          list from query
    * @throws TzException
    */
-  @SuppressWarnings("unchecked")
   public List getList() throws TzException;
 
   /**
@@ -314,7 +313,6 @@ public interface HibSession extends Serializable {
    * @return Object
    * @throws TzException
    */
-  @SuppressWarnings("unchecked")
   public Object get(Class cl, Serializable id) throws TzException;
 
   /** Return an object of the given class with the given id if it is
@@ -326,7 +324,6 @@ public interface HibSession extends Serializable {
    * @return Object
    * @throws TzException
    */
-  @SuppressWarnings("unchecked")
   public Object get(Class cl, int id) throws TzException;
 
   /** Save a new object.

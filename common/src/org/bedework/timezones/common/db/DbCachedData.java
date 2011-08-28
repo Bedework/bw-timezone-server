@@ -703,7 +703,6 @@ public class DbCachedData implements CachedData {
     }
   }
 
-  @SuppressWarnings("unchecked")
   private TzDbInfo getDbInfo() throws TzException {
     sess.createQuery("from " + TzDbInfo.class.getName());
     List infos = sess.getList();
