@@ -84,6 +84,8 @@ public class TzServerUtil {
 
   static String primaryUrl;
 
+  static long refreshInterval; // seconds
+
   private static Object locker = new Object();
 
   /* ======================= Stats ======================= */
@@ -198,6 +200,16 @@ public class TzServerUtil {
    * @throws ServletException
    */
   public static void fireRefresh() throws ServletException {
+    if (getInstance().cache != null) {
+      try {
+        getInstance().cache.stop();
+      } catch (Throwable t) {
+        error(t);
+        error("Error stopping cache");
+      }
+
+      getInstance().cache = null;
+    }
     getInstance().getcache();
   }
 
@@ -207,6 +219,21 @@ public class TzServerUtil {
    */
   public static void fireUpdate() throws ServletException {
     getInstance().cache.update();
+  }
+
+  /** Refresh interval - seconds
+   *
+   * @param val
+   */
+  public static void setRefreshInterval(final long val) {
+    refreshInterval = val;
+  }
+
+  /**
+   * @return long Refresh interval - seconds
+   */
+  public static long getRefreshInterval() {
+    return refreshInterval;
   }
 
   /**
@@ -234,13 +261,23 @@ public class TzServerUtil {
     if (getInstance().cache != null) {
       stats.addAll(getInstance().cache.getStats());
     }
-    
+
     return stats;
   }
 
   /* ====================================================================
    *                   Instance methods
    * ==================================================================== */
+
+  /** Stop any running threads.
+   *
+   * @throws ServletException
+   */
+  public void stop() throws ServletException {
+    if (cache != null) {
+      cache.stop();
+    }
+  }
 
   /**
    * @return the data dtsamp
@@ -354,7 +391,7 @@ public class TzServerUtil {
    * @return list of aliases or null
    * @throws ServletException
    */
-  public List<String> findAliases(String tzid) throws ServletException {
+  public List<String> findAliases(final String tzid) throws ServletException {
     return cache.findAliases(tzid);
   }
 
@@ -458,19 +495,19 @@ public class TzServerUtil {
    * @return list of summary info
    * @throws ServletException
    */
-  public List<SummaryType> getSummaries(String changedSince) throws ServletException {
+  public List<SummaryType> getSummaries(final String changedSince) throws ServletException {
     return cache.getSummaries(changedSince);
   }
 
   private static class ObservanceWrapper implements Comparable<ObservanceWrapper> {
     ObservanceType ot;
 
-    ObservanceWrapper(ObservanceType ot) {
+    ObservanceWrapper(final ObservanceType ot) {
       this.ot = ot;
     }
 
     @Override
-    public int compareTo(ObservanceWrapper o) {
+    public int compareTo(final ObservanceWrapper o) {
       return ot.getOnset().toXMLFormat().compareTo(o.ot.getOnset().toXMLFormat());
     }
   }
@@ -482,9 +519,9 @@ public class TzServerUtil {
    * @return expansion or null
    * @throws Throwable
    */
-  public ExpandedMapEntry getExpanded(String tzid,
-                                      String start,
-                                      String end) throws Throwable {
+  public ExpandedMapEntry getExpanded(final String tzid,
+                                      final String start,
+                                      final String end) throws Throwable {
     expandFetches++;
 
     ExpandedMapEntryKey emek = makeExpandedKey(tzid, start, end);
@@ -559,7 +596,7 @@ public class TzServerUtil {
     return tzs;
   }
 
-  private String delimited(UtcOffset val) {
+  private String delimited(final UtcOffset val) {
     String offset = val.toString();
 
     int pos = 0;
@@ -635,9 +672,9 @@ public class TzServerUtil {
    *                   Private methods
    * ==================================================================== */
 
-  private ExpandedMapEntryKey makeExpandedKey(String tzid,
-                                              String start,
-                                              String end) throws ServletException {
+  private ExpandedMapEntryKey makeExpandedKey(final String tzid,
+                                              final String start,
+                                              final String end) throws ServletException {
     String st = start;
 
     if (st == null) {
@@ -680,7 +717,7 @@ public class TzServerUtil {
   }
 
   /** Populate the database from the zipped data
-   * 
+   *
    * @return true if it worked
    */
   private boolean addDbData() {

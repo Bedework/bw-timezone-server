@@ -9,6 +9,9 @@
     <!-- Location of the (backup) zip file -->
     <attribute name="TzdataUrl">@tzdataURI@</attribute>
     
+    <!-- Refresh interval - seconds -->
+    <attribute name="RefreshInterval">@tzdataRefreshInterval@</attribute>
+    
     <!-- We also need the database -->
     <depends>jboss.jca:service=DataSourceBinding,name=TzDS</depends>
     

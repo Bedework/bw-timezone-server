@@ -45,6 +45,8 @@ public class Tzsvc implements TzsvcMBean {
 
   private Configuration cfg;
 
+  private TzServerUtil tzutil;
+
   /* ========================================================================
    * Attributes
    * ======================================================================== */
@@ -52,6 +54,7 @@ public class Tzsvc implements TzsvcMBean {
   /* (non-Javadoc)
    * @see org.bedework.dumprestore.BwDumpRestoreMBean#getName()
    */
+  @Override
   public String getName() {
     /* This apparently must be the same as the name attribute in the
      * jboss service definition
@@ -59,10 +62,12 @@ public class Tzsvc implements TzsvcMBean {
     return "org.bedework:service=Tzsvr";
   }
 
+  @Override
   public void setAppname(final String val) {
     TzServerUtil.setAppname(val);
   }
 
+  @Override
   public String getAppname() {
     return TzServerUtil.getAppname();
   }
@@ -71,7 +76,8 @@ public class Tzsvc implements TzsvcMBean {
    *
    * @param val
    */
-  public void setTzdataUrl(String val) {
+  @Override
+  public void setTzdataUrl(final String val) {
     try {
       TzServerUtil.setTzdataUrl(val);
     } catch (Throwable t) {
@@ -80,32 +86,36 @@ public class Tzsvc implements TzsvcMBean {
     }
   }
 
-  /**
-   * @return String tzdata url
-   */
+  @Override
   public String getTzdataUrl() {
     return TzServerUtil.getTzdataUrl();
   }
 
-  /** Url of server we refresh from. Null if we are a primary server
-   *
-   * @param val    String
-   */
+  @Override
   public void setPrimaryUrl(final String val) {
     TzServerUtil.setPrimaryUrl(val);
   }
 
-  /**
-   * @return String
-   */
+  @Override
   public String getPrimaryUrl() {
     return TzServerUtil.getPrimaryUrl();
+  }
+
+  @Override
+  public void setRefreshInterval(final long val) {
+    TzServerUtil.setRefreshInterval(val);
+  }
+
+  @Override
+  public long getRefreshInterval() {
+    return TzServerUtil.getRefreshInterval();
   }
 
   /* ========================================================================
    * Operations
    * ======================================================================== */
 
+  @Override
   public List<Stat> getStats() {
     try {
       return TzServerUtil.getStats();
@@ -116,6 +126,7 @@ public class Tzsvc implements TzsvcMBean {
     }
   }
 
+  @Override
   public String refreshData() {
     try {
       TzServerUtil.fireRefresh();
@@ -123,6 +134,17 @@ public class Tzsvc implements TzsvcMBean {
     } catch (Throwable t) {
       error(t);
       return "Refresh error: " + t.getLocalizedMessage();
+    }
+  }
+
+  @Override
+  public String updateData() {
+    try {
+      TzServerUtil.fireUpdate();
+      return "Ok";
+    } catch (Throwable t) {
+      error(t);
+      return "Update error: " + t.getLocalizedMessage();
     }
   }
 
@@ -140,6 +162,7 @@ public class Tzsvc implements TzsvcMBean {
   }
   */
 
+  @Override
   public String recreateDb() {
     String res = schema(true);
 
@@ -164,6 +187,7 @@ public class Tzsvc implements TzsvcMBean {
   /* (non-Javadoc)
    * @see org.bedework.dumprestore.BwDumpRestoreMBean#create()
    */
+  @Override
   public void create() {
     // An opportunity to initialise
   }
@@ -171,13 +195,21 @@ public class Tzsvc implements TzsvcMBean {
   /* (non-Javadoc)
    * @see org.bedework.indexer.BwIndexerMBean#start()
    */
+  @Override
   public void start() {
-    running = true;
+    try {
+      tzutil = TzServerUtil.getInstance();
+      running = true;
+    } catch (Throwable t) {
+      error("Error setting url");
+      error(t);
+    }
   }
 
   /* (non-Javadoc)
    * @see org.bedework.indexer.BwIndexerMBean#stop()
    */
+  @Override
   public void stop() {
     running = false;
   }
@@ -185,6 +217,7 @@ public class Tzsvc implements TzsvcMBean {
   /* (non-Javadoc)
    * @see org.bedework.indexer.BwIndexerMBean#isStarted()
    */
+  @Override
   public boolean isStarted() {
     return running;
   }
@@ -192,6 +225,7 @@ public class Tzsvc implements TzsvcMBean {
   /* (non-Javadoc)
    * @see org.bedework.dumprestore.BwDumpRestoreMBean#destroy()
    */
+  @Override
   public void destroy() {
   }
 
@@ -199,7 +233,7 @@ public class Tzsvc implements TzsvcMBean {
    *                   Private methods
    * ==================================================================== */
 
-  private String schema(boolean drop) {
+  private String schema(final boolean drop) {
     String result = null;
 
     try {

@@ -101,12 +101,17 @@ public class ZipCachedData implements CachedData {
   /**
    * @param tzdataUrl
    */
-  public ZipCachedData(String tzdataUrl) {
+  public ZipCachedData(final String tzdataUrl) {
     this.tzdataUrl = tzdataUrl;
   }
-  
+
+  @Override
+  public void stop() throws ServletException {
+  }
+
+  @Override
   public List<Stat> getStats() throws ServletException {
-    List<Stat> stats = new ArrayList<Stat>(); 
+    List<Stat> stats = new ArrayList<Stat>();
 
     if (tzs == null) {
       stats.add(new Stat("Db", "Unavailable"));
@@ -114,7 +119,7 @@ public class ZipCachedData implements CachedData {
 
     stats.add(new Stat("Zip #tzs", String.valueOf(tzs.size())));
     stats.add(new Stat("Zip buildTime", buildTime));
-    stats.add(new Stat("Zip cached expansions", 
+    stats.add(new Stat("Zip cached expansions",
                        String.valueOf(expansions.size())));
 
     return stats;
@@ -138,6 +143,7 @@ public class ZipCachedData implements CachedData {
   /* (non-Javadoc)
    * @see org.bedework.timezones.common.CachedData#refresh()
    */
+  @Override
   public void refresh() {
     refreshNow = true;
   }
@@ -145,6 +151,7 @@ public class ZipCachedData implements CachedData {
   /* (non-Javadoc)
    * @see org.bedework.timezones.common.CachedData#update()
    */
+  @Override
   public void update() {
     refreshNow = true;
   }
@@ -152,6 +159,7 @@ public class ZipCachedData implements CachedData {
   /* (non-Javadoc)
    * @see org.bedework.timezones.common.CachedData#getDtstamp()
    */
+  @Override
   public String getDtstamp() throws ServletException {
     reloadData();
     return buildTime;
@@ -160,7 +168,8 @@ public class ZipCachedData implements CachedData {
   /* (non-Javadoc)
    * @see org.bedework.timezones.common.CachedData#fromAlias(java.lang.String)
    */
-  public String fromAlias(String val) throws ServletException {
+  @Override
+  public String fromAlias(final String val) throws ServletException {
     reloadData();
     return aliasMaps.byAlias.get(val);
   }
@@ -168,6 +177,7 @@ public class ZipCachedData implements CachedData {
   /* (non-Javadoc)
    * @see org.bedework.timezones.common.CachedData#getAliasesStr()
    */
+  @Override
   public String getAliasesStr() throws ServletException {
     reloadData();
     return aliasMaps.aliasesStr;
@@ -176,7 +186,8 @@ public class ZipCachedData implements CachedData {
   /* (non-Javadoc)
    * @see org.bedework.timezones.common.CachedData#findAliases(java.lang.String)
    */
-  public List<String> findAliases(String tzid) throws ServletException {
+  @Override
+  public List<String> findAliases(final String tzid) throws ServletException {
     reloadData();
     return aliasMaps.byTzid.get(tzid);
   }
@@ -184,18 +195,21 @@ public class ZipCachedData implements CachedData {
   /* (non-Javadoc)
    * @see org.bedework.timezones.common.CachedData#getNameList()
    */
+  @Override
   public SortedSet<String> getNameList() throws ServletException {
     reloadData();
     return nameList;
   }
 
-  public void setExpanded(ExpandedMapEntryKey key,
-                          ExpandedMapEntry tzs) throws ServletException {
+  @Override
+  public void setExpanded(final ExpandedMapEntryKey key,
+                          final ExpandedMapEntry tzs) throws ServletException {
     reloadData();
     expansions.put(key, tzs);
   }
 
-  public ExpandedMapEntry getExpanded(ExpandedMapEntryKey key) throws ServletException {
+  @Override
+  public ExpandedMapEntry getExpanded(final ExpandedMapEntryKey key) throws ServletException {
     reloadData();
     return expansions.get(key);
   }
@@ -203,6 +217,7 @@ public class ZipCachedData implements CachedData {
   /* (non-Javadoc)
    * @see org.bedework.timezones.common.CachedData#getCachedVtz(java.lang.String)
    */
+  @Override
   public String getCachedVtz(final String name) throws ServletException {
     reloadData();
     return vtzs.get(name);
@@ -211,6 +226,7 @@ public class ZipCachedData implements CachedData {
   /* (non-Javadoc)
    * @see org.bedework.timezones.common.CachedData#getAllCachedVtzs()
    */
+  @Override
   public Collection<String> getAllCachedVtzs() throws ServletException {
     reloadData();
     return vtzs.values();
@@ -219,6 +235,7 @@ public class ZipCachedData implements CachedData {
   /* (non-Javadoc)
    * @see org.bedework.timezones.common.CachedData#getTimeZone(java.lang.String)
    */
+  @Override
   public TimeZone getTimeZone(final String tzid) throws ServletException {
     reloadData();
     return tzs.get(tzid);
@@ -227,6 +244,7 @@ public class ZipCachedData implements CachedData {
   /* (non-Javadoc)
    * @see org.bedework.timezones.common.CachedData#getAliasedCachedVtz(java.lang.String)
    */
+  @Override
   public String getAliasedCachedVtz(final String name) throws ServletException {
     reloadData();
     return aliasedVtzs.get(name);
@@ -235,6 +253,7 @@ public class ZipCachedData implements CachedData {
   /* (non-Javadoc)
    * @see org.bedework.timezones.common.CachedData#getAliasedTimeZone(java.lang.String)
    */
+  @Override
   public TimeZone getAliasedTimeZone(final String tzid) throws ServletException {
     reloadData();
     return aliasedTzs.get(tzid);
@@ -243,7 +262,8 @@ public class ZipCachedData implements CachedData {
   /* (non-Javadoc)
    * @see org.bedework.timezones.common.CachedData#getSummaries(java.lang.String)
    */
-  public List<SummaryType> getSummaries(String changedSince) throws ServletException {
+  @Override
+  public List<SummaryType> getSummaries(final String changedSince) throws ServletException {
     reloadData();
 
     if (changedSince == null) {
@@ -342,7 +362,7 @@ public class ZipCachedData implements CachedData {
     }
   }
 
-  private AliasMaps buildAliasMaps(ZipFile tzDefsZipFile) throws ServletException {
+  private AliasMaps buildAliasMaps(final ZipFile tzDefsZipFile) throws ServletException {
     try {
       AliasMaps maps = new AliasMaps();
       ZipEntry ze = tzDefsZipFile.getEntry("aliases.txt");
@@ -378,8 +398,8 @@ public class ZipCachedData implements CachedData {
     }
   }
 
-  private void unzipTzs(ZipFile tzDefsZipFile,
-                        String buildTime) throws ServletException {
+  private void unzipTzs(final ZipFile tzDefsZipFile,
+                        final String buildTime) throws ServletException {
     try {
       nameList = new TreeSet<String>();
 

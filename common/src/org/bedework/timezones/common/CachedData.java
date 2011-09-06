@@ -40,6 +40,12 @@ import javax.servlet.ServletException;
  * @author douglm
  */
 public interface CachedData extends Serializable {
+  /** Stop any running threads.
+   * 
+   * @throws ServletException
+   */
+  void stop() throws ServletException; 
+
   /**
    * @return stats for the module
    * @throws ServletException

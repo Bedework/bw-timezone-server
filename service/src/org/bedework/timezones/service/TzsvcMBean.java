@@ -78,6 +78,17 @@ public interface TzsvcMBean {
    */
   public String getPrimaryUrl();
 
+  /** Refresh interval - seconds
+   *
+   * @param val
+   */
+  public void setRefreshInterval(long val);
+
+  /**
+   * @return long Refresh interval - seconds
+   */
+  public long getRefreshInterval();
+
   /* ========================================================================
    * Operations
    * ======================================================================== */
@@ -88,11 +99,17 @@ public interface TzsvcMBean {
    */
   public List<Stat> getStats();
 
-  /** Refresh the data from the source
+  /** Refresh all the data - almost a restart
    *
    * @return completion code.
    */
   public String refreshData();
+
+  /** Try to update the data - may call primary servers
+   *
+   * @return completion code.
+   */
+  public String updateData();
 
   /** Recreate the tzdb
    *
