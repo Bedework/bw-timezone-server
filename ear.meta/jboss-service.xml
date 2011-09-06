@@ -7,7 +7,7 @@
     <attribute name="PrimaryUrl">http://dev.bedework.org/tzsvr</attribute>
     
     <!-- Location of the (backup) zip file -->
-    <attribute name="TzdataUrl">${jboss.server.data.dir}/bedework/tzdata.zip</attribute>
+    <attribute name="TzdataUrl">@tzdataURI@</attribute>
     
     <!-- We also need the database -->
     <depends>jboss.jca:service=DataSourceBinding,name=TzDS</depends>
