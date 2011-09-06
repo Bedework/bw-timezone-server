@@ -710,13 +710,13 @@ public class TzServerUtil {
 
   private void getcache() throws ServletException {
     try {
-      cache = new DbCachedData(false, primaryUrl);
+      cache = new DbCachedData(false);
     } catch (DbEmptyException dbee) {
       /* try to populate from zipped data */
 
       if (addDbData()) {
         try {
-          cache = new DbCachedData(false, primaryUrl);
+          cache = new DbCachedData(false);
         } catch (TzException te) {
           error(te);
         }
@@ -740,7 +740,7 @@ public class TzServerUtil {
     try {
       CachedData z = new ZipCachedData(tzdataUrl);
 
-      db = new DbCachedData(true, primaryUrl);
+      db = new DbCachedData(true);
 
       db.startAdd();
 

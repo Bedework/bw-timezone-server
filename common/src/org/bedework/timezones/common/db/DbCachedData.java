@@ -87,8 +87,6 @@ public class DbCachedData implements CachedData {
   /** */
   protected boolean open;
 
-  private String primaryUrl;
-
   private String dtstamp;
 
   private long reloads;
@@ -136,6 +134,9 @@ public class DbCachedData implements CachedData {
     public void run() {
       while (running) {
         try {
+          if (debug) {
+            trace("Updater: About to update");
+          }
           update();
         } catch (Throwable t) {
           if (!showedTrace) {
@@ -146,16 +147,20 @@ public class DbCachedData implements CachedData {
           }
         }
 
-        if (running) {
-          // Wait a bit before restarting
-          try {
-            Object o = new Object();
-            synchronized (o) {
-              o.wait (TzServerUtil.getRefreshInterval() * 1000);
-            }
-          } catch (Throwable t) {
-            error(t.getMessage());
+        if (debug) {
+          trace("Updater: About to wait for " +
+                TzServerUtil.getRefreshInterval() +
+                " seconds");
+
+        }
+        // Hang around
+        try {
+          Object o = new Object();
+          synchronized (o) {
+            o.wait (TzServerUtil.getRefreshInterval() * 1000);
           }
+        } catch (Throwable t) {
+          error(t.getMessage());
         }
       }
     }
@@ -167,14 +172,11 @@ public class DbCachedData implements CachedData {
    * zipped data.
    *
    * @param forAdd - true if we are going to add data
-   * @param primaryUrl - if non-null location of primary server
    * @throws TzException
    */
-  public DbCachedData(final boolean forAdd,
-                      final String primaryUrl) throws TzException {
+  public DbCachedData(final boolean forAdd) throws TzException {
     debug = getLogger().isDebugEnabled();
 
-    this.primaryUrl = primaryUrl;
     refreshNow = true;
 
     if (forAdd) {
@@ -183,9 +185,7 @@ public class DbCachedData implements CachedData {
 
     try {
       if (!reloadData(true)) {
-        if (primaryUrl != null) {
-          update();
-        }
+        update();
 
         if (!reloadData(true)) {
           throw new DbEmptyException();
@@ -203,6 +203,7 @@ public class DbCachedData implements CachedData {
 
     if (!TzServerUtil.getPrimaryServer()) {
       updater = new UpdateThread("DbdataUpdater");
+      updater.start();
     }
   }
 
@@ -687,14 +688,14 @@ public class DbCachedData implements CachedData {
    * @throws ServletException
    */
   private void updateData() throws ServletException {
-    if (!TzServerUtil.getPrimaryServer() ||
-        (primaryUrl == null)) {
+    if (TzServerUtil.getPrimaryServer() ||
+        (TzServerUtil.getPrimaryUrl() == null)) {
       return;
     }
 
     try {
       Timezones tzs = new TimezonesImpl();
-      tzs.init(primaryUrl);
+      tzs.init(TzServerUtil.getPrimaryUrl());
       open();
 
       TzDbInfo inf = getDbInfo();
@@ -762,7 +763,7 @@ public class DbCachedData implements CachedData {
         dbspec.setName(id);
         dbspec.setEtag(ttz.etag);
         dbspec.setDtstamp(sum.getLastModified().toXMLFormat());
-        dbspec.setSource(primaryUrl);
+        dbspec.setSource(TzServerUtil.getPrimaryUrl());
         dbspec.setActive(true);
         dbspec.setVtimezone(ttz.vtz);
 
