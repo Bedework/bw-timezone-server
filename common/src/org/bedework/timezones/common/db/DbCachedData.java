@@ -29,6 +29,7 @@ import net.fortuna.ical4j.model.property.TzId;
 import org.bedework.timezones.common.CachedData;
 import org.bedework.timezones.common.ExpandedMapEntry;
 import org.bedework.timezones.common.ExpandedMapEntryKey;
+import org.bedework.timezones.common.Stat;
 import org.bedework.timezones.common.TzException;
 import org.bedework.timezones.common.TzServerUtil;
 
@@ -87,6 +88,10 @@ public class DbCachedData implements CachedData {
   private String primaryUrl;
 
   private String dtstamp;
+  
+  private long reloads;
+  private long primaryFetches;
+  private long lastFetchCt;
 
   private Map<String, String> vtzs = new HashMap<String, String>();
 
@@ -149,6 +154,25 @@ public class DbCachedData implements CachedData {
 
       throw new TzException(se);
     }
+  }
+  
+  public List<Stat> getStats() throws ServletException {
+    List<Stat> stats = new ArrayList<Stat>(); 
+
+    if (tzs == null) {
+      stats.add(new Stat("Db", "Unavailable"));
+    }
+
+    stats.add(new Stat("Db #tzs", String.valueOf(tzs.size())));
+    stats.add(new Stat("Db dtstamp", dtstamp));
+    stats.add(new Stat("Db reloads", String.valueOf(reloads)));
+    stats.add(new Stat("Db primary fetches", String.valueOf(primaryFetches)));
+    stats.add(new Stat("Db last fetch count",
+                       String.valueOf(lastFetchCt)));
+    stats.add(new Stat("Db cached expansions", 
+                       String.valueOf(expansions.size())));
+
+    return stats;
   }
 
   /* ====================================================================
@@ -534,6 +558,8 @@ public class DbCachedData implements CachedData {
       return true;
     }
 
+    reloads++;
+    
     try {
       open();
 
@@ -571,6 +597,11 @@ public class DbCachedData implements CachedData {
     }
   }
 
+  /** Call the primary server and get a list of data that's changed since we last
+   * looked. Then fetch each changed timezone and update the db.
+   * 
+   * @throws ServletException
+   */
   private void updateData() throws ServletException {
     if (primaryUrl == null) {
       return;
@@ -605,6 +636,9 @@ public class DbCachedData implements CachedData {
 
         updateTzInfo(inf);
       }
+      
+      primaryFetches++;
+      lastFetchCt = tzl.getSummary().size();
 
       /* Go through the returned timezones and try to update.
        * If we have the timezone and it has an etag do a conditional fetch.

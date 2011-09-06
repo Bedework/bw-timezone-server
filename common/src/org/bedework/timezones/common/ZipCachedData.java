@@ -104,6 +104,21 @@ public class ZipCachedData implements CachedData {
   public ZipCachedData(String tzdataUrl) {
     this.tzdataUrl = tzdataUrl;
   }
+  
+  public List<Stat> getStats() throws ServletException {
+    List<Stat> stats = new ArrayList<Stat>(); 
+
+    if (tzs == null) {
+      stats.add(new Stat("Db", "Unavailable"));
+    }
+
+    stats.add(new Stat("Zip #tzs", String.valueOf(tzs.size())));
+    stats.add(new Stat("Zip buildTime", buildTime));
+    stats.add(new Stat("Zip cached expansions", 
+                       String.valueOf(expansions.size())));
+
+    return stats;
+  }
 
   /* *
    *

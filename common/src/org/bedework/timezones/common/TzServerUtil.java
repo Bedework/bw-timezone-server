@@ -66,8 +66,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import edu.rpi.cmt.calendar.XcalUtil;
 import edu.rpi.sss.util.DateTimeUtil;
-import edu.rpi.sss.util.OptionsException;
-import edu.rpi.sss.util.OptionsI;
 
 /** Common code for the timezone service.
  *
@@ -75,11 +73,9 @@ import edu.rpi.sss.util.OptionsI;
  */
 public class TzServerUtil {
   /* Temp - allows disabling of db */
-  private static boolean tryDb = true;
+  //private static boolean tryDb = true;
 
   private static String appname = "tzsvr";
-
-  private static TzsvrConfig config;
 
   private static TzServerUtil instance;
 
@@ -125,24 +121,6 @@ public class TzServerUtil {
    * @throws ServletException
    */
   private TzServerUtil() throws ServletException {
-    /* Note that the options factory returns a static object and we should
-     * initialise the config once only
-     */
-    OptionsI opts;
-    try {
-      opts = TzsvrOptionsFactory.getOptions(false);
-      config = (TzsvrConfig)opts.getAppProperty(appname);
-      if (config == null) {
-        config = new TzsvrConfig();
-      }
-    } catch (OptionsException e) {
-      throw new ServletException(e);
-    }
-
-    if (tzdataUrl == null) {
-      tzdataUrl = config.getTzdataUrl();
-    }
-
     getcache();
   }
 
@@ -253,6 +231,10 @@ public class TzServerUtil {
                        String.valueOf(expands),
                        String.valueOf(expandsMillis)));
 
+    if (getInstance().cache != null) {
+      stats.addAll(getInstance().cache.getStats());
+    }
+    
     return stats;
   }
 
@@ -282,13 +264,6 @@ public class TzServerUtil {
     }
 
     return dtstamp;
-  }
-
-  /**
-   * @return config
-   */
-  public TzsvrConfig getConfig() {
-    return config;
   }
 
   /**
@@ -625,6 +600,9 @@ public class TzServerUtil {
    *                   Convenience methods
    * ==================================================================== */
 
+  /**
+   * @return an ical Calendar prefix
+   */
   public String getCalHdr() {
     return "BEGIN:VCALENDAR\n" +
            "VERSION:2.0\n" +
@@ -632,6 +610,9 @@ public class TzServerUtil {
            "PRODID:/bedework.org//NONSGML Bedework//EN\n";
   }
 
+  /**
+   * @return an ical Calendar trailer
+   */
   public String getCalTlr() {
     return "END:VCALENDAR\n";
   }
@@ -676,46 +657,21 @@ public class TzServerUtil {
     return new ExpandedMapEntryKey(tzid, st, e);
   }
 
-  private static String transformTzid(String tzid) {
-    int len = tzid.length();
-
-    if ((len > 13) && (tzid.startsWith("/mozilla.org/"))) {
-      int pos = tzid.indexOf('/', 13);
-
-      if ((pos < 0) || (pos == len - 1)) {
-        return tzid;
-      }
-      return tzid.substring(pos + 1);
-    }
-
-    /* Special to get James Andrewartha going */
-    String ss = "/softwarestudio.org/Tzfile/";
-
-    if ((len > ss.length()) &&
-        (tzid.startsWith(ss))) {
-      return tzid.substring(ss.length());
-    }
-
-    return tzid;
-  }
-
   private void getcache() throws ServletException {
-    if (tryDb) {
-      try {
-        cache = new DbCachedData(false, primaryUrl);
-      } catch (DbEmptyException dbee) {
-        /* try to populate from zipped data */
+    try {
+      cache = new DbCachedData(false, primaryUrl);
+    } catch (DbEmptyException dbee) {
+      /* try to populate from zipped data */
 
-        if (addDbData()) {
-          try {
-            cache = new DbCachedData(false, primaryUrl);
-          } catch (TzException te) {
-            error(te);
-          }
+      if (addDbData()) {
+        try {
+          cache = new DbCachedData(false, primaryUrl);
+        } catch (TzException te) {
+          error(te);
         }
-      } catch (TzException te) {
-        error(te);
       }
+    } catch (TzException te) {
+      error(te);
     }
 
     if (cache == null) {
@@ -723,6 +679,10 @@ public class TzServerUtil {
     }
   }
 
+  /** Populate the database from the zipped data
+   * 
+   * @return true if it worked
+   */
   private boolean addDbData() {
     DbCachedData db = null;
 

@@ -40,6 +40,12 @@ import javax.servlet.ServletException;
  * @author douglm
  */
 public interface CachedData extends Serializable {
+  /**
+   * @return stats for the module
+   * @throws ServletException
+   */
+  List<Stat> getStats() throws ServletException;
+  
   /** Flag a refresh..
    */
   void refresh();

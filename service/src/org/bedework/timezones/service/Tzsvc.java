@@ -43,8 +43,6 @@ public class Tzsvc implements TzsvcMBean {
 
   private boolean running;
 
-  private TzServerUtil util;
-
   private Configuration cfg;
 
   /* ========================================================================
@@ -174,13 +172,7 @@ public class Tzsvc implements TzsvcMBean {
    * @see org.bedework.indexer.BwIndexerMBean#start()
    */
   public void start() {
-    try {
-      util = TzServerUtil.getInstance();
-      running = true;
-    } catch (Throwable t) {
-      error("Error getting instance");
-      error(t);
-    }
+    running = true;
   }
 
   /* (non-Javadoc)

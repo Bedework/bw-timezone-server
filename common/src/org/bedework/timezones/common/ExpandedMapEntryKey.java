@@ -71,6 +71,10 @@ public class ExpandedMapEntryKey implements Comparable<ExpandedMapEntryKey>, Ser
   public String getEnd() {
     return end;
   }
+  
+  public int hashCode() {
+    return getTzid().hashCode() * getStart().hashCode() * getEnd().hashCode();
+  }
 
   @Override
   public int compareTo(ExpandedMapEntryKey o) {
@@ -87,10 +91,14 @@ public class ExpandedMapEntryKey implements Comparable<ExpandedMapEntryKey>, Ser
 
     return Util.compareStrings(getEnd(), o.getEnd());
   }
+  
+  public boolean equals(Object o) {
+    return compareTo((ExpandedMapEntryKey)o) == 0;
+  }
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("ExpandedMapEntryKey{");
+    StringBuilder sb = new StringBuilder(getClass().getSimpleName()).append("{");
 
     sb.append(getTzid());
     sb.append(", start=");

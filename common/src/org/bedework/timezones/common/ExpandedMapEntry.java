@@ -63,7 +63,7 @@ public class ExpandedMapEntry {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("ExpandedMapEntry{");
+    StringBuilder sb = new StringBuilder(getClass().getSimpleName()).append("{");
 
     sb.append(", etag=");
     sb.append(getEtag());
