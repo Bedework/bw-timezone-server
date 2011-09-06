@@ -72,8 +72,7 @@ import edu.rpi.sss.util.DateTimeUtil;
  *   @author Mike Douglass
  */
 public class TzServerUtil {
-  /* Temp - allows disabling of db */
-  //private static boolean tryDb = true;
+  private static boolean primaryServer = false;
 
   private static String appname = "tzsvr";
 
@@ -193,6 +192,21 @@ public class TzServerUtil {
    */
   public static String getPrimaryUrl() {
     return primaryUrl;
+  }
+
+  /** Are we a primary server?
+   *
+   * @param val    String
+   */
+  public static void setPrimaryServer(final boolean val) {
+    primaryServer = val;
+  }
+
+  /** Are we a primary server?
+   * @return String
+   */
+  public static boolean getPrimaryServer() {
+    return primaryServer;
   }
 
   /** Cause a refresh of the data

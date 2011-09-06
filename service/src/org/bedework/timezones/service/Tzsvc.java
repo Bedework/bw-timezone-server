@@ -102,6 +102,16 @@ public class Tzsvc implements TzsvcMBean {
   }
 
   @Override
+  public void setPrimaryServer(final boolean val) {
+    TzServerUtil.setPrimaryServer(val);
+  }
+
+  @Override
+  public boolean getPrimaryServer() {
+    return TzServerUtil.getPrimaryServer();
+  }
+
+  @Override
   public void setRefreshInterval(final long val) {
     TzServerUtil.setRefreshInterval(val);
   }

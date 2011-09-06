@@ -78,6 +78,17 @@ public interface TzsvcMBean {
    */
   public String getPrimaryUrl();
 
+  /** Are we a primary server?
+   *
+   * @param val    boolean
+   */
+  public void setPrimaryServer(final boolean val);
+
+  /** Are we a primary server?
+   * @return boolean
+   */
+  public boolean getPrimaryServer();
+
   /** Refresh interval - seconds
    *
    * @param val

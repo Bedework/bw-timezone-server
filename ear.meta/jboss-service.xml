@@ -4,7 +4,9 @@
          name="org.bedework:service=Tzsvr">
     <attribute name="Appname">tzsvr</attribute>
     
-    <attribute name="PrimaryUrl">http://dev.bedework.org/tzsvr</attribute>
+    <attribute name="PrimaryServer">@tzserverPrimary@</attribute>
+    
+    <attribute name="PrimaryUrl">@tzserverPrimaryUrl@</attribute>
     
     <!-- Location of the (backup) zip file -->
     <attribute name="TzdataUrl">@tzdataURI@</attribute>

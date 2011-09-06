@@ -201,7 +201,9 @@ public class DbCachedData implements CachedData {
 
     running = true;
 
-    updater = new UpdateThread("DbdataUpdater");
+    if (!TzServerUtil.getPrimaryServer()) {
+      updater = new UpdateThread("DbdataUpdater");
+    }
   }
 
   @Override
@@ -685,7 +687,8 @@ public class DbCachedData implements CachedData {
    * @throws ServletException
    */
   private void updateData() throws ServletException {
-    if (primaryUrl == null) {
+    if (!TzServerUtil.getPrimaryServer() ||
+        (primaryUrl == null)) {
       return;
     }
 
