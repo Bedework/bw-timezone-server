@@ -60,6 +60,7 @@ import edu.rpi.cmt.calendar.XcalUtil;
 import edu.rpi.cmt.timezones.Timezones;
 import edu.rpi.cmt.timezones.Timezones.TaggedTimeZone;
 import edu.rpi.cmt.timezones.Timezones.TimezonesException;
+import edu.rpi.cmt.timezones.Timezones.TzUnknownHostException;
 import edu.rpi.cmt.timezones.TimezonesImpl;
 
 /** Cached timezone data in a database.
@@ -133,11 +134,16 @@ public class DbCachedData implements CachedData {
     @Override
     public void run() {
       while (running) {
+        long refreshWait = TzServerUtil.getRefreshInterval();
+
         try {
           if (debug) {
             trace("Updater: About to update");
           }
-          update();
+          if (!updateData()) {
+            // Try again in at most 10 minutes (need an error retry param)
+            refreshWait = Math.min(refreshWait, 600);
+          }
         } catch (Throwable t) {
           if (!showedTrace) {
             error(t);
@@ -149,7 +155,7 @@ public class DbCachedData implements CachedData {
 
         if (debug) {
           trace("Updater: About to wait for " +
-                TzServerUtil.getRefreshInterval() +
+              refreshWait +
                 " seconds");
 
         }
@@ -157,7 +163,7 @@ public class DbCachedData implements CachedData {
         try {
           Object o = new Object();
           synchronized (o) {
-            o.wait (TzServerUtil.getRefreshInterval() * 1000);
+            o.wait (refreshWait * 1000);
           }
         } catch (Throwable t) {
           error(t.getMessage());
@@ -685,12 +691,13 @@ public class DbCachedData implements CachedData {
   /** Call the primary server and get a list of data that's changed since we last
    * looked. Then fetch each changed timezone and update the db.
    *
+   * @return true if we succesfully contacted the server
    * @throws ServletException
    */
-  private void updateData() throws ServletException {
+  private boolean updateData() throws ServletException {
     if (TzServerUtil.getPrimaryServer() ||
         (TzServerUtil.getPrimaryUrl() == null)) {
-      return;
+      return true; // good enough
     }
 
     try {
@@ -705,7 +712,15 @@ public class DbCachedData implements CachedData {
         changedSince = inf.getDtstamp();
       }
 
-      TimezoneListType tzl = tzs.getList(changedSince);
+      TimezoneListType tzl;
+
+      try {
+        tzl = tzs.getList(changedSince);
+      } catch (TzUnknownHostException tuhe) {
+        error("Unknown host exception contacting " +
+              TzServerUtil.getPrimaryUrl());
+        return false;
+      }
 
       String svrCs = tzl.getDtstamp().toXMLFormat();
 
@@ -825,6 +840,8 @@ public class DbCachedData implements CachedData {
     } finally {
       close();
     }
+
+    return true;
   }
 
   private TzDbInfo getDbInfo() throws TzException {
