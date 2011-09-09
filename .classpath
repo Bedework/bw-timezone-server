@@ -11,8 +11,8 @@
 	<classpathentry kind="lib" path="lib/commons-lang-2.1.jar"/>
 	<classpathentry kind="lib" path="lib/ehcache-1.6.2.jar"/>
 	<classpathentry kind="lib" path="lib/ical4j-1.0-rc3-SNAPSHOT.jar"/>
-	<classpathentry kind="lib" path="/bwxml/dist/bw-tzschema-3.7.jar" sourcepath="/bwxml/timezones/gensrc/src"/>
 	<classpathentry kind="lib" path="lib/hibernate-3.3.1.ga.jar"/>
-	<classpathentry kind="lib" path="/rpituil/dist/rpiutil-3.7.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/rpituil"/>
+	<classpathentry kind="lib" path="/bwxml/dist/bw-tzschema-3.8.jar"/>
 	<classpathentry kind="output" path="bin/timezones/bwtzsvr/bwtzsvr"/>
 </classpath>
