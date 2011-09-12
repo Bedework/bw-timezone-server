@@ -169,10 +169,10 @@ public class GetMethod extends MethodBase {
                             "If omitted, the current year + 10 is assumed. "));
   }
 
-  private static void addCapability(CapabilitiesType capabilities,
-                                    String action,
-                                    String description,
-                                    CapabilitiesAcceptParameterType... pars) {
+  private static void addCapability(final CapabilitiesType capabilities,
+                                    final String action,
+                                    final String description,
+                                    final CapabilitiesAcceptParameterType... pars) {
     CapabilitiesOperationType cot = new CapabilitiesOperationType();
 
     cot.setAction(action);
@@ -187,11 +187,11 @@ public class GetMethod extends MethodBase {
     capabilities.getOperation().add(cot);
   }
 
-  private static CapabilitiesAcceptParameterType makePar(String name,
-                                                         boolean required,
-                                                         boolean multi,
-                                                         String value,
-                                                         String description) {
+  private static CapabilitiesAcceptParameterType makePar(final String name,
+                                                         final boolean required,
+                                                         final boolean multi,
+                                                         final String value,
+                                                         final String description) {
     CapabilitiesAcceptParameterType capt = new CapabilitiesAcceptParameterType();
 
     capt.setName(name);
@@ -311,7 +311,13 @@ public class GetMethod extends MethodBase {
 
       tzl.setDtstamp(util.getDtstamp());
 
-      tzl.getSummary().addAll(util.getSummaries(req.getParameter("changedsince")));
+      String changedsince = req.getParameter("changedsince");
+
+      if (changedsince != null) {
+        logIt("Refresh call from " + req.getRemoteHost());
+      }
+
+      tzl.getSummary().addAll(util.getSummaries(changedsince));
 
       Marshaller m = getJc().createMarshaller();
       m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
@@ -624,11 +630,11 @@ public class GetMethod extends MethodBase {
     }
   }
 
-  private void writeCalHdr(Writer wtr) throws Throwable  {
+  private void writeCalHdr(final Writer wtr) throws Throwable  {
     wtr.write(util.getCalHdr());
   }
 
-  private void writeCalTlr(Writer wtr) throws Throwable  {
+  private void writeCalTlr(final Writer wtr) throws Throwable  {
     wtr.write(util.getCalTlr());
   }
 

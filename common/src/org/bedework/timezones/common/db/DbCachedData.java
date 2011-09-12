@@ -741,6 +741,17 @@ public class DbCachedData implements CachedData {
       primaryFetches++;
       lastFetchCt = tzl.getSummary().size();
 
+      String isAre = "are";
+      String theS = "s";
+
+      if (lastFetchCt == 1) {
+        isAre = "is";
+        theS = "";
+      }
+
+      info("There " + isAre + " " + lastFetchCt +
+      		 " timezone" + theS + " to fetch");
+
       /* Go through the returned timezones and try to update.
        * If we have the timezone and it has an etag do a conditional fetch.
        * If we don't have the timezone do an unconditional fetch.

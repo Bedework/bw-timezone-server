@@ -186,7 +186,6 @@ public class Tzsvc implements TzsvcMBean {
       return res;
     }
 
-
     return "Action complete: check logs";
   }
 
@@ -255,8 +254,8 @@ public class Tzsvc implements TzsvcMBean {
 
       se.execute(false, // script - causes write to System.out if true
                  true,
-                 drop,
-                 !drop);
+                 drop, // justDrop
+                 !drop); // justCreate
     } catch (Throwable t) {
       error(t);
       result = "Exception: " + t.getLocalizedMessage();
