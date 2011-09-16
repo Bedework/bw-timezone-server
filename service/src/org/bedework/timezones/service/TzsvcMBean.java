@@ -125,7 +125,7 @@ public interface TzsvcMBean {
    *
    * @return completion code.
    */
-  public List<String> compareData();
+  public String compareData();
 
   /* ========================================================================
    * Lifecycle

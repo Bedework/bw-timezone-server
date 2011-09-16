@@ -20,5 +20,8 @@
     <property name="dtstamp" column="bw_dtstamp" type="string" length="20" />
 
     <property name="version" column="bw_version" type="string" length="50" />
+    
+    <property name="serverProperties" column="bwtz_svrprops" 
+              type="string" length="3000" />
   </class>
 </hibernate-mapping>

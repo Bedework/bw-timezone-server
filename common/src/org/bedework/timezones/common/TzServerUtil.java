@@ -65,18 +65,12 @@ import edu.rpi.sss.util.DateTimeUtil;
  *   @author Mike Douglass
  */
 public class TzServerUtil {
-  private static boolean primaryServer = false;
-
   private static String appname = "tzsvr";
 
   private static TzServerUtil instance;
 
   /* A URL for retrieving the tzdata jar */
   static String tzdataUrl;
-
-  static String primaryUrl;
-
-  static long refreshInterval; // seconds
 
   private static Object locker = new Object();
 
@@ -172,34 +166,42 @@ public class TzServerUtil {
     return tzdataUrl;
   }
 
-  /** Url of server we refresh from. Null if we are a primary server
+  /** Initial value from config of url of server we refresh from.
+   * Ignore if we are a primary server
    *
-   * @param val    String
+   * @return String
+   * @throws TzException
    */
-  public static void setPrimaryUrl(final String val) {
-    primaryUrl = val;
+  public static String getInitialPrimaryUrl() throws TzException {
+    try {
+      return TzsvrOptionsFactory.getOptions().getGlobalStringProperty("initialPrimaryUrl");
+    } catch (Throwable t) {
+      throw new TzException(t);
+    }
+  }
+
+  /** Initial value from config for are we a primary server?
+   * @return boolean
+   * @throws TzException
+   */
+  public static boolean getInitialPrimaryServer() throws TzException {
+    try {
+      return TzsvrOptionsFactory.getOptions().getGlobalBoolProperty("initialPrimaryServer");
+    } catch (Throwable t) {
+      throw new TzException(t);
+    }
   }
 
   /**
-   * @return String
+   * @return long Refresh interval - seconds
+   * @throws TzException
    */
-  public static String getPrimaryUrl() {
-    return primaryUrl;
-  }
-
-  /** Are we a primary server?
-   *
-   * @param val    String
-   */
-  public static void setPrimaryServer(final boolean val) {
-    primaryServer = val;
-  }
-
-  /** Are we a primary server?
-   * @return String
-   */
-  public static boolean getPrimaryServer() {
-    return primaryServer;
+  public static long getInitialRefreshInterval() throws TzException {
+    try {
+      return TzsvrOptionsFactory.getOptions().getGlobalIntProperty("initialRefreshInterval");
+    } catch (Throwable t) {
+      throw new TzException(t);
+    }
   }
 
   /** Cause a refresh of the data
@@ -254,21 +256,6 @@ public class TzServerUtil {
     return out;
   }
 
-  /** Refresh interval - seconds
-   *
-   * @param val
-   */
-  public static void setRefreshInterval(final long val) {
-    refreshInterval = val;
-  }
-
-  /**
-   * @return long Refresh interval - seconds
-   */
-  public static long getRefreshInterval() {
-    return refreshInterval;
-  }
-
   /**
    * @return stats for the service
    * @throws TzException
@@ -310,6 +297,57 @@ public class TzServerUtil {
     if (cache != null) {
       cache.stop();
     }
+  }
+
+  /** Url of server we refresh from. Ignore if we are a primary server
+   *
+   * @param val    String
+   * @throws TzException
+   */
+  public void setPrimaryUrl(final String val) throws TzException {
+    cache.setPrimaryUrl(val);
+  }
+
+  /**
+   * @return String
+   * @throws TzException
+   */
+  public String getPrimaryUrl() throws TzException {
+    return cache.getPrimaryUrl();
+  }
+
+  /** Are we a primary server?
+   *
+   * @param val    boolean
+   * @throws TzException
+   */
+  public void setPrimaryServer(final boolean val) throws TzException {
+    cache.setPrimaryServer(val);
+  }
+
+  /** Are we a primary server?
+   * @return boolean
+   * @throws TzException
+   */
+  public boolean getPrimaryServer() throws TzException {
+    return cache.getPrimaryServer();
+  }
+
+  /** Refresh interval - seconds
+   *
+   * @param val
+   * @throws TzException
+   */
+  public void setRefreshInterval(final long val) throws TzException {
+    cache.setRefreshInterval(val);
+  }
+
+  /**
+   * @return long Refresh interval - seconds
+   * @throws TzException
+   */
+  public long getRefreshInterval() throws TzException {
+    return cache.getRefreshInterval();
   }
 
   /**

@@ -25,7 +25,8 @@ import org.apache.log4j.Logger;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 
-import java.util.ArrayList;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.List;
 
 /**
@@ -88,32 +89,65 @@ public class Tzsvc implements TzsvcMBean {
 
   @Override
   public void setPrimaryUrl(final String val) {
-    TzServerUtil.setPrimaryUrl(val);
+    try {
+      TzServerUtil.getInstance().setPrimaryUrl(val);
+    } catch (Throwable t) {
+      error("Error setting url");
+      error(t);
+    }
   }
 
   @Override
   public String getPrimaryUrl() {
-    return TzServerUtil.getPrimaryUrl();
+    try {
+      return TzServerUtil.getInstance().getPrimaryUrl();
+    } catch (Throwable t) {
+      error(t);
+      return "Error getting url";
+    }
   }
 
   @Override
   public void setPrimaryServer(final boolean val) {
-    TzServerUtil.setPrimaryServer(val);
+    try {
+      TzServerUtil.getInstance().setPrimaryServer(val);
+    } catch (Throwable t) {
+      error("Error setting url");
+      error(t);
+    }
   }
 
   @Override
   public boolean getPrimaryServer() {
-    return TzServerUtil.getPrimaryServer();
+    try {
+      return TzServerUtil.getInstance().getPrimaryServer();
+    } catch (Throwable t) {
+      error("Error getting primary flag");
+      error(t);
+
+      return false;
+    }
   }
 
   @Override
   public void setRefreshInterval(final long val) {
-    TzServerUtil.setRefreshInterval(val);
+    try {
+      TzServerUtil.getInstance().setRefreshInterval(val);
+    } catch (Throwable t) {
+      error("Error setting refresh");
+      error(t);
+    }
   }
 
   @Override
   public long getRefreshInterval() {
-    return TzServerUtil.getRefreshInterval();
+    try {
+      return TzServerUtil.getInstance().getRefreshInterval();
+    } catch (Throwable t) {
+      error("Error getting refresh");
+      error(t);
+      return -99999;
+    }
   }
 
   /* ========================================================================
@@ -185,15 +219,23 @@ public class Tzsvc implements TzsvcMBean {
   }
 
   @Override
-  public List<String> compareData() {
+  public String compareData() {
+    StringWriter sw = new StringWriter();
+
     try {
-      return TzServerUtil.compareData();
+      PrintWriter pw = new PrintWriter(sw);
+
+      List<String> chgs = TzServerUtil.compareData();
+
+      for (String s: chgs) {
+        pw.println(s);
+      }
+
     } catch (Throwable t) {
-      error(t);
-      List <String> out = new ArrayList<String>();
-      out.add(t.getLocalizedMessage());
-      return out;
+      t.printStackTrace(new PrintWriter(sw));
     }
+
+    return sw.toString();
   }
 
   /* ========================================================================

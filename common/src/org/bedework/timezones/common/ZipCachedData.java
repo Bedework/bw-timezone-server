@@ -62,20 +62,35 @@ public class ZipCachedData  extends AbstractCachedData {
   public void stop() throws TzException {
   }
 
-  /* *
-   *
-   * @param val
-   * /
-  public void setTzdataUrl(final String val) {
-    tzdataUrl = val;
+  @Override
+  public void setPrimaryUrl(final String val) throws TzException {
+    // Ignore
   }
 
-  /* *
-   * @return tzdataUrl
-   * /
-  public String getTzdataUrl() {
-    return tzdataUrl;
-  }*/
+  @Override
+  public String getPrimaryUrl() throws TzException {
+    return TzServerUtil.getInitialPrimaryUrl();
+  }
+
+  @Override
+  public void setPrimaryServer(final boolean val) throws TzException {
+    // Ignore
+  }
+
+  @Override
+  public boolean getPrimaryServer() throws TzException {
+    return TzServerUtil.getInitialPrimaryServer();
+  }
+
+  @Override
+  public void setRefreshInterval(final long val) throws TzException {
+    // Ignore
+  }
+
+  @Override
+  public long getRefreshInterval() throws TzException {
+    return TzServerUtil.getInitialRefreshInterval();
+  }
 
   /* (non-Javadoc)
    * @see org.bedework.timezones.common.CachedData#refresh()

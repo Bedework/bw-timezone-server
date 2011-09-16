@@ -41,7 +41,6 @@ import java.util.TreeSet;
 
 import edu.rpi.cmt.timezones.Timezones;
 import edu.rpi.cmt.timezones.Timezones.TaggedTimeZone;
-import edu.rpi.cmt.timezones.Timezones.TimezonesException;
 import edu.rpi.cmt.timezones.Timezones.TzUnknownHostException;
 import edu.rpi.cmt.timezones.TimezonesImpl;
 
@@ -57,6 +56,11 @@ public class DbCachedData extends AbstractCachedData {
   protected HibSession sess;
 
   private static SessionFactory sessionFactory;
+
+  /* Reflects db value if non-null */
+  private Boolean isPrimary;
+  private String primaryUrl;
+  private Long refreshDelay;
 
   /** */
   protected boolean open;
@@ -79,9 +83,11 @@ public class DbCachedData extends AbstractCachedData {
     @Override
     public void run() {
       while (running) {
-        long refreshWait = TzServerUtil.getRefreshInterval();
+        long refreshWait = 9999;
 
         try {
+          refreshWait = getRefreshInterval();
+
           if (debug) {
             trace("Updater: About to update");
           }
@@ -142,9 +148,159 @@ public class DbCachedData extends AbstractCachedData {
 
     running = true;
 
-    if (!TzServerUtil.getPrimaryServer()) {
+    if (!getPrimaryServer()) {
       updater = new UpdateThread("DbdataUpdater");
       updater.start();
+    }
+  }
+
+  @Override
+  public void setPrimaryUrl(final String val) throws TzException {
+    if (val.equals(primaryUrl)) {
+      return;
+    }
+
+    try {
+      open();
+
+      TzDbInfo inf = getDbInfo();
+      primaryUrl = val;
+      inf.setPrimaryUrl(primaryUrl);
+      updateTzInfo(inf);
+    } catch (TzException tze) {
+      fail();
+      throw tze;
+    } catch (Throwable t) {
+      fail();
+      throw new TzException(t);
+    } finally {
+      close();
+    }
+  }
+
+  @Override
+  public String getPrimaryUrl() throws TzException {
+    if (primaryUrl != null) {
+      return primaryUrl;
+    }
+
+    try {
+      open();
+
+      TzDbInfo inf = getDbInfo();
+      primaryUrl = TzServerUtil.getInitialPrimaryUrl();
+      inf.setPrimaryUrl(primaryUrl);
+      updateTzInfo(inf);
+
+      return primaryUrl;
+    } catch (TzException tze) {
+      fail();
+      throw tze;
+    } catch (Throwable t) {
+      fail();
+      throw new TzException(t);
+    } finally {
+      close();
+    }
+  }
+
+  @Override
+  public void setPrimaryServer(final boolean val) throws TzException {
+    if ((isPrimary != null) && (val == isPrimary)) {
+      return;
+    }
+
+    try {
+      open();
+
+      TzDbInfo inf = getDbInfo();
+      isPrimary = val;
+      inf.setPrimaryServer(isPrimary);
+      updateTzInfo(inf);
+    } catch (TzException tze) {
+      fail();
+      throw tze;
+    } catch (Throwable t) {
+      fail();
+      throw new TzException(t);
+    } finally {
+      close();
+    }
+  }
+
+  @Override
+  public boolean getPrimaryServer() throws TzException {
+    if (isPrimary != null) {
+      return isPrimary;
+    }
+
+    try {
+      open();
+
+      TzDbInfo inf = getDbInfo();
+      isPrimary = TzServerUtil.getInitialPrimaryServer();
+      inf.setPrimaryServer(isPrimary);
+      updateTzInfo(inf);
+
+      return isPrimary;
+    } catch (TzException tze) {
+      fail();
+      throw tze;
+    } catch (Throwable t) {
+      fail();
+      throw new TzException(t);
+    } finally {
+      close();
+    }
+  }
+
+  @Override
+  public void setRefreshInterval(final long val) throws TzException {
+    if ((refreshDelay != null) && (val == refreshDelay)) {
+      return;
+    }
+
+    try {
+      open();
+
+      TzDbInfo inf = getDbInfo();
+      refreshDelay = val;
+      inf.setRefreshDelay(refreshDelay);
+      updateTzInfo(inf);
+    } catch (TzException tze) {
+      fail();
+      throw tze;
+    } catch (Throwable t) {
+      fail();
+      throw new TzException(t);
+    } finally {
+      close();
+    }
+  }
+
+  @Override
+  public long getRefreshInterval() throws TzException {
+    if (refreshDelay != null) {
+      return refreshDelay;
+    }
+
+    try {
+      open();
+
+      TzDbInfo inf = getDbInfo();
+      refreshDelay = TzServerUtil.getInitialRefreshInterval();
+      inf.setRefreshDelay(refreshDelay);
+      updateTzInfo(inf);
+
+      return refreshDelay;
+    } catch (TzException tze) {
+      fail();
+      throw tze;
+    } catch (Throwable t) {
+      fail();
+      throw new TzException(t);
+    } finally {
+      close();
     }
   }
 
@@ -480,43 +636,67 @@ public class DbCachedData extends AbstractCachedData {
    * @throws TzException
    */
   private boolean updateFromPrimary() throws TzException {
-    if (TzServerUtil.getPrimaryServer() ||
-        (TzServerUtil.getPrimaryUrl() == null)) {
-      return true; // good enough
-    }
-
     try {
-      Timezones tzs = new TimezonesImpl();
-      tzs.init(TzServerUtil.getPrimaryUrl());
       open();
 
       TzDbInfo inf = getDbInfo();
 
-      String changedSince = null;
-      if (inf != null) {
-        changedSince = inf.getDtstamp();
+      if (inf == null) {
+        inf = new TzDbInfo();
+
+        inf.setVersion("1.0");
+
+        addTzInfo(inf);
       }
+
+      if (isPrimary == null) {
+        isPrimary = inf.getPrimaryServer();
+      }
+
+      if (isPrimary == null) {
+        isPrimary = TzServerUtil.getInitialPrimaryServer();
+
+        inf.setPrimaryServer(isPrimary);
+        updateTzInfo(inf);
+      }
+
+      if (isPrimary) {
+        // We are a primary. No update needed
+        return true; // good enough
+      }
+
+      if (primaryUrl == null) {
+        primaryUrl = inf.getPrimaryUrl();
+      }
+
+      if (primaryUrl == null) {
+        primaryUrl = TzServerUtil.getInitialPrimaryUrl();
+
+        inf.setPrimaryUrl(primaryUrl);
+        updateTzInfo(inf);
+      }
+
+      if (primaryUrl == null) {
+        return true; // good enough
+      }
+
+      Timezones tzs = new TimezonesImpl();
+      tzs.init(primaryUrl);
+
+      String changedSince = inf.getDtstamp();
 
       TimezoneListType tzl;
 
       try {
         tzl = tzs.getList(changedSince);
       } catch (TzUnknownHostException tuhe) {
-        error("Unknown host exception contacting " +
-              TzServerUtil.getPrimaryUrl());
+        error("Unknown host exception contacting " + primaryUrl);
         return false;
       }
 
       String svrCs = tzl.getDtstamp().toXMLFormat();
 
-      if (inf == null) {
-        inf = new TzDbInfo();
-
-        inf.setDtstamp(svrCs);
-        inf.setVersion("1.0");
-
-        addTzInfo(inf);
-      } else if ((changedSince == null) ||
+      if ((changedSince == null) ||
                  !svrCs.equals(changedSince)) {
         inf.setDtstamp(svrCs);
 
@@ -574,7 +754,7 @@ public class DbCachedData extends AbstractCachedData {
         dbspec.setName(id);
         dbspec.setEtag(ttz.etag);
         dbspec.setDtstamp(sum.getLastModified().toXMLFormat());
-        dbspec.setSource(TzServerUtil.getPrimaryUrl());
+        dbspec.setSource(primaryUrl);
         dbspec.setActive(true);
         dbspec.setVtimezone(ttz.vtz);
 
@@ -625,10 +805,10 @@ public class DbCachedData extends AbstractCachedData {
       }
 
       lastFetchStatus = "Success";
-    } catch (TimezonesException te) {
+    } catch (TzException tze) {
       fail();
       lastFetchStatus = "Failed";
-      throw new TzException(te);
+      throw tze;
     } catch (Throwable t) {
       fail();
       lastFetchStatus = "Failed";

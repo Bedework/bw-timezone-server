@@ -44,6 +44,45 @@ public interface CachedData extends Serializable {
    */
   List<Stat> getStats() throws TzException;
 
+  /** Url of server we refresh from. Ignore if we are a primary server
+   *
+   * @param val    String
+   * @throws TzException
+   */
+  void setPrimaryUrl(final String val) throws TzException;
+
+  /**
+   * @return String
+   * @throws TzException
+   */
+  String getPrimaryUrl() throws TzException;
+
+  /** Are we a primary server?
+   *
+   * @param val    boolean
+   * @throws TzException
+   */
+  void setPrimaryServer(final boolean val) throws TzException;
+
+  /** Are we a primary server?
+   * @return boolean
+   * @throws TzException
+   */
+  boolean getPrimaryServer() throws TzException;
+
+  /** Refresh interval - seconds
+   *
+   * @param val
+   * @throws TzException
+   */
+  void setRefreshInterval(final long val) throws TzException;
+
+  /**
+   * @return long Refresh interval - seconds
+   * @throws TzException
+   */
+  long getRefreshInterval() throws TzException;
+
   /** Flag a refresh..
    */
   void refresh();
