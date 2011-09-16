@@ -25,6 +25,7 @@ import org.apache.log4j.Logger;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,6 +39,7 @@ public class Tzsvc implements TzsvcMBean {
 
   private Configuration cfg;
 
+  @SuppressWarnings("unused")
   private TzServerUtil tzutil;
 
   /* ========================================================================
@@ -180,6 +182,18 @@ public class Tzsvc implements TzsvcMBean {
     }
 
     return "Action complete: check logs";
+  }
+
+  @Override
+  public List<String> compareData() {
+    try {
+      return TzServerUtil.compareData();
+    } catch (Throwable t) {
+      error(t);
+      List <String> out = new ArrayList<String>();
+      out.add(t.getLocalizedMessage());
+      return out;
+    }
   }
 
   /* ========================================================================

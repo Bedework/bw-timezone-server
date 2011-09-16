@@ -30,6 +30,7 @@ import net.fortuna.ical4j.model.component.VTimeZone;
 import net.fortuna.ical4j.model.property.DtStamp;
 import net.fortuna.ical4j.util.TimeZones;
 
+import org.bedework.timezones.common.Differ.DiffListEntry;
 import org.bedework.timezones.common.db.DbCachedData;
 import org.bedework.timezones.common.db.DbEmptyException;
 import org.bedework.timezones.common.db.TzAlias;
@@ -54,7 +55,6 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import javax.servlet.ServletException;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import edu.rpi.cmt.calendar.XcalUtil;
@@ -112,9 +112,9 @@ public class TzServerUtil {
   static XMLGregorianCalendar dtstamp;
 
   /**
-   * @throws ServletException
+   * @throws TzException
    */
-  private TzServerUtil() throws ServletException {
+  private TzServerUtil() throws TzException {
     getcache();
   }
 
@@ -124,9 +124,9 @@ public class TzServerUtil {
 
   /**
    * @return a singleton instance
-   * @throws ServletException
+   * @throws TzException
    */
-  public static TzServerUtil getInstance() throws ServletException {
+  public static TzServerUtil getInstance() throws TzException {
     if (instance != null) {
       return instance;
     }
@@ -204,9 +204,9 @@ public class TzServerUtil {
 
   /** Cause a refresh of the data
    *
-   * @throws ServletException
+   * @throws TzException
    */
-  public static void fireRefresh() throws ServletException {
+  public static void fireRefresh() throws TzException {
     if (getInstance().cache != null) {
       try {
         getInstance().cache.stop();
@@ -222,10 +222,36 @@ public class TzServerUtil {
 
   /** Cause an update of the data
    *
-   * @throws ServletException
+   * @throws TzException
    */
-  public static void fireUpdate() throws ServletException {
+  public static void fireUpdate() throws TzException {
     getInstance().cache.update();
+  }
+
+  /** Compare data pointed to by tzdataUrl with the current data.
+   *
+   * @return info lines.
+   * @throws TzException
+   */
+  public static List<String> compareData() throws TzException {
+    TzServerUtil util = getInstance();
+
+    Differ diff = new Differ();
+
+    List<DiffListEntry> dles = diff.compare(tzdataUrl, util.cache);
+
+    List<String> out = new ArrayList<String>();
+
+    if (dles == null) {
+      out.add("No data returned");
+      return out;
+    }
+
+    for (DiffListEntry dle: dles) {
+      out.add(dle.toShortString());
+    }
+
+    return out;
   }
 
   /** Refresh interval - seconds
@@ -245,9 +271,9 @@ public class TzServerUtil {
 
   /**
    * @return stats for the service
-   * @throws ServletException
+   * @throws TzException
    */
-  public static List<Stat> getStats() throws ServletException {
+  public static List<Stat> getStats() throws TzException {
     List<Stat> stats = new ArrayList<Stat>();
 
     stats.add(new Stat("Gets", String.valueOf(gets)));
@@ -278,9 +304,9 @@ public class TzServerUtil {
 
   /** Stop any running threads.
    *
-   * @throws ServletException
+   * @throws TzException
    */
-  public void stop() throws ServletException {
+  public void stop() throws TzException {
     if (cache != null) {
       cache.stop();
     }
@@ -288,9 +314,9 @@ public class TzServerUtil {
 
   /**
    * @return the data dtsamp
-   * @throws ServletException
+   * @throws TzException
    */
-  public XMLGregorianCalendar getDtstamp() throws ServletException {
+  public XMLGregorianCalendar getDtstamp() throws TzException {
     if (dtstamp == null) {
       String dtst = cache.getDtstamp();
 
@@ -303,7 +329,7 @@ public class TzServerUtil {
       try {
         dtstamp = XcalUtil.fromDtval(dtst);
       } catch (Throwable t) {
-        throw new ServletException(t);
+        throw new TzException(t);
       }
     }
 
@@ -312,9 +338,9 @@ public class TzServerUtil {
 
   /**
    * @return names from the zip file.
-   * @throws ServletException
+   * @throws TzException
    */
-  public SortedSet<String> getNames() throws ServletException {
+  public SortedSet<String> getNames() throws TzException {
     nameLists++;
 
     return cache.getNameList();
@@ -323,37 +349,37 @@ public class TzServerUtil {
   /**
    * @param name
    * @return spec
-   * @throws ServletException
+   * @throws TzException
    */
-  public String getTz(final String name) throws ServletException {
+  public String getTz(final String name) throws TzException {
     return cache.getCachedVtz(name);
   }
 
   /**
    * @return all specs
-   * @throws ServletException
+   * @throws TzException
    */
-  public Collection<String> getAllTzs() throws ServletException {
+  public Collection<String> getAllTzs() throws TzException {
     return cache.getAllCachedVtzs();
   }
 
   /**
    * @param name
    * @return spec
-   * @throws ServletException
+   * @throws TzException
    */
-  public String getAliasedTz(final String name) throws ServletException {
+  public String getAliasedTz(final String name) throws TzException {
     return cache.getAliasedCachedVtz(name);
   }
 
   /* *
    * @param tzid - possible alias
    * @return actual timezone id
-   * @throws ServletException
+   * @throws TzException
    * /
-  public String unalias(String tzid) throws ServletException {
+  public String unalias(String tzid) throws TzException {
     if (tzid == null) {
-      throw new ServletException("Null id for unalias");
+      throw new TzException("Null id for unalias");
     }
 
     /* First transform the name if it follows a known pattern, for example
@@ -387,18 +413,18 @@ public class TzServerUtil {
 
   /**
    * @return String value of aliases file.
-   * @throws ServletException
+   * @throws TzException
    */
-  public String getAliasesStr() throws ServletException {
+  public String getAliasesStr() throws TzException {
     return cache.getAliasesStr();
   }
 
   /**
    * @param tzid
    * @return list of aliases or null
-   * @throws ServletException
+   * @throws TzException
    */
-  public List<String> findAliases(final String tzid) throws ServletException {
+  public List<String> findAliases(final String tzid) throws TzException {
     return cache.findAliases(tzid);
   }
 
@@ -500,9 +526,9 @@ public class TzServerUtil {
   /**
    * @param changedSince - null or dtstamp value
    * @return list of summary info
-   * @throws ServletException
+   * @throws TzException
    */
-  public List<SummaryType> getSummaries(final String changedSince) throws ServletException {
+  public List<SummaryType> getSummaries(final String changedSince) throws TzException {
     return cache.getSummaries(changedSince);
   }
 
@@ -632,9 +658,9 @@ public class TzServerUtil {
    *
    * @param tzid
    * @return TimeZone with id or null
-   * @throws ServletException
+   * @throws TzException
    */
-  public TimeZone fetchTimeZone(final String tzid) throws ServletException {
+  public TimeZone fetchTimeZone(final String tzid) throws TzException {
     tzfetches++;
 
     return cache.getTimeZone(tzid);
@@ -663,9 +689,9 @@ public class TzServerUtil {
 
   /**
    * @return an etag based on when we refreshed data
-   * @throws ServletException
+   * @throws TzException
    */
-  public String getEtag() throws ServletException {
+  public String getEtag() throws TzException {
     StringBuilder val = new StringBuilder();
 
     val.append("\"");
@@ -681,7 +707,7 @@ public class TzServerUtil {
 
   private ExpandedMapEntryKey makeExpandedKey(final String tzid,
                                               final String start,
-                                              final String end) throws ServletException {
+                                              final String end) throws TzException {
     String st = start;
 
     if (st == null) {
@@ -701,7 +727,7 @@ public class TzServerUtil {
     return new ExpandedMapEntryKey(tzid, st, e);
   }
 
-  private void getcache() throws ServletException {
+  private void getcache() throws TzException {
     try {
       cache = new DbCachedData(false);
     } catch (DbEmptyException dbee) {
@@ -779,12 +805,6 @@ public class TzServerUtil {
       db = null;
 
       return true;
-    } catch (ServletException se) {
-      getLogger().error("Unable to add tz data to db", se);
-      if (db !=  null) {
-        db.failAdd();
-      }
-      return false;
     } catch (TzException te) {
       getLogger().error("Unable to add tz data to db", te);
       if (db !=  null) {
@@ -835,6 +855,10 @@ public class TzServerUtil {
 
   static void error(final String msg) {
     getLogger().error(msg);
+  }
+
+  static void info(final String msg) {
+    getLogger().info(msg);
   }
 
   static void error(final Throwable t) {

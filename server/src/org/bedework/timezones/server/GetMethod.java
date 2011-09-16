@@ -367,8 +367,6 @@ public class GetMethod extends MethodBase {
         wtr.write(s);
         wtr.write("\n");
       }
-    } catch (ServletException se) {
-      throw se;
     } catch (Throwable t) {
       throw new ServletException(t);
     }
@@ -421,8 +419,6 @@ public class GetMethod extends MethodBase {
       Writer wtr = resp.getWriter();
 
       wtr.write(util.getAliasesStr());
-    } catch (ServletException se) {
-      throw se;
     } catch (Throwable t) {
       throw new ServletException(t);
     }
@@ -641,18 +637,22 @@ public class GetMethod extends MethodBase {
   /* Return true if data unchanged - status is set */
   private boolean ifNoneMatchTest(final HttpServletRequest req,
                                   final HttpServletResponse resp) throws ServletException {
-    String inEtag = req.getHeader("If-None-Match");
+    try {
+      String inEtag = req.getHeader("If-None-Match");
 
-    if (inEtag == null) {
-      return false;
+      if (inEtag == null) {
+        return false;
+      }
+
+      if (!inEtag.equals(util.getEtag())) {
+        return false;
+      }
+
+      resp.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+      return true;
+    } catch (Throwable t) {
+      throw new ServletException(t);
     }
-
-    if (!inEtag.equals(util.getEtag())) {
-      return false;
-    }
-
-    resp.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
-    return true;
   }
 
   private static JAXBContext jc;

@@ -14,5 +14,7 @@
 	<classpathentry kind="lib" path="lib/hibernate-3.3.1.ga.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/rpituil"/>
 	<classpathentry kind="lib" path="/bwxml/dist/bw-tzschema-3.8.jar"/>
+	<classpathentry kind="lib" path="/bwxml/dist/bw-calws-soapschema-3.8.jar"/>
+	<classpathentry kind="lib" path="/bwxml/dist/bw-icalschema-3.8.jar"/>
 	<classpathentry kind="output" path="bin/timezones/bwtzsvr/bwtzsvr"/>
 </classpath>

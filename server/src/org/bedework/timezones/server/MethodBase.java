@@ -45,10 +45,14 @@ public abstract class MethodBase {
    * @param debug
    * @throws ServletException
    */
-  public MethodBase(boolean debug) throws ServletException {
+  public MethodBase(final boolean debug) throws ServletException {
     this.debug = debug;
 
-    util = TzServerUtil.getInstance();
+    try {
+      util = TzServerUtil.getInstance();
+    } catch (Throwable t) {
+      throw new ServletException(t);
+    }
   }
 
   /**
@@ -66,7 +70,7 @@ public abstract class MethodBase {
    * @return String  fixed up uri
    * @throws ServletException
    */
-  public String getResourceUri(HttpServletRequest req)
+  public String getResourceUri(final HttpServletRequest req)
       throws ServletException {
     String uri = req.getServletPath();
 
@@ -97,7 +101,7 @@ public abstract class MethodBase {
    * @return String   fixed path
    * @throws ServletException
    */
-  public static String fixPath(String path) throws ServletException {
+  public static String fixPath(final String path) throws ServletException {
     if (path == null) {
       return null;
     }
@@ -184,27 +188,27 @@ public abstract class MethodBase {
     return log;
   }
 
-  protected void debugMsg(String msg) {
+  protected void debugMsg(final String msg) {
     getLogger().debug(msg);
   }
 
-  protected void error(Throwable t) {
+  protected void error(final Throwable t) {
     getLogger().error(this, t);
   }
 
-  protected void error(String msg) {
+  protected void error(final String msg) {
     getLogger().error(msg);
   }
 
-  protected void warn(String msg) {
+  protected void warn(final String msg) {
     getLogger().warn(msg);
   }
 
-  protected void logIt(String msg) {
+  protected void logIt(final String msg) {
     getLogger().info(msg);
   }
 
-  protected void trace(String msg) {
+  protected void trace(final String msg) {
     getLogger().debug(msg);
   }
 }

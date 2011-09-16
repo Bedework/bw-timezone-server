@@ -33,6 +33,12 @@
               name="bw-tzschema" version="${org.bedework.bwxml.version}"
               projecthome="${project.home}/../bwxml" />
 
+      <getJar lib="${org.bedework.temp.extrajars.dir}"
+              libcache="${org.bedework.libcache.dir}"
+              name="bw-calws-soapschema" 
+              version="${org.bedework.bwxml.version}"  
+              projecthome="${project.home}/../bwxml" />
+
       <!-- ====================== Bedework jars ============================ -->
       
       <getJar lib="${org.bedework.temp.extrajars.dir}"

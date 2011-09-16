@@ -18,22 +18,11 @@
 */
 package org.bedework.timezones.common.db;
 
-import net.fortuna.ical4j.data.CalendarBuilder;
-import net.fortuna.ical4j.data.UnfoldingReader;
-import net.fortuna.ical4j.model.Component;
-import net.fortuna.ical4j.model.TimeZone;
-import net.fortuna.ical4j.model.component.VTimeZone;
-import net.fortuna.ical4j.model.property.LastModified;
-import net.fortuna.ical4j.model.property.TzId;
-
-import org.bedework.timezones.common.CachedData;
-import org.bedework.timezones.common.ExpandedMapEntry;
-import org.bedework.timezones.common.ExpandedMapEntryKey;
+import org.bedework.timezones.common.AbstractCachedData;
 import org.bedework.timezones.common.Stat;
 import org.bedework.timezones.common.TzException;
 import org.bedework.timezones.common.TzServerUtil;
 
-import org.apache.log4j.Logger;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
@@ -42,21 +31,14 @@ import ietf.params.xml.ns.timezone_service.LocalNameType;
 import ietf.params.xml.ns.timezone_service.SummaryType;
 import ietf.params.xml.ns.timezone_service.TimezoneListType;
 
-import java.io.StringReader;
-import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.TreeSet;
 
-import javax.servlet.ServletException;
-
-import edu.rpi.cmt.calendar.XcalUtil;
 import edu.rpi.cmt.timezones.Timezones;
 import edu.rpi.cmt.timezones.Timezones.TaggedTimeZone;
 import edu.rpi.cmt.timezones.Timezones.TimezonesException;
@@ -67,17 +49,8 @@ import edu.rpi.cmt.timezones.TimezonesImpl;
  *
  * @author douglm
  */
-public class DbCachedData implements CachedData {
-  private boolean debug;
-
-  private static volatile boolean refreshNow = true;
-
-  private transient Logger log;
-
+public class DbCachedData extends AbstractCachedData {
   private boolean running;
-
-  /** When we were created for debugging */
-  protected Timestamp objTimestamp;
 
   /** Current hibernate session - exists only across one user interaction
    */
@@ -88,38 +61,10 @@ public class DbCachedData implements CachedData {
   /** */
   protected boolean open;
 
-  private String dtstamp;
-
   private long reloads;
   private long primaryFetches;
   private long lastFetchCt;
   private String lastFetchStatus = "None";
-
-  private Map<String, String> vtzs = new HashMap<String, String>();
-
-  private Map<String, TimeZone> tzs = new HashMap<String, TimeZone>();
-
-  private Map<String, String> aliasedVtzs = new HashMap<String, String>();
-
-  private Map<String, TimeZone> aliasedTzs = new HashMap<String, TimeZone>();
-
-  private SortedSet<String> nameList;
-
-  private Map<ExpandedMapEntryKey, ExpandedMapEntry> expansions =
-    new HashMap<ExpandedMapEntryKey, ExpandedMapEntry>();
-
-  private static class AliasMaps {
-    String aliasesStr;
-
-    Properties aliases;
-
-    Map<String, List<String>> byTzid;
-    Map<String, String> byAlias;
-  }
-
-  private AliasMaps aliasMaps;
-
-  private List<SummaryType> summaries;
 
   private class UpdateThread extends Thread {
     boolean showedTrace;
@@ -140,7 +85,7 @@ public class DbCachedData implements CachedData {
           if (debug) {
             trace("Updater: About to update");
           }
-          if (!updateData()) {
+          if (!updateFromPrimary()) {
             // Try again in at most 10 minutes (need an error retry param)
             refreshWait = Math.min(refreshWait, 600);
           }
@@ -181,28 +126,18 @@ public class DbCachedData implements CachedData {
    * @throws TzException
    */
   public DbCachedData(final boolean forAdd) throws TzException {
-    debug = getLogger().isDebugEnabled();
-
-    refreshNow = true;
+    super("Db");
 
     if (forAdd) {
       return;
     }
 
-    try {
+    if (!reloadData(true)) {
+      update();
+
       if (!reloadData(true)) {
-        update();
-
-        if (!reloadData(true)) {
-          throw new DbEmptyException();
-        }
+        throw new DbEmptyException();
       }
-    } catch (ServletException se) {
-      if (se.getCause() instanceof TzException) {
-        throw (TzException)se.getCause();
-      }
-
-      throw new TzException(se);
     }
 
     running = true;
@@ -214,7 +149,7 @@ public class DbCachedData implements CachedData {
   }
 
   @Override
-  public void stop() throws ServletException {
+  public void stop() throws TzException {
     running = false;
 
     if (updater == null) {
@@ -231,21 +166,15 @@ public class DbCachedData implements CachedData {
   }
 
   @Override
-  public List<Stat> getStats() throws ServletException {
+  public List<Stat> getStats() throws TzException {
     List<Stat> stats = new ArrayList<Stat>();
 
-    if (tzs == null) {
-      stats.add(new Stat("Db", "Unavailable"));
-    }
+    stats.addAll(super.getStats());
 
-    stats.add(new Stat("Db #tzs", String.valueOf(tzs.size())));
-    stats.add(new Stat("Db dtstamp", dtstamp));
     stats.add(new Stat("Db reloads", String.valueOf(reloads)));
     stats.add(new Stat("Db primary fetches", String.valueOf(primaryFetches)));
     stats.add(new Stat("Db last fetch count",
                        String.valueOf(lastFetchCt)));
-    stats.add(new Stat("Db cached expansions",
-                       String.valueOf(expansions.size())));
     stats.add(new Stat("Db last fetch status", lastFetchStatus));
 
     return stats;
@@ -329,164 +258,6 @@ public class DbCachedData implements CachedData {
    */
   public void updateTzSpec(final TzDbSpec val) throws TzException {
     sess.save(val);
-  }
-
-  /* ====================================================================
-   *                   CachedData methods
-   * ==================================================================== */
-
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#refresh()
-   */
-  @Override
-  public void refresh() {
-    refreshNow = true;
-  }
-
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#update()
-   */
-  @Override
-  public void update() throws ServletException {
-    updateData();
-  }
-
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#getDtstamp()
-   */
-  @Override
-  public String getDtstamp() throws ServletException {
-    reloadData();
-    return dtstamp;
-  }
-
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#fromAlias(java.lang.String)
-   */
-  @Override
-  public String fromAlias(final String val) throws ServletException {
-    reloadData();
-    return aliasMaps.byAlias.get(val);
-  }
-
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#getAliasesStr()
-   */
-  @Override
-  public String getAliasesStr() throws ServletException {
-    reloadData();
-    return aliasMaps.aliasesStr;
-  }
-
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#findAliases(java.lang.String)
-   */
-  @Override
-  public List<String> findAliases(final String tzid) throws ServletException {
-    reloadData();
-    return aliasMaps.byTzid.get(tzid);
-  }
-
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#getNameList()
-   */
-  @Override
-  public SortedSet<String> getNameList() throws ServletException {
-    reloadData();
-    return nameList;
-  }
-
-  @Override
-  public void setExpanded(final ExpandedMapEntryKey key,
-                          final ExpandedMapEntry tzs) throws ServletException {
-    reloadData();
-    expansions.put(key, tzs);
-  }
-
-  @Override
-  public ExpandedMapEntry getExpanded(final ExpandedMapEntryKey key) throws ServletException {
-    reloadData();
-    return expansions.get(key);
-  }
-
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#getCachedVtz(java.lang.String)
-   */
-  @Override
-  public String getCachedVtz(final String name) throws ServletException {
-    reloadData();
-    return vtzs.get(name);
-  }
-
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#getAllCachedVtzs()
-   */
-  @Override
-  public Collection<String> getAllCachedVtzs() throws ServletException {
-    reloadData();
-    return vtzs.values();
-  }
-
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#getTimeZone(java.lang.String)
-   */
-  @Override
-  public TimeZone getTimeZone(final String tzid) throws ServletException {
-    reloadData();
-    return tzs.get(tzid);
-  }
-
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#getAliasedCachedVtz(java.lang.String)
-   */
-  @Override
-  public String getAliasedCachedVtz(final String name) throws ServletException {
-    reloadData();
-    return aliasedVtzs.get(name);
-  }
-
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#getAliasedTimeZone(java.lang.String)
-   */
-  @Override
-  public TimeZone getAliasedTimeZone(final String tzid) throws ServletException {
-    reloadData();
-    return aliasedTzs.get(tzid);
-  }
-
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#getSummaries(java.lang.String)
-   */
-  @Override
-  public List<SummaryType> getSummaries(final String changedSince) throws ServletException {
-    reloadData();
-
-    if (changedSince == null) {
-      return summaries;
-    }
-
-    List<SummaryType> ss = new ArrayList<SummaryType>();
-
-    for (SummaryType sum: summaries) {
-      if (sum.getLastModified() == null) {
-        ss.add(sum);
-        continue;
-      }
-
-      String lm = sum.getLastModified().toXMLFormat();
-
-      /*
-       * cs > lm +
-       * cs = lm 0
-       * cs < lm -
-       */
-
-      if (changedSince.compareTo(lm) < 0) {
-        ss.add(sum);
-      }
-    }
-
-    return ss;
   }
 
   /* ====================================================================
@@ -629,22 +400,36 @@ public class DbCachedData implements CachedData {
   }
 
   /* ====================================================================
-   *                   private methods
+   *                   abstract class methods
    * ==================================================================== */
 
   /**
    * @param aliasesStr
-   * @throws ServletException
+   * @throws TzException
    */
-  private synchronized void reloadData() throws ServletException {
+  @Override
+  protected synchronized void reloadData() throws TzException {
     reloadData(false);
   }
 
   /**
    * @param aliasesStr
-   * @throws ServletException
+   * @throws TzException
    */
-  private synchronized boolean reloadData(final boolean emptyReturn) throws ServletException {
+  @Override
+  protected void updateData() throws TzException {
+    updateFromPrimary();
+  }
+
+  /* ====================================================================
+   *                   private methods
+   * ==================================================================== */
+
+  /**
+   * @param aliasesStr
+   * @throws TzException
+   */
+  private synchronized boolean reloadData(final boolean emptyReturn) throws TzException {
     if (!refreshNow) {
       return true;
     }
@@ -679,10 +464,10 @@ public class DbCachedData implements CachedData {
       expansions.clear();
 
       return true;
-    } catch (ServletException se) {
-      throw se;
+    } catch (TzException te) {
+      throw te;
     } catch (Throwable t) {
-      throw new ServletException(t);
+      throw new TzException(t);
     } finally {
       close();
     }
@@ -692,9 +477,9 @@ public class DbCachedData implements CachedData {
    * looked. Then fetch each changed timezone and update the db.
    *
    * @return true if we succesfully contacted the server
-   * @throws ServletException
+   * @throws TzException
    */
-  private boolean updateData() throws ServletException {
+  private boolean updateFromPrimary() throws TzException {
     if (TzServerUtil.getPrimaryServer() ||
         (TzServerUtil.getPrimaryUrl() == null)) {
       return true; // good enough
@@ -843,11 +628,11 @@ public class DbCachedData implements CachedData {
     } catch (TimezonesException te) {
       fail();
       lastFetchStatus = "Failed";
-      throw new ServletException(te);
+      throw new TzException(te);
     } catch (Throwable t) {
       fail();
       lastFetchStatus = "Failed";
-      throw new ServletException(t);
+      throw new TzException(t);
     } finally {
       close();
     }
@@ -889,7 +674,7 @@ public class DbCachedData implements CachedData {
   }
 
   @SuppressWarnings("unchecked")
-  private AliasMaps buildAliasMaps() throws ServletException {
+  private AliasMaps buildAliasMaps() throws TzException {
     try {
       AliasMaps maps = new AliasMaps();
 
@@ -931,12 +716,12 @@ public class DbCachedData implements CachedData {
 
       return maps;
     } catch (Throwable t) {
-      throw new ServletException(t);
+      throw new TzException(t);
     }
   }
 
   @SuppressWarnings("unchecked")
-  private Map<String, TzAlias> getDbAliases() throws ServletException {
+  private Map<String, TzAlias> getDbAliases() throws TzException {
     try {
       Map<String, TzAlias> dbaliases = new HashMap<String, TzAlias>();
 
@@ -952,83 +737,66 @@ public class DbCachedData implements CachedData {
 
       return dbaliases;
     } catch (Throwable t) {
-      throw new ServletException(t);
+      throw new TzException(t);
     }
   }
 
   @SuppressWarnings("unchecked")
-  private void processSpecs(final String dtstamp) throws ServletException {
+  private void processSpecs(final String dtstamp) throws TzException {
     try {
-      nameList = new TreeSet<String>();
+      resetTzs();
 
       sess.createQuery("from " + TzDbSpec.class.getName());
       List<TzDbSpec> specs = sess.getList();
 
-      summaries = new ArrayList<SummaryType>();
-
       for (TzDbSpec spec: specs) {
-        String id = spec.getName();
+        processSpec(spec.getName(), spec.getVtimezone(), spec.getDtstamp());
+      }
+    } catch (TzException te) {
+      throw te;
+    } catch (Throwable t) {
+      throw new TzException(t);
+    }
+  }
 
-        nameList.add(id);
+  private SessionFactory getSessionFactory() throws TzException {
+    if (sessionFactory != null) {
+      return sessionFactory;
+    }
 
-        String tzdef = spec.getVtimezone();
+    synchronized (this) {
+      if (sessionFactory != null) {
+        return sessionFactory;
+      }
 
-        CalendarBuilder cb = new CalendarBuilder();
+      /** Get a new hibernate session factory. This is configured from an
+       * application resource hibernate.cfg.xml together with some run time values
+       */
+      try {
+        Configuration conf = new Configuration();
 
-        UnfoldingReader ufrdr = new UnfoldingReader(new StringReader(tzdef), true);
-
-        net.fortuna.ical4j.model.Calendar cal = cb.build(ufrdr);
-        VTimeZone vtz = (VTimeZone)cal.getComponents().getComponent(Component.VTIMEZONE);
-        if (vtz == null) {
-          throw new Exception("Incorrectly stored timezone");
-        }
-
-        tzs.put(id, new TimeZone(vtz));
-        vtzs.put(id, vtz.toString());
-
-        /* ================== Build summary info ======================== */
-        SummaryType st = new SummaryType();
-
-        st.setTzid(id);
-
-        LastModified lm = vtz.getLastModified();
-        if (lm!= null) {
-          st.setLastModified(XcalUtil.getXMlUTCCal(lm.getValue()));
-        } else if (spec.getDtstamp() != null) {
-          st.setLastModified(XcalUtil.getXMlUTCCal(spec.getDtstamp()));
-        } else {
-          st.setLastModified(XcalUtil.getXMlUTCCal(dtstamp));
-        }
-
-        List<String> aliases = findAliases(id);
-
-        // XXX Need to have list of local names per timezone
-        //String ln = vtz.
-        if (aliases != null) {
-          for (String a: aliases) {
-            AliasType at = new AliasType();
-
-            // XXX Need locale as well as name
-            at.setValue(a);
-            st.getAlias().add(at);
-
-            /* Construct a new vtimezone with the alias as id and then
-             * add it and the string version to the alias table.
-             */
-            VTimeZone avtz = (VTimeZone)vtz.copy();
-
-            TzId tzid = avtz.getTimeZoneId();
-            tzid.setValue(a);
-
-            aliasedTzs.put(a, new TimeZone(avtz));
-            aliasedVtzs.put(a, avtz.toString());
+        /*
+        if (props != null) {
+          String cachePrefix = props.getProperty("cachePrefix");
+          if (cachePrefix != null) {
+            conf.setProperty("hibernate.cache.use_second_level_cache",
+                             props.getProperty("cachingOn"));
+            conf.setProperty("hibernate.cache.region_prefix",
+                             cachePrefix);
           }
         }
+        */
 
-        summaries.add(st);
+        conf.configure();
+
+        sessionFactory = conf.buildSessionFactory();
+
+        return sessionFactory;
+      } catch (Throwable t) {
+        // Always bad.
+        error(t);
+        throw new TzException(t);
       }
-    } catch (Throwable t) {
-      throw new ServletException(t);
     }
   }
 
@@ -1095,91 +863,4 @@ public class DbCachedData implements CachedData {
         '0', '1', '2', '3', '4', '5', '6', '7',
         '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
    };
-
-  private SessionFactory getSessionFactory() throws TzException {
-    if (sessionFactory != null) {
-      return sessionFactory;
-    }
-
-    synchronized (this) {
-      if (sessionFactory != null) {
-        return sessionFactory;
-      }
-
-      /** Get a new hibernate session factory. This is configured from an
-       * application resource hibernate.cfg.xml together with some run time values
-       */
-      try {
-        Configuration conf = new Configuration();
-
-        /*
-        if (props != null) {
-          String cachePrefix = props.getProperty("cachePrefix");
-          if (cachePrefix != null) {
-            conf.setProperty("hibernate.cache.use_second_level_cache",
-                             props.getProperty("cachingOn"));
-            conf.setProperty("hibernate.cache.region_prefix",
-                             cachePrefix);
-          }
-        }
-        */
-
-        conf.configure();
-
-        sessionFactory = conf.buildSessionFactory();
-
-        return sessionFactory;
-      } catch (Throwable t) {
-        // Always bad.
-        error(t);
-        throw new TzException(t);
-      }
-    }
-  }
-
-  /**
-   * @return Logger
-   */
-  protected Logger getLogger() {
-    if (log == null) {
-      log = Logger.getLogger(this.getClass());
-    }
-
-    return log;
-  }
-
-  /**
-   * @param t
-   */
-  protected void error(final Throwable t) {
-    getLogger().error(this, t);
-  }
-
-  /**
-   * @param msg
-   */
-  protected void error(final String msg) {
-    getLogger().error(msg);
-  }
-
-  /**
-   * @param msg
-   */
-  protected void warn(final String msg) {
-    getLogger().warn(msg);
-  }
-
-  /**
-   * @param msg
-   */
-  protected void info(final String msg) {
-    getLogger().info(msg);
-  }
-
-  /**
-   * @param msg
-   */
-  protected void trace(final String msg) {
-    getLogger().debug(msg);
-  }
 }

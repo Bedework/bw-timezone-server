@@ -121,6 +121,12 @@ public interface TzsvcMBean {
    */
   public String recreateDb();
 
+  /** Compare data pointed to by tzdataUrl with the current data.
+   *
+   * @return completion code.
+   */
+  public List<String> compareData();
+
   /* ========================================================================
    * Lifecycle
    * ======================================================================== */
