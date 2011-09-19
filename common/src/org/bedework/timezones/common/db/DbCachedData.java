@@ -20,6 +20,7 @@ package org.bedework.timezones.common.db;
 
 import org.bedework.timezones.common.AbstractCachedData;
 import org.bedework.timezones.common.CachedData;
+import org.bedework.timezones.common.Differ.DiffListEntry;
 import org.bedework.timezones.common.Stat;
 import org.bedework.timezones.common.TzException;
 import org.bedework.timezones.common.TzServerUtil;
@@ -36,15 +37,16 @@ import ietf.params.xml.ns.timezone_service.TimezoneListType;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 
 import edu.rpi.cmt.timezones.Timezones;
 import edu.rpi.cmt.timezones.Timezones.TaggedTimeZone;
 import edu.rpi.cmt.timezones.Timezones.TzUnknownHostException;
 import edu.rpi.cmt.timezones.TimezonesImpl;
+import edu.rpi.sss.util.Util;
 
 /** Cached timezone data in a database.
  *
@@ -95,7 +97,7 @@ public class DbCachedData extends AbstractCachedData {
             trace("Updater: About to update");
           }
 
-          if (!updateFromPrimary()) {
+          if (updateFromPrimary() == null) {
             // Try again in at most 10 minutes (need an error retry param)
             refreshWait = Math.min(refreshWait, 600);
           }
@@ -285,6 +287,48 @@ public class DbCachedData extends AbstractCachedData {
     return stats;
   }
 
+  /**
+   * @throws TzException
+   */
+  @Override
+  public void checkData() throws TzException {
+    if (updater != null) {
+      updater.interrupt();
+    }
+  }
+
+  @Override
+  public void updateData(final String dtstamp,
+                         final List<DiffListEntry> dles) throws TzException {
+    if (Util.isEmpty(dles)) {
+      return;
+    }
+
+    try {
+      open();
+
+      AliasMaps amaps = buildAliasMaps();
+
+      for (DiffListEntry dle: dles) {
+        updateFromDiffEntry(dtstamp, amaps, dle);
+      }
+
+      TzDbInfo inf = getDbInfo();
+
+      inf.setDtstamp(dtstamp);
+
+      updateTzInfo(inf);
+    } catch (TzException te) {
+      fail();
+      throw te;
+    } catch (Throwable t) {
+      fail();
+      throw new TzException(t);
+    } finally {
+      close();
+    }
+  }
+
   /* ====================================================================
    *                   DbCachedData methods
    * ==================================================================== */
@@ -319,6 +363,21 @@ public class DbCachedData extends AbstractCachedData {
    */
   public void removeTzAlias(final TzAlias val) throws TzException {
     sess.delete(val);
+  }
+
+  private final String getTzAliasQuery =
+      "from " + TzAlias.class.getName() + " alias where alias.fromId=:id";
+
+  /**
+   * @param val
+   * @throws TzException
+   */
+  public TzAlias getTzAlias(final String val) throws TzException {
+    sess.createQuery(getTzAliasQuery);
+
+    sess.setString("id", val);
+
+    return (TzAlias)sess.getUnique();
   }
 
   /**
@@ -476,16 +535,6 @@ public class DbCachedData extends AbstractCachedData {
     sess.rollback();
   }
 
-  /**
-   * @throws TzException
-   */
-  @Override
-  public void checkData() throws TzException {
-    if (updater != null) {
-      updater.interrupt();
-    }
-  }
-
   /* ====================================================================
    *                   private methods
    * ==================================================================== */
@@ -510,9 +559,9 @@ public class DbCachedData extends AbstractCachedData {
 
       if (inf == null) {
         if (isPrimary) {
-          updateFromPrimary();
+          inf = updateFromPrimary();
         } else {
-          loadInitialData();
+          inf = loadInitialData();
         }
       } else {
         isPrimary = inf.getPrimaryServer();
@@ -552,9 +601,11 @@ public class DbCachedData extends AbstractCachedData {
    * @return true if we successfully contacted the server
    * @throws TzException
    */
-  private synchronized boolean updateFromPrimary() throws TzException {
+  private synchronized TzDbInfo updateFromPrimary() throws TzException {
+    TzDbInfo inf = null;
+
     try {
-      TzDbInfo inf = getDbInfo();
+      inf = getDbInfo();
 
       if (inf == null) {
         inf = initialInfo();
@@ -566,13 +617,13 @@ public class DbCachedData extends AbstractCachedData {
 
       if (isPrimary) {
         // We are a primary. No update needed
-        return true; // good enough
+        return inf; // good enough
       }
 
       primaryUrl = inf.getPrimaryUrl();
 
       if (primaryUrl == null) {
-        return true; // good enough
+        return inf; // good enough
       }
 
       Timezones tzs = new TimezonesImpl();
@@ -586,7 +637,7 @@ public class DbCachedData extends AbstractCachedData {
         tzl = tzs.getList(changedSince);
       } catch (TzUnknownHostException tuhe) {
         error("Unknown host exception contacting " + primaryUrl);
-        return false;
+        return null;
       }
 
       String svrCs = tzl.getDtstamp().toXMLFormat();
@@ -617,7 +668,7 @@ public class DbCachedData extends AbstractCachedData {
        * If we don't have the timezone do an unconditional fetch.
        */
 
-      Map<String, TzAlias> dbaliases = getDbAliases();
+      AliasMaps amaps = buildAliasMaps();
 
       for (SummaryType sum: tzl.getSummary()) {
         String id = sum.getTzid();
@@ -676,26 +727,29 @@ public class DbCachedData extends AbstractCachedData {
           updateTzSpec(dbspec);
         }
 
+        SortedSet<String> aliases = amaps.byTzid.get(id);
+
         for (AliasType a: sum.getAlias()) {
-          TzAlias alias = dbaliases.get(a.getValue());
+          String alias = amaps.byAlias.get(a.getValue());
 
           if (alias == null) {
-            alias = new TzAlias();
+            TzAlias tza = new TzAlias();
 
-            alias.setFromId(a.getValue());
-            alias.setToId(id);
+            tza.setFromId(a.getValue());
+            tza.setToId(id);
 
-            addTzAlias(alias);
+            addTzAlias(tza);
 
             continue;
           }
 
-          dbaliases.remove(a.getValue());
+          aliases.remove(a.getValue());
         }
 
         /* remaining aliases should be deleted */
-        for (TzAlias alias: dbaliases.values()) {
-          removeTzAlias(alias);
+        for (String alias: aliases) {
+          TzAlias tza = getTzAlias(alias);
+          removeTzAlias(tza);
         }
       }
 
@@ -708,10 +762,82 @@ public class DbCachedData extends AbstractCachedData {
       throw new TzException(t);
     }
 
-    return true;
+    return inf;
   }
 
-  private void loadInitialData() throws TzException {
+  private void updateFromDiffEntry(final String dtstamp,
+                                   final AliasMaps amaps,
+                                   final DiffListEntry dle) throws TzException {
+    try {
+      String id = dle.tzid;
+
+      if (!dle.aliasChangeOnly) {
+        TzDbSpec dbspec = getSpec(id);
+
+        if (dbspec != null) {
+          if (dle.add) {
+            throw new TzException("Inconsistent change list");
+          }
+        } else {
+          if (!dle.add) {
+            throw new TzException("Inconsistent change list");
+          }
+          dbspec = new TzDbSpec();
+          dbspec.setName(id);
+        }
+
+        dbspec.setDtstamp(dtstamp);
+        dbspec.setSource(primaryUrl);
+        dbspec.setActive(true);
+        dbspec.setVtimezone(TzServerUtil.getCalHdr() +
+                            dle.tzSpec.getVTimeZone().toString() +
+                            TzServerUtil.getCalTlr());
+
+        // XXX Localized names?
+
+        if (dle.add) {
+          addTzSpec(dbspec);
+        } else {
+          updateTzSpec(dbspec);
+        }
+      }
+
+      if (Util.isEmpty(dle.aliases)) {
+        return;
+      }
+
+      SortedSet<String> aliases = amaps.byTzid.get(id);
+
+      for (String a: dle.aliases) {
+        TzAlias alias = getTzAlias(a);
+
+        if (alias == null) {
+          alias = new TzAlias();
+
+          alias.setFromId(a);
+          alias.setToId(id);
+
+          addTzAlias(alias);
+
+          continue;
+        }
+
+        aliases.remove(a);
+      }
+
+      /* remaining aliases should be deleted */
+      for (String alias: aliases) {
+        TzAlias tza = getTzAlias(alias);
+        removeTzAlias(tza);
+      }
+    } catch (TzException tze) {
+      throw tze;
+    } catch (Throwable t) {
+      throw new TzException(t);
+    }
+  }
+
+  private TzDbInfo loadInitialData() throws TzException {
     try {
       CachedData z = new ZipCachedData(TzServerUtil.getTzdataUrl());
 
@@ -751,6 +877,8 @@ public class DbCachedData extends AbstractCachedData {
 
         addTzSpec(spec);
       }
+
+      return dbi;
     } catch (TzException te) {
       getLogger().error("Unable to add tz data to db", te);
       throw te;
@@ -812,7 +940,7 @@ public class DbCachedData extends AbstractCachedData {
     try {
       AliasMaps maps = new AliasMaps();
 
-      maps.byTzid = new HashMap<String, List<String>>();
+      maps.byTzid = new HashMap<String, SortedSet<String>>();
       maps.byAlias = new HashMap<String, String>();
       maps.aliases = new Properties();
 
@@ -836,10 +964,10 @@ public class DbCachedData extends AbstractCachedData {
 
         maps.byAlias.put(from, id);
 
-        List<String> as = maps.byTzid.get(id);
+        SortedSet<String> as = maps.byTzid.get(id);
 
         if (as == null) {
-          as = new ArrayList<String>();
+          as = new TreeSet<String>();
           maps.byTzid.put(id, as);
         }
 
@@ -849,27 +977,6 @@ public class DbCachedData extends AbstractCachedData {
       maps.aliasesStr = aliasStr.toString();
 
       return maps;
-    } catch (Throwable t) {
-      throw new TzException(t);
-    }
-  }
-
-  @SuppressWarnings("unchecked")
-  private Map<String, TzAlias> getDbAliases() throws TzException {
-    try {
-      Map<String, TzAlias> dbaliases = new HashMap<String, TzAlias>();
-
-      sess.createQuery("from " + TzAlias.class.getName());
-      List<TzAlias> aliases = sess.getList();
-      if (aliases == null) {
-        return dbaliases;
-      }
-
-      for (TzAlias alias: aliases) {
-        dbaliases.put(alias.getFromId(), alias);
-      }
-
-      return dbaliases;
     } catch (Throwable t) {
       throw new TzException(t);
     }

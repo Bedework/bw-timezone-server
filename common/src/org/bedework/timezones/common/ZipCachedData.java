@@ -18,6 +18,8 @@
 */
 package org.bedework.timezones.common;
 
+import org.bedework.timezones.common.Differ.DiffListEntry;
+
 import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
@@ -30,11 +32,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -96,6 +99,12 @@ public class ZipCachedData  extends AbstractCachedData {
   @Override
   public void checkData() throws TzException {
     loadData();
+  }
+
+  @Override
+  public void updateData(final String dtstamp,
+                         final List<DiffListEntry> dles) throws TzException {
+    // XXX ??
   }
 
   private synchronized void loadData() throws TzException {
@@ -164,7 +173,7 @@ public class ZipCachedData  extends AbstractCachedData {
       AliasMaps maps = new AliasMaps();
       maps.aliasesStr = entryToString(ze);
 
-      maps.byTzid = new HashMap<String, List<String>>();
+      maps.byTzid = new HashMap<String, SortedSet<String>>();
       maps.byAlias = new HashMap<String, String>();
       maps.aliases = new Properties();
 
@@ -177,10 +186,10 @@ public class ZipCachedData  extends AbstractCachedData {
 
         maps.byAlias.put(a, id);
 
-        List<String> as = maps.byTzid.get(id);
+        SortedSet<String> as = maps.byTzid.get(id);
 
         if (as == null) {
-          as = new ArrayList<String>();
+          as = new TreeSet<String>();
           maps.byTzid.put(id, as);
         }
 

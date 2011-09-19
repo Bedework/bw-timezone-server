@@ -89,7 +89,7 @@ public abstract class AbstractCachedData implements CachedData {
     public Properties aliases;
 
     /** */
-    public Map<String, List<String>> byTzid;
+    public Map<String, SortedSet<String>> byTzid;
     /** */
     public Map<String, String> byAlias;
   }
@@ -156,7 +156,7 @@ public abstract class AbstractCachedData implements CachedData {
    * @see org.bedework.timezones.common.CachedData#findAliases(java.lang.String)
    */
   @Override
-  public List<String> findAliases(final String tzid) throws TzException {
+  public SortedSet<String> findAliases(final String tzid) throws TzException {
     return aliasMaps.byTzid.get(tzid);
   }
 
@@ -308,7 +308,7 @@ public abstract class AbstractCachedData implements CachedData {
         st.setLastModified(XcalUtil.getXMlUTCCal(dtstamp));
       }
 
-      List<String> aliases = findAliases(id);
+      SortedSet<String> aliases = findAliases(id);
 
       // XXX Need to have list of local names per timezone
       //String ln = vtz.

@@ -79,7 +79,8 @@
   </operation>
 
   <operation>
-    <description>Refresh all the data - almost a restart.</description>
+    <description>Refresh all the data - almost a restart. 
+May take a while if it updates from a primary.</description>
     <name>refreshData</name>
     <return-type>java.lang.String</return-type>
   </operation>

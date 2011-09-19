@@ -19,6 +19,9 @@
 package org.bedework.timezones.common;
 
 import net.fortuna.ical4j.model.TimeZone;
+
+import org.bedework.timezones.common.Differ.DiffListEntry;
+
 import ietf.params.xml.ns.icalendar_2.IcalendarType;
 import ietf.params.xml.ns.timezone_service.SummaryType;
 
@@ -89,6 +92,16 @@ public interface CachedData extends Serializable {
    */
   void checkData() throws TzException;
 
+  /** Update the stored data using the given update list. Note that the update
+   * may be transient if the data cache has no or an unchangable backing.
+   *
+   * @param dtstamp
+   * @param dles
+   * @throws TzException
+   */
+  void updateData(String dtstamp,
+                  List<DiffListEntry> dles) throws TzException;
+
   /**
    * @return XML formatted UTC dateTime
    * @throws TzException
@@ -114,7 +127,7 @@ public interface CachedData extends Serializable {
    * @return list of aliases or null
    * @throws TzException
    */
-  List<String> findAliases(String tzid) throws TzException;
+  SortedSet<String> findAliases(String tzid) throws TzException;
 
   /**
    * @return namelist or null

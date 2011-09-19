@@ -46,10 +46,12 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import edu.rpi.cmt.calendar.XcalUtil;
@@ -245,7 +247,25 @@ public class TzServerUtil {
       return out;
     }
 
-    return out;
+    try {
+      DatatypeFactory dtf = DatatypeFactory.newInstance();
+
+      XMLGregorianCalendar xgc = dtf.newXMLGregorianCalendar(new GregorianCalendar());
+      xgc.setFractionalSecond(null);
+      String dtstamp = xgc.normalize().toXMLFormat();
+
+      util.cache.updateData(dtstamp, dles);
+
+      /* Now do a reload to ensure we have the new data in the cache */
+
+      fireRefresh();
+
+      return out;
+    } catch (TzException te) {
+      throw te;
+    } catch (Throwable t) {
+      throw new TzException(t);
+    }
   }
 
   /** Compare data pointed to by tzdataUrl with the given data.
@@ -442,7 +462,7 @@ public class TzServerUtil {
    * @return list of aliases or null
    * @throws TzException
    */
-  public List<String> findAliases(final String tzid) throws TzException {
+  public SortedSet<String> findAliases(final String tzid) throws TzException {
     return cache.findAliases(tzid);
   }
 

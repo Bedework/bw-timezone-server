@@ -70,7 +70,7 @@ public class Differ {
     public boolean aliasChangeOnly;
     /**
      */
-    public List<String> aliases = new ArrayList<String>();
+    public SortedSet<String> aliases = new TreeSet<String>();
 
     /** Add our stuff to the StringBuilder
      *
