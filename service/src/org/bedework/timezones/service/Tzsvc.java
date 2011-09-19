@@ -177,9 +177,9 @@ public class Tzsvc implements TzsvcMBean {
   }
 
   @Override
-  public String updateData() {
+  public String checkData() {
     try {
-      TzServerUtil.fireUpdate();
+      TzServerUtil.fireCheck();
       return "Ok";
     } catch (Throwable t) {
       error(t);
@@ -219,13 +219,33 @@ public class Tzsvc implements TzsvcMBean {
   }
 
   @Override
-  public String compareData() {
+  public String compareData(final String tzdataUrl) {
     StringWriter sw = new StringWriter();
 
     try {
       PrintWriter pw = new PrintWriter(sw);
 
-      List<String> chgs = TzServerUtil.compareData();
+      List<String> chgs = TzServerUtil.compareData(tzdataUrl);
+
+      for (String s: chgs) {
+        pw.println(s);
+      }
+
+    } catch (Throwable t) {
+      t.printStackTrace(new PrintWriter(sw));
+    }
+
+    return sw.toString();
+  }
+
+  @Override
+  public String updateData(final String tzdataUrl) {
+    StringWriter sw = new StringWriter();
+
+    try {
+      PrintWriter pw = new PrintWriter(sw);
+
+      List<String> chgs = TzServerUtil.updateData(tzdataUrl);
 
       for (String s: chgs) {
         pw.println(s);
@@ -285,6 +305,10 @@ public class Tzsvc implements TzsvcMBean {
    */
   @Override
   public void destroy() {
+  }
+
+  @Override
+  public void jbossInternalLifecycle(final String method) {
   }
 
   /* ====================================================================

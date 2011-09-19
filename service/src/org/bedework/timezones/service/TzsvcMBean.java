@@ -26,7 +26,7 @@ import java.util.List;
  *
  * @author douglm
  */
-public interface TzsvcMBean {
+public interface TzsvcMBean /*  extends ServiceMBean */ {
   /* ========================================================================
    * Attributes
    * ======================================================================== */
@@ -36,62 +36,72 @@ public interface TzsvcMBean {
    *
    * @return Name
    */
-  public String getName();
+  String getName();
+
+  /* * From ServiceMBean
+   * @return int state
+   * /
+  int getState();
+
+  /** From ServiceMBean
+   * @return string state
+   * /
+  String getStateString();*/
 
   /** Application name - for config info
    *
    * @param val
    */
-  public void setAppname(String val);
+  void setAppname(String val);
 
   /**
    * @return String application namee
    */
-  public String getAppname();
+  String getAppname();
 
   /** Tzdata url
    *
    * @param val
    */
-  public void setTzdataUrl(String val);
+  void setTzdataUrl(String val);
 
   /**
    * @return String tzdata url
    */
-  public String getTzdataUrl();
+  String getTzdataUrl();
 
   /** Primary url
    *
    * @param val
    */
-  public void setPrimaryUrl(String val);
+  void setPrimaryUrl(String val);
 
   /**
    * @return String Primary url
    */
-  public String getPrimaryUrl();
+  String getPrimaryUrl();
 
   /** Are we a primary server?
    *
    * @param val    boolean
    */
-  public void setPrimaryServer(final boolean val);
+  void setPrimaryServer(final boolean val);
 
   /** Are we a primary server?
    * @return boolean
    */
-  public boolean getPrimaryServer();
+  boolean getPrimaryServer();
 
   /** Refresh interval - seconds
    *
    * @param val
    */
-  public void setRefreshInterval(long val);
+  void setRefreshInterval(long val);
 
   /**
    * @return long Refresh interval - seconds
    */
-  public long getRefreshInterval();
+  long getRefreshInterval();
 
   /* ========================================================================
    * Operations
@@ -101,31 +111,39 @@ public interface TzsvcMBean {
    *
    * @return List of Stat
    */
-  public List<Stat> getStats();
+  List<Stat> getStats();
+
+  /** Compare data pointed to by tzdataUrl with the current data.
+   *
+   * @param tzdataUrl
+   * @return completion code.
+   */
+  String compareData(String tzdataUrl);
 
   /** Refresh all the data - almost a restart
    *
    * @return completion code.
    */
-  public String refreshData();
+  String refreshData();
 
-  /** Try to update the data - may call primary servers
+  /** Update the data from the zipped data at the given url
+   *
+   * @param tzdataUrl
+   * @return completion code.
+   */
+  String updateData(String tzdataUrl);
+
+  /** Check with primary source
    *
    * @return completion code.
    */
-  public String updateData();
+  String checkData();
 
   /** Recreate the tzdb
    *
    * @return completion code.
    */
-  public String recreateDb();
-
-  /** Compare data pointed to by tzdataUrl with the current data.
-   *
-   * @return completion code.
-   */
-  public String compareData();
+  String recreateDb();
 
   /* ========================================================================
    * Lifecycle
@@ -134,26 +152,31 @@ public interface TzsvcMBean {
   /** Lifecycle
    *
    */
-  public void create();
+  void create();
 
   /** Lifecycle
    *
    */
-  public void start();
+  void start();
 
   /** Lifecycle
    *
    */
-  public void stop();
+  void stop();
 
   /** Lifecycle
    *
    * @return true if started
    */
-  public boolean isStarted();
+  boolean isStarted();
 
   /** Lifecycle
    *
    */
-  public void destroy();
+  void destroy();
+
+  /**
+   * @param method
+   */
+  void jbossInternalLifecycle(String method);
 }

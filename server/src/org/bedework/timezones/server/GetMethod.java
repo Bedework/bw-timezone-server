@@ -627,11 +627,11 @@ public class GetMethod extends MethodBase {
   }
 
   private void writeCalHdr(final Writer wtr) throws Throwable  {
-    wtr.write(util.getCalHdr());
+    wtr.write(TzServerUtil.getCalHdr());
   }
 
   private void writeCalTlr(final Writer wtr) throws Throwable  {
-    wtr.write(util.getCalTlr());
+    wtr.write(TzServerUtil.getCalTlr());
   }
 
   /* Return true if data unchanged - status is set */

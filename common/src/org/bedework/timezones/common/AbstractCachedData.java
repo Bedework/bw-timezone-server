@@ -57,8 +57,6 @@ public abstract class AbstractCachedData implements CachedData {
 
   protected String msgPrefix;
 
-  protected static volatile boolean refreshNow = true;
-
   /** When we were created for debugging */
   protected Timestamp objTimestamp;
 
@@ -108,7 +106,6 @@ public abstract class AbstractCachedData implements CachedData {
     debug = getLogger().isDebugEnabled();
 
     this.msgPrefix = msgPrefix;
-    refreshNow = true;
   }
 
   @Override
@@ -132,27 +129,10 @@ public abstract class AbstractCachedData implements CachedData {
    * ==================================================================== */
 
   /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#refresh()
-   */
-  @Override
-  public void refresh() {
-    refreshNow = true;
-  }
-
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#update()
-   */
-  @Override
-  public void update() throws TzException {
-    updateData();
-  }
-
-  /* (non-Javadoc)
    * @see org.bedework.timezones.common.CachedData#getDtstamp()
    */
   @Override
   public String getDtstamp() throws TzException {
-    reloadData();
     return dtstamp;
   }
 
@@ -161,7 +141,6 @@ public abstract class AbstractCachedData implements CachedData {
    */
   @Override
   public String fromAlias(final String val) throws TzException {
-    reloadData();
     return aliasMaps.byAlias.get(val);
   }
 
@@ -170,7 +149,6 @@ public abstract class AbstractCachedData implements CachedData {
    */
   @Override
   public String getAliasesStr() throws TzException {
-    reloadData();
     return aliasMaps.aliasesStr;
   }
 
@@ -179,7 +157,6 @@ public abstract class AbstractCachedData implements CachedData {
    */
   @Override
   public List<String> findAliases(final String tzid) throws TzException {
-    reloadData();
     return aliasMaps.byTzid.get(tzid);
   }
 
@@ -188,20 +165,17 @@ public abstract class AbstractCachedData implements CachedData {
    */
   @Override
   public SortedSet<String> getNameList() throws TzException {
-    reloadData();
     return nameList;
   }
 
   @Override
   public void setExpanded(final ExpandedMapEntryKey key,
                           final ExpandedMapEntry tzs) throws TzException {
-    reloadData();
     expansions.put(key, tzs);
   }
 
   @Override
   public ExpandedMapEntry getExpanded(final ExpandedMapEntryKey key) throws TzException {
-    reloadData();
     return expansions.get(key);
   }
 
@@ -210,7 +184,6 @@ public abstract class AbstractCachedData implements CachedData {
    */
   @Override
   public String getCachedVtz(final String name) throws TzException {
-    reloadData();
     return vtzs.get(name);
   }
 
@@ -219,7 +192,6 @@ public abstract class AbstractCachedData implements CachedData {
    */
   @Override
   public Collection<String> getAllCachedVtzs() throws TzException {
-    reloadData();
     return vtzs.values();
   }
 
@@ -228,7 +200,6 @@ public abstract class AbstractCachedData implements CachedData {
    */
   @Override
   public TimeZone getTimeZone(final String tzid) throws TzException {
-    reloadData();
     return tzs.get(tzid);
   }
 
@@ -237,19 +208,16 @@ public abstract class AbstractCachedData implements CachedData {
    */
   @Override
   public TimeZone getAliasedTimeZone(final String tzid) throws TzException {
-    reloadData();
     return aliasedTzs.get(tzid);
   }
 
   @Override
   public IcalendarType getXTimeZone(final String tzid) throws TzException {
-    reloadData();
     return xtzs.get(tzid);
   }
 
   @Override
   public IcalendarType getAliasedXTimeZone(final String tzid) throws TzException {
-    reloadData();
     return aliasedXtzs.get(tzid);
   }
 
@@ -258,7 +226,6 @@ public abstract class AbstractCachedData implements CachedData {
    */
   @Override
   public String getAliasedCachedVtz(final String name) throws TzException {
-    reloadData();
     return aliasedVtzs.get(name);
   }
 
@@ -267,8 +234,6 @@ public abstract class AbstractCachedData implements CachedData {
    */
   @Override
   public List<SummaryType> getSummaries(final String changedSince) throws TzException {
-    reloadData();
-
     if (changedSince == null) {
       return summaries;
     }
@@ -296,20 +261,6 @@ public abstract class AbstractCachedData implements CachedData {
 
     return ss;
   }
-
-  /* ====================================================================
-   *                   abstract methods
-   * ==================================================================== */
-
-  /**
-   * @throws TzException
-   */
-  protected abstract void reloadData() throws TzException;
-
-  /**
-   * @throws TzException
-   */
-  protected abstract void updateData() throws TzException;
 
   /* ====================================================================
    *                   protected methods

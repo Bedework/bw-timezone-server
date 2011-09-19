@@ -18,6 +18,8 @@
 */
 package org.bedework.timezones.common.db;
 
+import org.bedework.timezones.common.TzException;
+
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -123,36 +125,36 @@ public class TzDbInfo extends TzDbentity<TzDbInfo> {
   /** Url for the primary server.
    *
    * @param val    String
-   * @throws Throwable
+   * @throws TzException
    */
-  public void setPrimaryUrl(final String val) throws Throwable {
+  public void setPrimaryUrl(final String val) throws TzException {
     setProperty(propnamePrimaryUrl, val);
   }
 
   /** Url for the primary server.
    *
    * @return String, null for unset
-   * @throws Throwable
+   * @throws TzException
    */
-  public String getPrimaryUrl() throws Throwable {
+  public String getPrimaryUrl() throws TzException {
     return getProperty(propnamePrimaryUrl);
   }
 
   /** Are we a primary server?
    *
    * @param val    Boolean
-   * @throws Throwable
+   * @throws TzException
    */
-  public void setPrimaryServer(final Boolean val) throws Throwable {
+  public void setPrimaryServer(final Boolean val) throws TzException {
     setProperty(propnamePrimaryServer, val.toString());
   }
 
   /** Are we a primary server?
    *
    * @return Boolean, null for unset
-   * @throws Throwable
+   * @throws TzException
    */
-  public Boolean getPrimaryServer() throws Throwable {
+  public Boolean getPrimaryServer() throws TzException {
     String s = getProperty(propnamePrimaryServer);
 
     if (s == null) {
@@ -165,18 +167,18 @@ public class TzDbInfo extends TzDbentity<TzDbInfo> {
   /** Refresh delay - seconds
    *
    * @param val
-   * @throws Throwable
+   * @throws TzException
    */
-  public void setRefreshDelay(final Long val) throws Throwable {
+  public void setRefreshDelay(final Long val) throws TzException {
     setProperty(propnameRefreshDelay, val.toString());
   }
 
   /** Refresh delay - seconds
    *
    * @return Long refreshDelay - null for unset
-   * @throws Throwable
+   * @throws TzException
    */
-  public Long getRefreshDelay() throws Throwable {
+  public Long getRefreshDelay() throws TzException {
     String s = getProperty(propnameRefreshDelay);
 
     if (s == null) {
@@ -192,15 +194,19 @@ public class TzDbInfo extends TzDbentity<TzDbInfo> {
 
   /** Load the properties from the serialized form.
    *
-   * @throws Throwable
+   * @throws TzException
    */
-  public synchronized void loadProperties() throws Throwable {
-    if (properties == null) {
-      properties = new Properties();
-    }
+  public synchronized void loadProperties() throws TzException {
+    try {
+      if (properties == null) {
+        properties = new Properties();
+      }
 
-    if (getServerProperties() != null) {
-      properties.load(new StringReader(getServerProperties()));
+      if (getServerProperties() != null) {
+        properties.load(new StringReader(getServerProperties()));
+      }
+    } catch (Throwable t) {
+      throw new TzException(t);
     }
   }
 
@@ -209,20 +215,24 @@ public class TzDbInfo extends TzDbentity<TzDbInfo> {
    *
    * @param name
    * @param val
-   * @throws Throwable
+   * @throws TzException
    */
   public void setProperty(final String name,
-                          final String val) throws Throwable {
-    if (properties == null) {
-      loadProperties();
-    }
+                          final String val) throws TzException {
+    try {
+      if (properties == null) {
+        loadProperties();
+      }
 
-    if (val == null) {
-      properties.remove(name);
-    } else {
-      properties.setProperty(name, val);
+      if (val == null) {
+        properties.remove(name);
+      } else {
+        properties.setProperty(name, val);
+      }
+      changed = true;
+    } catch (Throwable t) {
+      throw new TzException(t);
     }
-    changed = true;
   }
 
   /** Get a property from the internal properties - loading them from the
@@ -230,9 +240,9 @@ public class TzDbInfo extends TzDbentity<TzDbInfo> {
    *
    * @param name
    * @return val
-   * @throws Throwable
+   * @throws TzException
    */
-  public synchronized String getProperty(final String name) throws Throwable {
+  public synchronized String getProperty(final String name) throws TzException {
     if (properties == null) {
       loadProperties();
     }

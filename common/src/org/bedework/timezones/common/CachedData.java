@@ -83,15 +83,11 @@ public interface CachedData extends Serializable {
    */
   long getRefreshInterval() throws TzException;
 
-  /** Flag a refresh..
-   */
-  void refresh();
-
-  /** Update fromprimary source if any.
+  /** Update from primary source if any.
    *
    * @throws TzException
    */
-  void update() throws TzException;
+  void checkData() throws TzException;
 
   /**
    * @return XML formatted UTC dateTime

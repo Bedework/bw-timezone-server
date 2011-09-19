@@ -19,9 +19,11 @@
 package org.bedework.timezones.common.db;
 
 import org.bedework.timezones.common.AbstractCachedData;
+import org.bedework.timezones.common.CachedData;
 import org.bedework.timezones.common.Stat;
 import org.bedework.timezones.common.TzException;
 import org.bedework.timezones.common.TzServerUtil;
+import org.bedework.timezones.common.ZipCachedData;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
@@ -86,11 +88,13 @@ public class DbCachedData extends AbstractCachedData {
         long refreshWait = 9999;
 
         try {
+          open();
           refreshWait = getRefreshInterval();
 
           if (debug) {
             trace("Updater: About to update");
           }
+
           if (!updateFromPrimary()) {
             // Try again in at most 10 minutes (need an error retry param)
             refreshWait = Math.min(refreshWait, 600);
@@ -102,6 +106,16 @@ public class DbCachedData extends AbstractCachedData {
           } else {
             error(t.getMessage());
           }
+
+          try {
+            fail();
+          } catch (Throwable t1) {
+          }
+        } finally {
+          try {
+            close();
+          } catch (Throwable t1) {
+          }
         }
 
         if (debug) {
@@ -110,11 +124,20 @@ public class DbCachedData extends AbstractCachedData {
                 " seconds");
 
         }
+
+        if (!running) {
+          break;
+        }
+
         // Hang around
         try {
           Object o = new Object();
           synchronized (o) {
-            o.wait (refreshWait * 1000);
+            o.wait(refreshWait * 1000);
+          }
+        } catch (InterruptedException ie) {
+          if (debug) {
+            trace("Updater: Interrupted ");
           }
         } catch (Throwable t) {
           error(t.getMessage());
@@ -125,26 +148,15 @@ public class DbCachedData extends AbstractCachedData {
 
   private UpdateThread updater;
 
-  /** Throws an exception if db is not set up. Fall back is probably to use the
+  /** Start from database cache. Fall back is probably to use the
    * zipped data.
    *
-   * @param forAdd - true if we are going to add data
    * @throws TzException
    */
-  public DbCachedData(final boolean forAdd) throws TzException {
+  public DbCachedData() throws TzException {
     super("Db");
 
-    if (forAdd) {
-      return;
-    }
-
-    if (!reloadData(true)) {
-      update();
-
-      if (!reloadData(true)) {
-        throw new DbEmptyException();
-      }
-    }
+    loadData();
 
     running = true;
 
@@ -155,7 +167,7 @@ public class DbCachedData extends AbstractCachedData {
   }
 
   @Override
-  public void setPrimaryUrl(final String val) throws TzException {
+  public synchronized void setPrimaryUrl(final String val) throws TzException {
     if (val.equals(primaryUrl)) {
       return;
     }
@@ -180,32 +192,11 @@ public class DbCachedData extends AbstractCachedData {
 
   @Override
   public String getPrimaryUrl() throws TzException {
-    if (primaryUrl != null) {
-      return primaryUrl;
-    }
-
-    try {
-      open();
-
-      TzDbInfo inf = getDbInfo();
-      primaryUrl = TzServerUtil.getInitialPrimaryUrl();
-      inf.setPrimaryUrl(primaryUrl);
-      updateTzInfo(inf);
-
-      return primaryUrl;
-    } catch (TzException tze) {
-      fail();
-      throw tze;
-    } catch (Throwable t) {
-      fail();
-      throw new TzException(t);
-    } finally {
-      close();
-    }
+    return primaryUrl;
   }
 
   @Override
-  public void setPrimaryServer(final boolean val) throws TzException {
+  public synchronized void setPrimaryServer(final boolean val) throws TzException {
     if ((isPrimary != null) && (val == isPrimary)) {
       return;
     }
@@ -230,32 +221,11 @@ public class DbCachedData extends AbstractCachedData {
 
   @Override
   public boolean getPrimaryServer() throws TzException {
-    if (isPrimary != null) {
-      return isPrimary;
-    }
-
-    try {
-      open();
-
-      TzDbInfo inf = getDbInfo();
-      isPrimary = TzServerUtil.getInitialPrimaryServer();
-      inf.setPrimaryServer(isPrimary);
-      updateTzInfo(inf);
-
-      return isPrimary;
-    } catch (TzException tze) {
-      fail();
-      throw tze;
-    } catch (Throwable t) {
-      fail();
-      throw new TzException(t);
-    } finally {
-      close();
-    }
+    return isPrimary;
   }
 
   @Override
-  public void setRefreshInterval(final long val) throws TzException {
+  public synchronized void setRefreshInterval(final long val) throws TzException {
     if ((refreshDelay != null) && (val == refreshDelay)) {
       return;
     }
@@ -280,28 +250,7 @@ public class DbCachedData extends AbstractCachedData {
 
   @Override
   public long getRefreshInterval() throws TzException {
-    if (refreshDelay != null) {
-      return refreshDelay;
-    }
-
-    try {
-      open();
-
-      TzDbInfo inf = getDbInfo();
-      refreshDelay = TzServerUtil.getInitialRefreshInterval();
-      inf.setRefreshDelay(refreshDelay);
-      updateTzInfo(inf);
-
-      return refreshDelay;
-    } catch (TzException tze) {
-      fail();
-      throw tze;
-    } catch (Throwable t) {
-      fail();
-      throw new TzException(t);
-    } finally {
-      close();
-    }
+    return refreshDelay;
   }
 
   @Override
@@ -339,34 +288,6 @@ public class DbCachedData extends AbstractCachedData {
   /* ====================================================================
    *                   DbCachedData methods
    * ==================================================================== */
-
-  /** Call when the database has been updated - presumably by a refresh process
-   * for a secondary server.
-   */
-  public static void flagUpdated() {
-    refreshNow = true;
-  }
-
-  /**
-   * @throws TzException
-   */
-  public void startAdd() throws TzException {
-    open();
-  }
-
-  /**
-   *
-   */
-  public void endAdd() {
-    close();
-  }
-
-  /**
-   *
-   */
-  public void failAdd() {
-    fail();
-  }
 
   /**
    * @param val
@@ -555,26 +476,14 @@ public class DbCachedData extends AbstractCachedData {
     sess.rollback();
   }
 
-  /* ====================================================================
-   *                   abstract class methods
-   * ==================================================================== */
-
   /**
-   * @param aliasesStr
    * @throws TzException
    */
   @Override
-  protected synchronized void reloadData() throws TzException {
-    reloadData(false);
-  }
-
-  /**
-   * @param aliasesStr
-   * @throws TzException
-   */
-  @Override
-  protected void updateData() throws TzException {
-    updateFromPrimary();
+  public void checkData() throws TzException {
+    if (updater != null) {
+      updater.interrupt();
+    }
   }
 
   /* ====================================================================
@@ -585,12 +494,14 @@ public class DbCachedData extends AbstractCachedData {
    * @param aliasesStr
    * @throws TzException
    */
-  private synchronized boolean reloadData(final boolean emptyReturn) throws TzException {
-    if (!refreshNow) {
-      return true;
-    }
-
+  private synchronized void loadData() throws TzException {
     reloads++;
+
+    /* set some initial values to get us going */
+
+    isPrimary = TzServerUtil.getInitialPrimaryServer();
+    primaryUrl = TzServerUtil.getInitialPrimaryUrl();
+    refreshDelay = TzServerUtil.getInitialRefreshInterval();
 
     try {
       open();
@@ -598,16 +509,20 @@ public class DbCachedData extends AbstractCachedData {
       TzDbInfo inf = getDbInfo();
 
       if (inf == null) {
-        if (emptyReturn) {
-          return false;
+        if (isPrimary) {
+          updateFromPrimary();
+        } else {
+          loadInitialData();
         }
-        throw new TzException("Empty tz db");
+      } else {
+        isPrimary = inf.getPrimaryServer();
+        primaryUrl = inf.getPrimaryUrl();
+        refreshDelay = inf.getRefreshDelay();
       }
 
       dtstamp = inf.getDtstamp();
 
       TzServerUtil.lastDataFetch = System.currentTimeMillis();
-      refreshNow = false;
 
       /* ===================== Rebuild the alias maps ======================= */
 
@@ -618,11 +533,11 @@ public class DbCachedData extends AbstractCachedData {
       processSpecs(dtstamp);
 
       expansions.clear();
-
-      return true;
     } catch (TzException te) {
+      fail();
       throw te;
     } catch (Throwable t) {
+      fail();
       throw new TzException(t);
     } finally {
       close();
@@ -632,49 +547,29 @@ public class DbCachedData extends AbstractCachedData {
   /** Call the primary server and get a list of data that's changed since we last
    * looked. Then fetch each changed timezone and update the db.
    *
-   * @return true if we succesfully contacted the server
+   * <p>Db is already open.
+   *
+   * @return true if we successfully contacted the server
    * @throws TzException
    */
-  private boolean updateFromPrimary() throws TzException {
+  private synchronized boolean updateFromPrimary() throws TzException {
     try {
-      open();
-
       TzDbInfo inf = getDbInfo();
 
       if (inf == null) {
-        inf = new TzDbInfo();
-
-        inf.setVersion("1.0");
+        inf = initialInfo();
 
         addTzInfo(inf);
       }
 
-      if (isPrimary == null) {
-        isPrimary = inf.getPrimaryServer();
-      }
-
-      if (isPrimary == null) {
-        isPrimary = TzServerUtil.getInitialPrimaryServer();
-
-        inf.setPrimaryServer(isPrimary);
-        updateTzInfo(inf);
-      }
+      isPrimary = inf.getPrimaryServer();
 
       if (isPrimary) {
         // We are a primary. No update needed
         return true; // good enough
       }
 
-      if (primaryUrl == null) {
-        primaryUrl = inf.getPrimaryUrl();
-      }
-
-      if (primaryUrl == null) {
-        primaryUrl = TzServerUtil.getInitialPrimaryUrl();
-
-        inf.setPrimaryUrl(primaryUrl);
-        updateTzInfo(inf);
-      }
+      primaryUrl = inf.getPrimaryUrl();
 
       if (primaryUrl == null) {
         return true; // good enough
@@ -806,18 +701,77 @@ public class DbCachedData extends AbstractCachedData {
 
       lastFetchStatus = "Success";
     } catch (TzException tze) {
-      fail();
       lastFetchStatus = "Failed";
       throw tze;
     } catch (Throwable t) {
-      fail();
       lastFetchStatus = "Failed";
       throw new TzException(t);
-    } finally {
-      close();
     }
 
     return true;
+  }
+
+  private void loadInitialData() throws TzException {
+    try {
+      CachedData z = new ZipCachedData(TzServerUtil.getTzdataUrl());
+
+      TzDbInfo dbi = initialInfo();
+
+      dbi.setDtstamp(z.getDtstamp());
+
+      addTzInfo(dbi);
+
+      List<SummaryType> sums = z.getSummaries(null);
+
+      for (SummaryType sum: sums) {
+        if (sum.getAlias() != null) {
+          for (AliasType at: sum.getAlias()) {
+            TzAlias alias = new TzAlias();
+
+            alias.setFromId(at.getValue());
+            alias.setToId(sum.getTzid());
+
+            addTzAlias(alias);
+          }
+        }
+
+        TzDbSpec spec = new TzDbSpec();
+
+        spec.setName(sum.getTzid());
+
+        spec.setVtimezone(TzServerUtil.getCalHdr() +
+                          z.getCachedVtz(sum.getTzid()) +
+                          TzServerUtil.getCalTlr());
+        if (spec.getVtimezone() == null) {
+          error("No timezone spec for " + sum.getTzid());
+        }
+
+        spec.setDtstamp(z.getDtstamp());
+        spec.setActive(true);
+
+        addTzSpec(spec);
+      }
+    } catch (TzException te) {
+      getLogger().error("Unable to add tz data to db", te);
+      throw te;
+    }
+  }
+
+  private TzDbInfo initialInfo() throws TzException {
+    TzDbInfo dbi = new TzDbInfo();
+
+    dbi.setVersion("1.0");
+
+    primaryUrl = TzServerUtil.getInitialPrimaryUrl();
+    dbi.setPrimaryUrl(primaryUrl);
+
+    isPrimary = TzServerUtil.getInitialPrimaryServer();
+    dbi.setPrimaryServer(isPrimary);
+
+    refreshDelay = TzServerUtil.getInitialRefreshInterval();
+    dbi.setRefreshDelay(refreshDelay);
+
+    return dbi;
   }
 
   private TzDbInfo getDbInfo() throws TzException {

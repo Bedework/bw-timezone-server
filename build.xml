@@ -115,6 +115,7 @@
     <getJar name="ehcache" version="1.6.2" />
     <getJar name="hibernate" version="3.3.1.ga" />
     <getJar name="ical4j" version="1.0-rc3-SNAPSHOT" />
+    <getJar name="jboss-system-jmx" version="5.1.0.GA" />
     <getJar name="log4j" version="1.2.8" />
     <getJar name="servletapi" version="2.4" />
 

@@ -56,6 +56,7 @@ public class ZipCachedData  extends AbstractCachedData {
   public ZipCachedData(final String tzdataUrl) throws TzException {
     super("Zip");
     this.tzdataUrl = tzdataUrl;
+    loadData();
   }
 
   @Override
@@ -92,28 +93,12 @@ public class ZipCachedData  extends AbstractCachedData {
     return TzServerUtil.getInitialRefreshInterval();
   }
 
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#refresh()
-   */
   @Override
-  public void refresh() {
-    refreshNow = true;
+  public void checkData() throws TzException {
+    loadData();
   }
 
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#update()
-   */
-  @Override
-  public void update() {
-    refreshNow = true;
-  }
-
-  @Override
-  protected synchronized void reloadData() throws TzException {
-    if (!refreshNow) {
-      return;
-    }
-
+  private synchronized void loadData() throws TzException {
     try {
       long smillis = System.currentTimeMillis();
 
@@ -141,7 +126,6 @@ public class ZipCachedData  extends AbstractCachedData {
       tzDefsZipFile = zf;
 
       TzServerUtil.lastDataFetch = System.currentTimeMillis();
-      refreshNow = false;
 
       /* ========================= get the data info ======================== */
 
@@ -171,11 +155,6 @@ public class ZipCachedData  extends AbstractCachedData {
     } catch (Throwable t) {
       throw new TzException(t);
     }
-  }
-
-  @Override
-  protected void updateData() throws TzException {
-    reloadData();
   }
 
   private AliasMaps buildAliasMaps(final ZipFile tzDefsZipFile) throws TzException {

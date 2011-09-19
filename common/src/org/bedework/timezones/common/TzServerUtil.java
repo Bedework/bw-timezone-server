@@ -32,14 +32,9 @@ import net.fortuna.ical4j.util.TimeZones;
 
 import org.bedework.timezones.common.Differ.DiffListEntry;
 import org.bedework.timezones.common.db.DbCachedData;
-import org.bedework.timezones.common.db.DbEmptyException;
-import org.bedework.timezones.common.db.TzAlias;
-import org.bedework.timezones.common.db.TzDbInfo;
-import org.bedework.timezones.common.db.TzDbSpec;
 
 import org.apache.log4j.Logger;
 
-import ietf.params.xml.ns.timezone_service.AliasType;
 import ietf.params.xml.ns.timezone_service.ObservanceType;
 import ietf.params.xml.ns.timezone_service.SummaryType;
 import ietf.params.xml.ns.timezone_service.TimezonesType;
@@ -222,20 +217,52 @@ public class TzServerUtil {
     getInstance().getcache();
   }
 
-  /** Cause an update of the data
+  /** Cause data to be checked against primary
    *
    * @throws TzException
    */
-  public static void fireUpdate() throws TzException {
-    getInstance().cache.update();
+  public static void fireCheck() throws TzException {
+    getInstance().cache.checkData();
   }
 
-  /** Compare data pointed to by tzdataUrl with the current data.
+  /** Compare data pointed to by tzdataUrl with the given data then update.
    *
+   * @param tzdataUrl
    * @return info lines.
    * @throws TzException
    */
-  public static List<String> compareData() throws TzException {
+  public static List<String> updateData(final String tzdataUrl) throws TzException {
+    TzServerUtil util = getInstance();
+
+    Differ diff = new Differ();
+
+    List<DiffListEntry> dles = diff.compare(tzdataUrl, util.cache);
+
+    List<String> out = new ArrayList<String>();
+
+    if (dles == null) {
+      out.add("No data returned");
+      return out;
+    }
+
+    for (DiffListEntry dle: dles) {
+      out.add(dle.toShortString());
+    }
+
+    if (dles.size() == 0) {
+      return out;
+    }
+
+    return out;
+  }
+
+  /** Compare data pointed to by tzdataUrl with the given data.
+   *
+   * @param tzdataUrl
+   * @return info lines.
+   * @throws TzException
+   */
+  public static List<String> compareData(final String tzdataUrl) throws TzException {
     TzServerUtil util = getInstance();
 
     Differ diff = new Differ();
@@ -409,45 +436,6 @@ public class TzServerUtil {
   public String getAliasedTz(final String name) throws TzException {
     return cache.getAliasedCachedVtz(name);
   }
-
-  /* *
-   * @param tzid - possible alias
-   * @return actual timezone id
-   * @throws TzException
-   * /
-  public String unalias(String tzid) throws TzException {
-    if (tzid == null) {
-      throw new TzException("Null id for unalias");
-    }
-
-    /* First transform the name if it follows a known pattern, for example
-     * we used to get     /mozilla.org/20070129_1/America/New_York
-     * /
-
-    tzid = transformTzid(tzid);
-
-    // Allow chains of aliases
-
-    String target = tzid;
-
-    for (int i = 0; i < 100; i++) {   // Just in case we get a circular chain
-      String unaliased = cache.fromAlias(target);
-
-      if (unaliased == null) {
-        return target;
-      }
-
-      if (unaliased.equals(tzid)) {
-        break;
-      }
-
-      target = unaliased;
-    }
-
-    error("Possible circular alias chain looking for " + tzid);
-
-    return null;
-  } */
 
   /**
    * @return String value of aliases file.
@@ -711,7 +699,7 @@ public class TzServerUtil {
   /**
    * @return an ical Calendar prefix
    */
-  public String getCalHdr() {
+  public static String getCalHdr() {
     return "BEGIN:VCALENDAR\n" +
            "VERSION:2.0\n" +
            "CALSCALE:GREGORIAN\n" +
@@ -721,7 +709,7 @@ public class TzServerUtil {
   /**
    * @return an ical Calendar trailer
    */
-  public String getCalTlr() {
+  public static String getCalTlr() {
     return "END:VCALENDAR\n";
   }
 
@@ -767,92 +755,14 @@ public class TzServerUtil {
 
   private void getcache() throws TzException {
     try {
-      cache = new DbCachedData(false);
-    } catch (DbEmptyException dbee) {
-      /* try to populate from zipped data */
-
-      if (addDbData()) {
-        try {
-          cache = new DbCachedData(false);
-        } catch (TzException te) {
-          error(te);
-        }
-      }
+      cache = new DbCachedData();
     } catch (TzException te) {
       error(te);
+      cache = null;
     }
 
     if (cache == null) {
       cache = new ZipCachedData(tzdataUrl);
-    }
-  }
-
-  /** Populate the database from the zipped data
-   *
-   * @return true if it worked
-   */
-  private boolean addDbData() {
-    DbCachedData db = null;
-
-    try {
-      CachedData z = new ZipCachedData(tzdataUrl);
-
-      db = new DbCachedData(true);
-
-      db.startAdd();
-
-      TzDbInfo dbi = new TzDbInfo();
-
-      dbi.setDtstamp(z.getDtstamp());
-      dbi.setVersion("1.0");
-      db.addTzInfo(dbi);
-
-      List<SummaryType> sums = z.getSummaries(null);
-
-      for (SummaryType sum: sums) {
-        if (sum.getAlias() != null) {
-          for (AliasType at: sum.getAlias()) {
-            TzAlias alias = new TzAlias();
-
-            alias.setFromId(at.getValue());
-            alias.setToId(sum.getTzid());
-
-            db.addTzAlias(alias);
-          }
-        }
-
-        TzDbSpec spec = new TzDbSpec();
-
-        spec.setName(sum.getTzid());
-
-        spec.setVtimezone(getCalHdr() +
-                          z.getCachedVtz(sum.getTzid()) +
-                          getCalTlr());
-        if (spec.getVtimezone() == null) {
-          error("No timezone spec for " + sum.getTzid());
-        }
-
-        spec.setDtstamp(z.getDtstamp());
-        spec.setActive(true);
-
-        db.addTzSpec(spec);
-      }
-
-      db.endAdd();
-
-      db = null;
-
-      return true;
-    } catch (TzException te) {
-      getLogger().error("Unable to add tz data to db", te);
-      if (db !=  null) {
-        db.failAdd();
-      }
-      return false;
-    } finally {
-      if (db !=  null) {
-        db.endAdd();
-      }
     }
   }
 
