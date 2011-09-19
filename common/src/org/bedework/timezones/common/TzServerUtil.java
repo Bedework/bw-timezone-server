@@ -131,14 +131,6 @@ public class TzServerUtil {
     return instance;
   }
 
-  /** Set before calling getInstance
-   *
-   * @param val
-   */
-  public static void setAppname(final String val) {
-    appname = val;
-  }
-
   /**
    * @return appname
    */

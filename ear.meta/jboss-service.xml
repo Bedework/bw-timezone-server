@@ -3,16 +3,6 @@
   <mbean code="org.bedework.timezones.service.Tzsvc"
          name="org.bedework:service=Tzsvr"
          xmbean-dd="resource:xmdesc/bw-tzsvr-xmbean.xml">
-    <attribute name="Appname">tzsvr</attribute>
-
-<!--     
-    <attribute name="PrimaryServer">@tzserverPrimary@</attribute>
-    
-    <attribute name="PrimaryUrl">@tzserverPrimaryUrl@</attribute>
-    
-    < ! - - Refresh interval - seconds - - >
-    <attribute name="RefreshInterval">@tzdataRefreshInterval@</attribute>
-     -->
     <!-- Location of the (backup) zip file -->
     <attribute name="TzdataUrl">@tzdataURI@</attribute>
     

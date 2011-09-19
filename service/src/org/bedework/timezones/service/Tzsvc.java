@@ -50,11 +50,6 @@ public class Tzsvc extends ServiceMBeanSupport implements TzsvcMBean {
    * ======================================================================== */
 
   @Override
-  public void setAppname(final String val) {
-    TzServerUtil.setAppname(val);
-  }
-
-  @Override
   public String getAppname() {
     return TzServerUtil.getAppname();
   }

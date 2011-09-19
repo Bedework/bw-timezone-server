@@ -18,7 +18,7 @@
    
    &defaultAttributes;
 
-   <attribute access="read-write" getMethod="getAppname" setMethod="setAppname">
+   <attribute access="read-only" getMethod="getAppname" >
 		<description>Bedework internal name.</description>
 		<name>Appname</name>
     <type>java.lang.String</type>

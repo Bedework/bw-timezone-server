@@ -39,14 +39,8 @@ public interface TzsvcMBean extends ServiceMBean {
    * Attributes
    * ======================================================================== */
 
-  /** Application name - for config info
-   *
-   * @param val
-   */
-  void setAppname(String val);
-
   /**
-   * @return String application namee
+   * @return String application name
    */
   String getAppname();
 
