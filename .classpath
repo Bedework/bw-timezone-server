@@ -16,5 +16,9 @@
 	<classpathentry kind="lib" path="/bwxml/dist/bw-tzschema-3.8.jar"/>
 	<classpathentry kind="lib" path="/bwxml/dist/bw-calws-soapschema-3.8.jar"/>
 	<classpathentry kind="lib" path="/bwxml/dist/bw-icalschema-3.8.jar"/>
+	<classpathentry kind="lib" path="lib/jboss-system-jmx-5.1.0.GA.jar"/>
+	<classpathentry kind="lib" path="lib/jboss-system-5.1.0.GA.jar"/>
+	<classpathentry kind="lib" path="lib/jboss-kernel-5.1.0.GA.jar"/>
+	<classpathentry kind="lib" path="lib/jboss-j2se-5.1.0.GA.jar"/>
 	<classpathentry kind="output" path="bin/timezones/bwtzsvr/bwtzsvr"/>
 </classpath>

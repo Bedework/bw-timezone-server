@@ -24,39 +24,30 @@ import org.bedework.timezones.common.TzServerUtil;
 import org.apache.log4j.Logger;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
+import org.jboss.system.ServiceMBeanSupport;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
 
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
+
 /**
  * @author douglm
  *
  */
-public class Tzsvc implements TzsvcMBean {
+public class Tzsvc extends ServiceMBeanSupport implements TzsvcMBean {
   private transient Logger log;
-
-  private boolean running;
 
   private Configuration cfg;
 
-  @SuppressWarnings("unused")
   private TzServerUtil tzutil;
 
   /* ========================================================================
    * Attributes
    * ======================================================================== */
-
-  /* (non-Javadoc)
-   * @see org.bedework.dumprestore.BwDumpRestoreMBean#getName()
-   */
-  @Override
-  public String getName() {
-    /* This apparently must be the same as the name attribute in the
-     * jboss service definition
-     */
-    return "org.bedework:service=Tzsvr";
-  }
 
   @Override
   public void setAppname(final String val) {
@@ -187,20 +178,6 @@ public class Tzsvc implements TzsvcMBean {
     }
   }
 
-  /* an example say's we need this  - we should probably implement some system
-   * independent jmx support which will build this using introspection and/or lists
-  public MBeanInfo getMBeanInfo() throws Exception {
-    InitialContext ic = new InitialContext();
-    RMIAdaptor server = (RMIAdaptor) ic.lookup("jmx/rmi/RMIAdaptor");
-
-    ObjectName name = new ObjectName(MBEAN_OBJ_NAME);
-
-    // Get the MBeanInfo for this MBean
-    MBeanInfo info = server.getMBeanInfo(name);
-    return info;
-  }
-  */
-
   @Override
   public String recreateDb() {
     String res = schema(true);
@@ -258,59 +235,6 @@ public class Tzsvc implements TzsvcMBean {
     return sw.toString();
   }
 
-  /* ========================================================================
-   * Lifecycle
-   * ======================================================================== */
-
-  /* (non-Javadoc)
-   * @see org.bedework.dumprestore.BwDumpRestoreMBean#create()
-   */
-  @Override
-  public void create() {
-    // An opportunity to initialise
-  }
-
-  /* (non-Javadoc)
-   * @see org.bedework.indexer.BwIndexerMBean#start()
-   */
-  @Override
-  public void start() {
-    try {
-      tzutil = TzServerUtil.getInstance();
-      running = true;
-    } catch (Throwable t) {
-      error("Error setting url");
-      error(t);
-    }
-  }
-
-  /* (non-Javadoc)
-   * @see org.bedework.indexer.BwIndexerMBean#stop()
-   */
-  @Override
-  public void stop() {
-    running = false;
-  }
-
-  /* (non-Javadoc)
-   * @see org.bedework.indexer.BwIndexerMBean#isStarted()
-   */
-  @Override
-  public boolean isStarted() {
-    return running;
-  }
-
-  /* (non-Javadoc)
-   * @see org.bedework.dumprestore.BwDumpRestoreMBean#destroy()
-   */
-  @Override
-  public void destroy() {
-  }
-
-  @Override
-  public void jbossInternalLifecycle(final String method) {
-  }
-
   /* ====================================================================
    *                   Private methods
    * ==================================================================== */
@@ -343,6 +267,43 @@ public class Tzsvc implements TzsvcMBean {
     }
 
     return cfg;
+  }
+
+  /* ========================================================================
+   * Lifecycle
+   * ======================================================================== */
+
+  @Override
+  protected ObjectName getObjectName(final MBeanServer server,
+                                     final ObjectName name)
+      throws MalformedObjectNameException {
+    if (name == null) {
+      return OBJECT_NAME;
+    }
+
+    return name;
+   }
+
+  @Override
+  public void startService() throws Exception {
+    try {
+      tzutil = TzServerUtil.getInstance();
+    } catch (Throwable t) {
+      error("Error starting service");
+      error(t);
+      throw new Exception(t);
+    }
+  }
+
+  @Override
+  public void stopService() throws Exception {
+    try {
+      tzutil.stop();
+    } catch (Throwable t) {
+      error("Error stopping service");
+      error(t);
+      throw new Exception(t);
+    }
   }
 
   /* ====================================================================

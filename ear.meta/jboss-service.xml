@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <server>
   <mbean code="org.bedework.timezones.service.Tzsvc"
-         name="org.bedework:service=Tzsvr">
+         name="org.bedework:service=Tzsvr"
+         xmbean-dd="resource:xmdesc/bw-tzsvr-xmbean.xml">
     <attribute name="Appname">tzsvr</attribute>
 
 <!--     

@@ -20,33 +20,24 @@ package org.bedework.timezones.service;
 
 import org.bedework.timezones.common.Stat;
 
+import org.jboss.mx.util.ObjectNameFactory;
+import org.jboss.system.ServiceMBean;
+
 import java.util.List;
+
+import javax.management.ObjectName;
 
 /** Run the timezones service
  *
  * @author douglm
  */
-public interface TzsvcMBean /*  extends ServiceMBean */ {
+public interface TzsvcMBean extends ServiceMBean {
+  /** The default object name */
+  ObjectName OBJECT_NAME = ObjectNameFactory.create("org.bedework:service=Tzsvr");
+
   /* ========================================================================
    * Attributes
    * ======================================================================== */
-
-  /** Name apparently must be the same as the name attribute in the
-   * jboss service definition
-   *
-   * @return Name
-   */
-  String getName();
-
-  /* * From ServiceMBean
-   * @return int state
-   * /
-  int getState();
-
-  /** From ServiceMBean
-   * @return string state
-   * /
-  String getStateString();*/
 
   /** Application name - for config info
    *
@@ -144,39 +135,4 @@ public interface TzsvcMBean /*  extends ServiceMBean */ {
    * @return completion code.
    */
   String recreateDb();
-
-  /* ========================================================================
-   * Lifecycle
-   * ======================================================================== */
-
-  /** Lifecycle
-   *
-   */
-  void create();
-
-  /** Lifecycle
-   *
-   */
-  void start();
-
-  /** Lifecycle
-   *
-   */
-  void stop();
-
-  /** Lifecycle
-   *
-   * @return true if started
-   */
-  boolean isStarted();
-
-  /** Lifecycle
-   *
-   */
-  void destroy();
-
-  /**
-   * @param method
-   */
-  void jbossInternalLifecycle(String method);
 }

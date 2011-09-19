@@ -43,6 +43,8 @@
 
   <property name="ear.meta.dir" location="${project.home}/ear.meta"/>
 
+  <property name="service.xmdesc.dir" location="${project.home}/resources/xmdesc"/>
+
   <!-- =================================================================
        init:
        ================================================================= -->
@@ -115,6 +117,9 @@
     <getJar name="ehcache" version="1.6.2" />
     <getJar name="hibernate" version="3.3.1.ga" />
     <getJar name="ical4j" version="1.0-rc3-SNAPSHOT" />
+    <getJar name="jboss-j2se" version="5.1.0.GA" />
+    <getJar name="jboss-kernel" version="5.1.0.GA" />
+    <getJar name="jboss-system" version="5.1.0.GA" />
     <getJar name="jboss-system-jmx" version="5.1.0.GA" />
     <getJar name="log4j" version="1.2.8" />
     <getJar name="servletapi" version="2.4" />
@@ -173,7 +178,7 @@
   	<copy file="${project.home}/tzdata.zip"
   	      todir="${org.bedework.appserver.dir}/${org.bedework.server.resource.root.dir}" />
   	      -->
-    <copy file="${project.home}/tzdata.zip"
+    <copy file="${project.home}/dist/tzdata.zip"
           todir="${org.bedework.data.dir}" />
   </target>
 
