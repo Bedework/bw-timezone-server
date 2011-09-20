@@ -203,6 +203,12 @@ public class DbCachedData extends AbstractCachedData {
       return;
     }
 
+    if (val && (updater != null)) {
+      // No updater for primary
+      updater.interrupt();
+      updater = null;
+    }
+
     try {
       open();
 
@@ -210,6 +216,12 @@ public class DbCachedData extends AbstractCachedData {
       isPrimary = val;
       inf.setPrimaryServer(isPrimary);
       updateTzInfo(inf);
+
+      // If we've been switched to secondary - start the updater.
+      if (!getPrimaryServer()) {
+        updater = new UpdateThread("DbdataUpdater");
+        updater.start();
+      }
     } catch (TzException tze) {
       fail();
       throw tze;
@@ -558,7 +570,7 @@ public class DbCachedData extends AbstractCachedData {
       TzDbInfo inf = getDbInfo();
 
       if (inf == null) {
-        if (isPrimary) {
+        if (!isPrimary) {
           inf = updateFromPrimary();
         } else {
           inf = loadInitialData();
