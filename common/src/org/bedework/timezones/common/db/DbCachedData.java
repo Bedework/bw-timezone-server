@@ -205,6 +205,7 @@ public class DbCachedData extends AbstractCachedData {
 
     if (val && (updater != null)) {
       // No updater for primary
+      running = false;
       updater.interrupt();
       updater = null;
     }
@@ -218,6 +219,7 @@ public class DbCachedData extends AbstractCachedData {
       updateTzInfo(inf);
 
       // If we've been switched to secondary - start the updater.
+      running = true;
       if (!getPrimaryServer()) {
         updater = new UpdateThread("DbdataUpdater");
         updater.start();
@@ -851,6 +853,10 @@ public class DbCachedData extends AbstractCachedData {
 
   private TzDbInfo loadInitialData() throws TzException {
     try {
+      if (debug) {
+        trace("Loading initial data from " + TzServerUtil.getTzdataUrl());
+      }
+
       CachedData z = new ZipCachedData(TzServerUtil.getTzdataUrl());
 
       TzDbInfo dbi = initialInfo();
@@ -860,6 +866,12 @@ public class DbCachedData extends AbstractCachedData {
       addTzInfo(dbi);
 
       List<SummaryType> sums = z.getSummaries(null);
+
+      if (debug) {
+        trace("Initial load has " + sums.size() + " timezones");
+      }
+
+      int ct = 0;
 
       for (SummaryType sum: sums) {
         if (sum.getAlias() != null) {
@@ -888,6 +900,15 @@ public class DbCachedData extends AbstractCachedData {
         spec.setActive(true);
 
         addTzSpec(spec);
+
+        ct++;
+        if (debug && ((ct%25) == 0)) {
+          trace("Initial load has processed " + ct + " timezones");
+        }
+      }
+
+      if (debug) {
+        trace("Initial load processed " + ct + " timezones");
       }
 
       return dbi;
