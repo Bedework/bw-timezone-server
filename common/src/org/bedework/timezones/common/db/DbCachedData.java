@@ -618,6 +618,10 @@ public class DbCachedData extends AbstractCachedData {
   private synchronized TzDbInfo updateFromPrimary() throws TzException {
     TzDbInfo inf = null;
 
+    if (debug) {
+      trace("Updating from primary");
+    }
+
     try {
       inf = getDbInfo();
 
@@ -631,12 +635,18 @@ public class DbCachedData extends AbstractCachedData {
 
       if (isPrimary) {
         // We are a primary. No update needed
+        if (debug) {
+          trace("We are a primary: exit");
+        }
+
         return inf; // good enough
       }
 
       primaryUrl = inf.getPrimaryUrl();
 
       if (primaryUrl == null) {
+        warn("No primary URL: exit");
+
         return inf; // good enough
       }
 
