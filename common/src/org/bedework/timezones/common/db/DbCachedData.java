@@ -273,17 +273,19 @@ public class DbCachedData extends AbstractCachedData {
   public void stop() throws TzException {
     running = false;
 
-    if (updater == null) {
-      error("Already stopped");
-      return;
+    if (!isPrimary) {
+      if (updater == null) {
+        error("Already stopped");
+        return;
+      }
+
+      updater.interrupt();
+      updater = null;
+
+      info("************************************************************");
+      info(" * TZdb cache updater terminated ");
+      info("************************************************************");
     }
-
-    updater.interrupt();
-    updater = null;
-
-    info("************************************************************");
-    info(" * TZdb cache updater terminated ");
-    info("************************************************************");
   }
 
   @Override

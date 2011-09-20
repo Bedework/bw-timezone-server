@@ -22,6 +22,8 @@ import org.bedework.timezones.common.ExpandedMapEntry;
 import org.bedework.timezones.common.Stat;
 import org.bedework.timezones.common.TzServerUtil;
 
+import org.apache.log4j.Logger;
+
 import ietf.params.xml.ns.timezone_service.CapabilitiesAcceptParameterType;
 import ietf.params.xml.ns.timezone_service.CapabilitiesOperationType;
 import ietf.params.xml.ns.timezone_service.CapabilitiesType;
@@ -313,15 +315,16 @@ public class GetMethod extends MethodBase {
 
       String changedsince = req.getParameter("changedsince");
 
-      if (changedsince != null) {
-        logIt("Refresh call from " + req.getRemoteHost());
-      }
-
       tzl.getSummary().addAll(util.getSummaries(changedsince));
 
       Marshaller m = getJc().createMarshaller();
       m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
       m.marshal(getOf().createTimezoneList(tzl), resp.getOutputStream());
+
+      if (changedsince != null) {
+        Logger refreshLogger = Logger.getLogger("org.bedework.timezones.refresh.logger");
+        refreshLogger.info("Refresh call from " + req.getRemoteHost());
+      }
     } catch (ServletException se) {
       throw se;
     } catch (Throwable t) {
