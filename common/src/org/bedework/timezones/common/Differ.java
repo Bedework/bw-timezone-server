@@ -160,7 +160,8 @@ public class Differ {
      * it's changed.
      */
 
-    XmlIcalCompare comp = new XmlIcalCompare(XmlIcalCompare.defaultSkipList);
+    XmlIcalCompare comp = new XmlIcalCompare(XmlIcalCompare.defaultSkipList,
+                                             null); // Shouldn't need any tzs
 
     for (String tzid: newNames) {
       if (nc.addedNames.contains(tzid)) {

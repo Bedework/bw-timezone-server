@@ -386,6 +386,7 @@ public class DbCachedData extends AbstractCachedData {
 
   /**
    * @param val
+   * @return alias entry
    * @throws TzException
    */
   public TzAlias getTzAlias(final String val) throws TzException {
