@@ -770,13 +770,17 @@ public class DbCachedData extends AbstractCachedData {
             continue;
           }
 
-          aliases.remove(a.getValue());
+          if (aliases != null) {
+            aliases.remove(a.getValue());
+          }
         }
 
-        /* remaining aliases should be deleted */
-        for (String alias: aliases) {
-          TzAlias tza = getTzAlias(alias);
-          removeTzAlias(tza);
+        if (aliases != null) {
+          /* remaining aliases should be deleted */
+          for (String alias: aliases) {
+            TzAlias tza = getTzAlias(alias);
+            removeTzAlias(tza);
+          }
         }
       }
 
