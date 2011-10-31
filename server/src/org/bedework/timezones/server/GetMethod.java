@@ -28,10 +28,12 @@ import ietf.params.xml.ns.timezone_service.CapabilitiesAcceptParameterType;
 import ietf.params.xml.ns.timezone_service.CapabilitiesOperationType;
 import ietf.params.xml.ns.timezone_service.CapabilitiesType;
 import ietf.params.xml.ns.timezone_service.ObjectFactory;
+import ietf.params.xml.ns.timezone_service.SummaryType;
 import ietf.params.xml.ns.timezone_service.TimezoneListType;
 
 import java.io.Writer;
 import java.util.Collection;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -93,7 +95,7 @@ public class GetMethod extends MethodBase {
                             "the given timestamp."));
 
     addCapability(capabilities, "get",
-                  "    This operation returns a timezone. Clients must be " +
+                  "This operation returns a timezone. Clients must be " +
                     "prepared to accept a timezone with a different identifier " +
                     "if the requested identifier is an alias. ",
                   makePar("action",
@@ -120,9 +122,10 @@ public class GetMethod extends MethodBase {
                           true,
                           true,
                           null,
-                          "REQUIRED, but MAY occur multiple times. Identifies " +
+                          "REQUIRED, and MUST occur only once. Identifies " +
                             "the timezone for which information is returned. " +
-                            "Alternatively, if a single value of \"*\" is " +
+                            "The server MUST return an Etag header. " +
+                            "Alternatively, if a value of \"*\" is " +
                             "given, returns information for all timezones. " +
                             "The \"*\" option will typically be used by servers" +
                             "that wish to retrieve the entire set of timezones " +
@@ -132,7 +135,7 @@ public class GetMethod extends MethodBase {
                             "case-by-case basis."));
 
     addCapability(capabilities, "expand",
-                  "    This operation expands the specified timezone(s) into a " +
+                  "This operation expands the specified timezone(s) into a " +
                     "list of onset start date/time and offset. ",
                   makePar("action",
                           true,
@@ -169,6 +172,31 @@ public class GetMethod extends MethodBase {
                           "OPTIONAL, but MUST occur only once. If present, " +
                             "specifies the end of the period of interest. " +
                             "If omitted, the current year + 10 is assumed. "));
+
+    addCapability(capabilities, "find",
+                  "This operation allows a client to query the timezone service " +
+                    "for a matching identifier, alias or localized name.\n" +
+                    "Response format is the same as for list with one result " +
+                    "element per successful match. ",
+                    makePar("action",
+                            true,
+                            false,
+                            "find",
+                            "Specify the action to be carried out."),
+                    makePar("name",
+                            true,
+                            false,
+                            null,
+                            "REQUIRED, but MUST only occur once. Identifies the " +
+                            "name to search for. Only partial matching is " +
+                            "supported."),
+                    makePar("lang",
+                            false,
+                            true,
+                            null,
+                            "OPTIONAL, but MUST occur only once. If present, " +
+                            "indicates that timezone aliases should be returned " +
+                            "in the list. "));
   }
 
   private static void addCapability(final CapabilitiesType capabilities,
@@ -253,6 +281,11 @@ public class GetMethod extends MethodBase {
       return;
     }
 
+    if ("find".equals(action)) {
+      doFind(req, resp);
+      return;
+    }
+
     /* Follow all old and non-standard actions */
 
     if (req.getParameter("names") != null) {
@@ -307,24 +340,53 @@ public class GetMethod extends MethodBase {
   private void doList(final HttpServletRequest req,
                       final HttpServletResponse resp) throws ServletException {
     try {
+      String changedsince = req.getParameter("changedsince");
+
+      listResponse(resp, util.getSummaries(changedsince));
+
+      if (changedsince != null) {
+        Logger refreshLogger = Logger.getLogger("org.bedework.timezones.refresh.logger");
+        refreshLogger.info("Refresh call from " + req.getRemoteHost());
+      }
+    } catch (ServletException se) {
+      throw se;
+    } catch (Throwable t) {
+      throw new ServletException(t);
+    }
+  }
+
+  private void doFind(final HttpServletRequest req,
+                      final HttpServletResponse resp) throws ServletException {
+    try {
+      String name = req.getParameter("name");
+
+      if (name == null) {
+        resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        return;
+      }
+
+      listResponse(resp, util.findSummaries(name));
+    } catch (ServletException se) {
+      throw se;
+    } catch (Throwable t) {
+      throw new ServletException(t);
+    }
+  }
+
+  private void listResponse(final HttpServletResponse resp,
+                            final List<SummaryType> summaries) throws ServletException {
+    try {
       resp.setContentType("application/xml; charset=UTF-8");
 
       TimezoneListType tzl = new TimezoneListType();
 
       tzl.setDtstamp(util.getDtstamp());
 
-      String changedsince = req.getParameter("changedsince");
-
-      tzl.getSummary().addAll(util.getSummaries(changedsince));
+      tzl.getSummary().addAll(summaries);
 
       Marshaller m = getJc().createMarshaller();
       m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
       m.marshal(getOf().createTimezoneList(tzl), resp.getOutputStream());
-
-      if (changedsince != null) {
-        Logger refreshLogger = Logger.getLogger("org.bedework.timezones.refresh.logger");
-        refreshLogger.info("Refresh call from " + req.getRemoteHost());
-      }
     } catch (ServletException se) {
       throw se;
     } catch (Throwable t) {

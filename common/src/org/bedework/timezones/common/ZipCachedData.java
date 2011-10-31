@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -105,6 +106,13 @@ public class ZipCachedData  extends AbstractCachedData {
   public void updateData(final String dtstamp,
                          final List<DiffListEntry> dles) throws TzException {
     // XXX ??
+  }
+
+  @Override
+  public List<String> findIds(final String val) throws TzException {
+    List<String> ids = new ArrayList<String>();
+
+    return ids;
   }
 
   private synchronized void loadData() throws TzException {

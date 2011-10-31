@@ -124,6 +124,13 @@ public abstract class AbstractCachedData implements CachedData {
     return stats;
   }
 
+  /** Find tz identifiers or alias names that (partially) match the given value
+   * @param val
+   * @return list of strings - never null
+   * @throws TzException
+   */
+  public abstract List<String> findIds(String val) throws TzException;
+
   /* ====================================================================
    *                   CachedData methods
    * ==================================================================== */
@@ -260,6 +267,21 @@ public abstract class AbstractCachedData implements CachedData {
     }
 
     return ss;
+  }
+
+  @Override
+  public List<SummaryType> findSummaries(final String name) throws TzException {
+    List<SummaryType> sums = new ArrayList<SummaryType>();
+
+    List<String> ids = findIds(name);
+
+    for (SummaryType sum: summaries) {
+      if (ids.contains(sum.getTzid())) {
+        sums.add(sum);
+      }
+    }
+
+    return sums;
   }
 
   /* ====================================================================

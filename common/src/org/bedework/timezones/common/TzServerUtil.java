@@ -570,6 +570,15 @@ public class TzServerUtil {
     return cache.getSummaries(changedSince);
   }
 
+  /**
+   * @param name - non null name for partial match
+   * @return list of summary info
+   * @throws TzException
+   */
+  public List<SummaryType> findSummaries(final String name) throws TzException {
+    return cache.findSummaries(name);
+  }
+
   private static class ObservanceWrapper implements Comparable<ObservanceWrapper> {
     ObservanceType ot;
 

@@ -345,6 +345,32 @@ public class DbCachedData extends AbstractCachedData {
     }
   }
 
+  @Override
+  public List<String> findIds(final String val) throws TzException {
+    try {
+      open();
+
+      List<String> ids = new ArrayList<String>();
+
+      ids.addAll(findTzs(val));
+
+      List<TzAlias> as = findTzAliases(val);
+      for (TzAlias a: as) {
+        ids.add(a.getToId());
+      }
+
+      return ids;
+    } catch (TzException te) {
+      fail();
+      throw te;
+    } catch (Throwable t) {
+      fail();
+      throw new TzException(t);
+    } finally {
+      close();
+    }
+  }
+
   /* ====================================================================
    *                   DbCachedData methods
    * ==================================================================== */
@@ -395,6 +421,40 @@ public class DbCachedData extends AbstractCachedData {
     sess.setString("id", val);
 
     return (TzAlias)sess.getUnique();
+  }
+
+  private final String findTzAliasesQuery =
+      "from " + TzAlias.class.getName() + " alias where alias.fromId like :id";
+
+  /**
+   * @param val
+   * @return matching alias entries
+   * @throws TzException
+   */
+  @SuppressWarnings("unchecked")
+  public List<TzAlias> findTzAliases(final String val) throws TzException {
+    sess.createQuery(findTzAliasesQuery);
+
+    sess.setString("id", "%" + val + "%");
+
+    return sess.getList();
+  }
+
+  private final String findTzsQuery =
+      "select spec.name from " + TzDbSpec.class.getName() + " spec where spec.name like :name";
+
+  /**
+   * @param val
+   * @return matching tz entry names
+   * @throws TzException
+   */
+  @SuppressWarnings("unchecked")
+  public List<String> findTzs(final String val) throws TzException {
+    sess.createQuery(findTzsQuery);
+
+    sess.setString("name", "%" + val + "%");
+
+    return sess.getList();
   }
 
   /**

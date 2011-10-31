@@ -211,4 +211,11 @@ public interface CachedData extends Serializable {
    * @throws TzException
    */
   List<SummaryType> getSummaries(String changedSince) throws TzException;
+
+  /**
+   * @param name to be partially matched
+   * @return list of matching summary info
+   * @throws TzException
+   */
+  List<SummaryType> findSummaries(String name) throws TzException;
 }
