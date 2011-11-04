@@ -117,6 +117,10 @@ public class TzAliasesUtil {
     return tzsaires;
   }
 
+  /**
+   * @return true if processing went ok
+   * @throws Throwable
+   */
   public boolean process() throws Throwable {
     TimezonesAliasInfoType tai = null;
 
@@ -309,29 +313,5 @@ public class TzAliasesUtil {
 
   static void error(final Throwable t) {
     getLogger().error(TzAliasesUtil.class, t);
-  }
-
-  private static void digit2(final StringBuilder sb, final int val) throws Throwable {
-    if (val > 99) {
-      throw new Exception("Bad date");
-    }
-    if (val < 10) {
-      sb.append("0");
-    }
-    sb.append(val);
-  }
-
-  private static void digit4(final StringBuilder sb, final int val) throws Throwable {
-    if (val > 9999) {
-      throw new Exception("Bad date");
-    }
-    if (val < 10) {
-      sb.append("000");
-    } else if (val < 100) {
-      sb.append("00");
-    } else if (val < 1000) {
-      sb.append("0");
-    }
-    sb.append(val);
   }
 }
