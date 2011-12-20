@@ -12,7 +12,7 @@
 	<classpathentry kind="lib" path="lib/ehcache-1.6.2.jar"/>
 	<classpathentry kind="lib" path="lib/ical4j-1.0-rc3-SNAPSHOT.jar"/>
 	<classpathentry kind="lib" path="lib/hibernate-3.3.1.ga.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/rpituil"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/rpiutil"/>
 	<classpathentry kind="lib" path="/bwxml/dist/bw-tzschema-3.8.jar" sourcepath="/bwxml/timezones/gensrc/src"/>
 	<classpathentry kind="lib" path="/bwxml/dist/bw-calws-soapschema-3.8.jar"/>
 	<classpathentry kind="lib" path="/bwxml/dist/bw-icalschema-3.8.jar"/>
