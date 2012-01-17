@@ -11,8 +11,6 @@
   <property environment="env"/>
   <dirname property="project.home" file="${ant.file}"/>
 
-  <property file="${project.home}/build.properties" />
-  
   <property name="bedework.home"
             location="${project.home}/../bedework" />
 
@@ -22,12 +20,11 @@
 
   <deftasks/>
 
-  <projectDefs name="${org.bedework.package.name}"
+  <projectDefs name="Bedework timezones server"
                version="${org.bedework.bwtzsvr.version}" 
                deployment-name="tzsvr"
   />
 
-  <import file="${build.dir}/loadDeployConfig.xml"/>
   <import file="${build.dir}/buildTools/xjc.xml"/>
 
   <import file="${project.home}/appjars.xml" />
@@ -51,33 +48,6 @@
 
   <target name="init">
     <projectInit/>
-    
-    <property name="org.bedework.project.bedework"
-              location="${project.home}/../bedework" />
-
-    <loadDeployConfig />
-
-    <property name="org.bedework.deploy.name"
-              value="${ant.project.name}" />
-  	
-    <propertyset id="deploy-app-properties">
-      <propertyref prefix="org.bedework.app.${org.bedework.deploy.name}"/>
-      <globmapper from="org.bedework.app.${org.bedework.deploy.name}.*" to="propval.app.*"/>
-    </propertyset>
-
-    <property name="org.bedework.temp.wars.home"
-              location="${dist.home}/temp/wars" />
-    
-    <if>
-      <not>
-        <isset property="org.bedework.global.context.roots" />
-      </not>
-      <then>
-        <tempfile property="org.bedework.global.context.roots"
-                  destdir="${org.bedework.temp.dir}"
-                  prefix="context-roots" suffix=".properties" />
-      </then>
-    </if>
 
   	<property name="org.bedework.options.file"
   	          value="${org.bedework.config.options}" />
@@ -122,7 +92,7 @@
     <getJar name="jboss-system" version="5.1.0.GA" />
     <getJar name="jboss-system-jmx" version="5.1.0.GA" />
     <getJar name="log4j" version="1.2.8" />
-    <getJar name="servletapi" version="2.4" />
+    <getJar name="servlet-api" version="2.4" />
 
     <getJar name="rpiutil" version="${org.bedework.rpiutil.version}" project="rpiutil" 
             projecthome="${project.home}/../rpiutil" />
@@ -138,6 +108,14 @@
 
   <target name="deploy-init" depends="init">
     <deployInit ear-name="bw-${ant.project.name}" />
+
+    <property name="org.bedework.deploy.name"
+              value="${ant.project.name}" />
+  	
+    <propertyset id="deploy-app-properties">
+      <propertyref prefix="org.bedework.app.${org.bedework.deploy.name}"/>
+      <globmapper from="org.bedework.app.${org.bedework.deploy.name}.*" to="propval.app.*"/>
+    </propertyset>
   </target>
 
   <!-- ===================== build-source Target ===============================
@@ -197,34 +175,5 @@
          target="deploy" inheritRefs="true" >
       <propertyset refid="deploy-app-properties" />
     </ant>
-  </target>
-
-  <!-- ==================== Javadoc Target ===============================
-       The "javadoc" target creates Javadoc API documentation for the Java
-       classes included in your application.  Normally, this is only required
-       when preparing a distribution release, but is available as a separate
-       target in case the developer wants to create Javadocs independently.
-       =================================================================== -->
-
-  <target name="javadoc" depends="init"
-          description="Create Javadoc API documentation">
-    <property name="destdir" location="${dist.home}/docs/api"/>
-    <mkdir dir="${destdir}"/>
-
-    <javadoc sourcepath="${org.bedework.module.common.base}/src:${org.bedework.module.service.base}/src:${org.bedework.module.server.base}/src:"
-           classpathref="compile.classpath"
-                destdir="${destdir}"
-               overview="${project.home}/overview.html"
-           packagenames="org.bedework.*,
-                         edu.rpi.*"
-                 access="public"
-                 author="true"
-                version="true"
-          breakiterator="yes"
-            windowtitle="${project.name} ${project.version} Timezones Documentation">
-      <doctitle><![CDATA[${project.name} ${project.version}<br/>Timezones Documentation]]></doctitle>
-      <header><![CDATA[${project.name} ${project.version}<br/>Timezones Documentation]]></header>
-      <link href="${env.JAVA_HOME}/docs/api" />
-    </javadoc>
   </target>
 </project>
