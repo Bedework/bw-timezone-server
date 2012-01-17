@@ -65,13 +65,13 @@
               location="${bedework.home}/resources/timezones" />
 
     <property name="common.jar"
-              location="${dist.home}/${org.bedework.module.common.jar}-${project.version}.jar" />
+              location="${dist.home}/bw-tzsvr-cmn-${project.version}.jar" />
 
     <property name="server.jar"
-              location="${dist.home}/${org.bedework.module.server.jar}-${project.version}.jar" />
+              location="${dist.home}/bw-tzsvr-${project.version}.jar" />
 
     <property name="service.jar"
-              location="${dist.home}/${org.bedework.module.service.jar}-${project.version}.jar" />
+              location="${dist.home}/bw-tzsvr-svc-${project.version}.jar" />
     </target>
     
   <target name="build-init" depends="init">
