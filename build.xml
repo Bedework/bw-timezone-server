@@ -81,7 +81,7 @@
     <property name="org.bedework.getjar.property.prefix"
               value="org.bedework.appjar" />
 
-    <getJar name="commons-codec" version="1.3" />
+    <getJar name="commons-codec" version="1.5" />
     <getJar name="commons-httpclient" version="3.0" />
     <getJar name="commons-lang" version="2.1" />
     <getJar name="ehcache" version="1.6.2" />
