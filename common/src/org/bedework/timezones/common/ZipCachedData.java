@@ -20,11 +20,11 @@ package org.bedework.timezones.common;
 
 import org.bedework.timezones.common.Differ.DiffListEntry;
 
-import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.params.HttpMethodParams;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.impl.client.DefaultHttpClient;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -251,22 +251,26 @@ public class ZipCachedData  extends AbstractCachedData {
         throw new TzException("No data url defined");
       }
 
-      if (dataUrl.startsWith("http:")) {
-        /* Fetch the data */
-        HttpClient client = new HttpClient();
+      if (!dataUrl.startsWith("http:")) {
+        return new File(dataUrl);
+      }
 
-        HttpMethod get = new GetMethod(dataUrl);
+      /* Fetch the data */
+      HttpClient client = new DefaultHttpClient();
 
-        client.getParams().setParameter(HttpMethodParams.RETRY_HANDLER,
-                                        new DefaultHttpMethodRetryHandler());
+      HttpRequestBase get = new HttpGet(dataUrl);
 
-        client.executeMethod(get);
+      HttpResponse resp = client.execute(get);
 
-        InputStream is = get.getResponseBodyAsStream();
+      InputStream is = null;
+      FileOutputStream fos = null;
+
+      try {
+        is = resp.getEntity().getContent();
 
         File f = File.createTempFile("bwtzserver", "zip");
 
-        FileOutputStream fos = new FileOutputStream(f);
+        fos = new FileOutputStream(f);
 
         byte[] buff = new byte[4096];
 
@@ -282,15 +286,16 @@ public class ZipCachedData  extends AbstractCachedData {
           }
         }
 
-        fos.close();
-        is.close();
-
-        get.releaseConnection();
-
         return f;
-      }
+      } finally {
+        try {
+          fos.close();
+        } finally {}
 
-      return new File(dataUrl);
+        try {
+          is.close();
+        } finally {}
+      }
     } catch (Throwable t) {
       throw new TzException(t);
     }

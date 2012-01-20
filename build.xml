@@ -81,11 +81,10 @@
     <property name="org.bedework.getjar.property.prefix"
               value="org.bedework.appjar" />
 
-    <getJar name="commons-codec" version="1.5" />
-    <getJar name="commons-httpclient" version="3.0" />
-    <getJar name="commons-lang" version="2.1" />
     <getJar name="ehcache" version="1.6.2" />
     <getJar name="hibernate" version="3.3.1.ga" />
+  	<getJar name="httpclient" version="4.1.2" />
+  	<getJar name="httpcore" version="4.1.2" />
     <getJar name="ical4j" version="1.0-rc3-SNAPSHOT" />
     <getJar name="jboss-j2se" version="5.1.0.GA" />
     <getJar name="jboss-kernel" version="5.1.0.GA" />
