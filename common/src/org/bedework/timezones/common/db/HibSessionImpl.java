@@ -23,7 +23,7 @@ import org.bedework.timezones.common.TzException;
 import org.apache.log4j.Logger;
 import org.hibernate.Criteria;
 import org.hibernate.FlushMode;
-import org.hibernate.LockMode;
+import org.hibernate.LockOptions;
 import org.hibernate.Query;
 import org.hibernate.ReplicationMode;
 import org.hibernate.SQLQuery;
@@ -65,6 +65,7 @@ public class HibSessionImpl implements HibSession {
    * @param log
    * @throws TzException
    */
+  @Override
   public void init(final SessionFactory sessFactory,
                    final Logger log) throws TzException {
     try {
@@ -80,6 +81,7 @@ public class HibSessionImpl implements HibSession {
     }
   }
 
+  @Override
   public Session getSession() throws TzException {
     return sess;
   }
@@ -88,6 +90,7 @@ public class HibSessionImpl implements HibSession {
    * @return boolean true if open
    * @throws TzException
    */
+  @Override
   public boolean isOpen() throws TzException {
     try {
       if (sess == null) {
@@ -104,6 +107,7 @@ public class HibSessionImpl implements HibSession {
    *
    * @throws TzException
    */
+  @Override
   public void clear() throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -122,6 +126,7 @@ public class HibSessionImpl implements HibSession {
    *
    * @throws TzException
    */
+  @Override
   public void disconnect() throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -143,6 +148,7 @@ public class HibSessionImpl implements HibSession {
    * @param val
    * @throws TzException
    */
+  @Override
   public void setFlushMode(final FlushMode val) throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -165,6 +171,7 @@ public class HibSessionImpl implements HibSession {
    *
    * @throws TzException
    */
+  @Override
   public void beginTransaction() throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -194,6 +201,7 @@ public class HibSessionImpl implements HibSession {
    *
    * @return boolean
    */
+  @Override
   public boolean transactionStarted() {
     return tx != null;
   }
@@ -202,6 +210,7 @@ public class HibSessionImpl implements HibSession {
    *
    * @throws TzException
    */
+  @Override
   public void commit() throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -234,6 +243,7 @@ public class HibSessionImpl implements HibSession {
    *
    * @throws TzException
    */
+  @Override
   public void rollback() throws TzException {
 /*    if (exc != null) {
       // Didn't hear me last time?
@@ -261,6 +271,7 @@ public class HibSessionImpl implements HibSession {
     }
   }
 
+  @Override
   public boolean rolledback() throws TzException {
     return rolledBack;
   }
@@ -271,6 +282,7 @@ public class HibSessionImpl implements HibSession {
    * @return Criteria    created Criteria
    * @throws TzException
    */
+  @Override
   public Criteria createCriteria(final Class cl) throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -291,6 +303,7 @@ public class HibSessionImpl implements HibSession {
   /* (non-Javadoc)
    * @see org.bedework.calcorei.HibSession#evict(java.lang.Object)
    */
+  @Override
   public void evict(final Object val) throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -307,6 +320,7 @@ public class HibSessionImpl implements HibSession {
   /* (non-Javadoc)
    * @see org.bedework.calcorei.HibSession#createQuery(java.lang.String)
    */
+  @Override
   public void createQuery(final String s) throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -321,6 +335,7 @@ public class HibSessionImpl implements HibSession {
     }
   }
 
+  @Override
   public void createNoFlushQuery(final String s) throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -339,6 +354,7 @@ public class HibSessionImpl implements HibSession {
   /* (non-Javadoc)
    * @see org.bedework.calcorei.HibSession#getQueryString()
    */
+  @Override
   public String getQueryString() throws TzException {
     if (q == null) {
       return "*** no query ***";
@@ -359,6 +375,7 @@ public class HibSessionImpl implements HibSession {
    * @param returnClass
    * @throws TzException
    */
+  @Override
   public void createSQLQuery(final String s, final String returnAlias, final Class returnClass)
         throws TzException {
     if (exc != null) {
@@ -382,6 +399,7 @@ public class HibSessionImpl implements HibSession {
    * @param name         String named query name
    * @throws TzException
    */
+  @Override
   public void namedQuery(final String name) throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -400,6 +418,7 @@ public class HibSessionImpl implements HibSession {
    *
    * @throws TzException
    */
+  @Override
   public void cacheableQuery() throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -419,6 +438,7 @@ public class HibSessionImpl implements HibSession {
    * @param parVal      String parameter value
    * @throws TzException
    */
+  @Override
   public void setString(final String parName, final String parVal) throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -438,6 +458,7 @@ public class HibSessionImpl implements HibSession {
    * @param parVal      Date parameter value
    * @throws TzException
    */
+  @Override
   public void setDate(final String parName, final Date parVal) throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -460,6 +481,7 @@ public class HibSessionImpl implements HibSession {
    * @param parVal      boolean parameter value
    * @throws TzException
    */
+  @Override
   public void setBool(final String parName, final boolean parVal) throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -479,6 +501,7 @@ public class HibSessionImpl implements HibSession {
    * @param parVal      int parameter value
    * @throws TzException
    */
+  @Override
   public void setInt(final String parName, final int parVal) throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -498,6 +521,7 @@ public class HibSessionImpl implements HibSession {
    * @param parVal      long parameter value
    * @throws TzException
    */
+  @Override
   public void setLong(final String parName, final long parVal) throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -517,6 +541,7 @@ public class HibSessionImpl implements HibSession {
    * @param parVal      Object parameter value
    * @throws TzException
    */
+  @Override
   public void setEntity(final String parName, final Object parVal) throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -533,6 +558,7 @@ public class HibSessionImpl implements HibSession {
   /* (non-Javadoc)
    * @see org.bedework.calcorei.HibSession#setParameter(java.lang.String, java.lang.Object)
    */
+  @Override
   public void setParameter(final String parName, final Object parVal) throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -549,6 +575,7 @@ public class HibSessionImpl implements HibSession {
   /* (non-Javadoc)
    * @see org.bedework.calcorei.HibSession#setParameterList(java.lang.String, java.util.Collection)
    */
+  @Override
   public void setParameterList(final String parName, final Collection parVal) throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -565,6 +592,7 @@ public class HibSessionImpl implements HibSession {
   /* (non-Javadoc)
    * @see org.bedework.calcorei.HibSession#setFirstResult(int)
    */
+  @Override
   public void setFirstResult(final int val) throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -581,6 +609,7 @@ public class HibSessionImpl implements HibSession {
   /* (non-Javadoc)
    * @see org.bedework.calcorei.HibSession#setMaxResults(int)
    */
+  @Override
   public void setMaxResults(final int val) throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -597,6 +626,7 @@ public class HibSessionImpl implements HibSession {
   /* (non-Javadoc)
    * @see org.bedework.calcorei.HibSession#getUnique()
    */
+  @Override
   public Object getUnique() throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -620,6 +650,7 @@ public class HibSessionImpl implements HibSession {
    * @return List          list from query
    * @throws TzException
    */
+  @Override
   public List getList() throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -649,6 +680,7 @@ public class HibSessionImpl implements HibSession {
    * @return int number updated
    * @throws TzException
    */
+  @Override
   public int executeUpdate() throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -673,6 +705,7 @@ public class HibSessionImpl implements HibSession {
    * @param obj
    * @throws TzException
    */
+  @Override
   public void update(final Object obj) throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -695,6 +728,7 @@ public class HibSessionImpl implements HibSession {
    * @return Object   the persistent object
    * @throws TzException
    */
+  @Override
   public Object merge(Object obj) throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -720,6 +754,7 @@ public class HibSessionImpl implements HibSession {
    * @param obj
    * @throws TzException
    */
+  @Override
   public void saveOrUpdate(final Object obj) throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -747,6 +782,7 @@ public class HibSessionImpl implements HibSession {
    * @return Object
    * @throws TzException
    */
+  @Override
   public Object saveOrUpdateCopy(final Object obj) throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -770,6 +806,7 @@ public class HibSessionImpl implements HibSession {
    * @return Object
    * @throws TzException
    */
+  @Override
   public Object get(final Class cl, final Serializable id) throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -793,6 +830,7 @@ public class HibSessionImpl implements HibSession {
    * @return Object
    * @throws TzException
    */
+  @Override
   public Object get(final Class cl, final int id) throws TzException {
     return get(cl, new Integer(id));
   }
@@ -802,6 +840,7 @@ public class HibSessionImpl implements HibSession {
    * @param obj
    * @throws TzException
    */
+  @Override
   public void save(final Object obj) throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -842,6 +881,7 @@ public class HibSessionImpl implements HibSession {
    * @param obj
    * @throws TzException
    */
+  @Override
   public void delete(final Object obj) throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -864,6 +904,7 @@ public class HibSessionImpl implements HibSession {
    * @param obj
    * @throws TzException
    */
+  @Override
   public void restore(final Object obj) throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -880,6 +921,7 @@ public class HibSessionImpl implements HibSession {
   /* (non-Javadoc)
    * @see org.bedework.calcorei.HibSession#reAttach(org.bedework.calfacade.base.BwUnversionedDbentity)
    */
+  @Override
   public void reAttach(final TzDbentity<?> val) throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -888,7 +930,7 @@ public class HibSessionImpl implements HibSession {
 
     try {
       if (!val.unsaved()) {
-        sess.lock(val, LockMode.NONE);
+        sess.buildLockRequest(LockOptions.NONE).lock(val);
       }
     } catch (Throwable t) {
       handleException(t);
@@ -899,6 +941,7 @@ public class HibSessionImpl implements HibSession {
    * @param o
    * @throws TzException
    */
+  @Override
   public void lockRead(final Object o) throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -906,7 +949,7 @@ public class HibSessionImpl implements HibSession {
     }
 
     try {
-      sess.lock(o, LockMode.READ);
+      sess.buildLockRequest(LockOptions.READ).lock(o);
     } catch (Throwable t) {
       handleException(t);
     }
@@ -916,6 +959,7 @@ public class HibSessionImpl implements HibSession {
    * @param o
    * @throws TzException
    */
+  @Override
   public void lockUpdate(final Object o) throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -923,7 +967,7 @@ public class HibSessionImpl implements HibSession {
     }
 
     try {
-      sess.lock(o, LockMode.UPGRADE);
+      sess.buildLockRequest(LockOptions.UPGRADE).lock(o);
     } catch (Throwable t) {
       handleException(t);
     }
@@ -932,6 +976,7 @@ public class HibSessionImpl implements HibSession {
   /**
    * @throws TzException
    */
+  @Override
   public void flush() throws TzException {
     if (exc != null) {
       // Didn't hear me last time?
@@ -951,6 +996,7 @@ public class HibSessionImpl implements HibSession {
   /**
    * @throws TzException
    */
+  @Override
   public void close() throws TzException {
     if (sess == null) {
       return;

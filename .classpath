@@ -7,7 +7,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/ehcache-1.6.2.jar"/>
 	<classpathentry kind="lib" path="lib/ical4j-1.0-rc3-SNAPSHOT.jar"/>
-	<classpathentry kind="lib" path="lib/hibernate-3.3.1.ga.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/rpiutil"/>
 	<classpathentry kind="lib" path="/bwxml/dist/bw-tzschema-3.8.jar" sourcepath="/bwxml/timezones/gensrc/src"/>
 	<classpathentry kind="lib" path="/bwxml/dist/bw-calws-soapschema-3.8.jar"/>
@@ -19,5 +18,6 @@
 	<classpathentry kind="lib" path="lib/servlet-api-2.4.jar"/>
 	<classpathentry kind="lib" path="lib/httpclient-4.1.2.jar"/>
 	<classpathentry kind="lib" path="lib/httpcore-4.1.2.jar"/>
+	<classpathentry kind="lib" path="lib/hibernate-3.6.9.Final.jar" sourcepath="/home/douglm/drop2/db/hibernate/3.6.9.Final/hibernate-distribution-3.6.9.Final/project"/>
 	<classpathentry kind="output" path="bin/timezones/bwtzsvr/bwtzsvr"/>
 </classpath>

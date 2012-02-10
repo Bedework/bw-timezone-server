@@ -82,7 +82,7 @@
               value="org.bedework.appjar" />
 
     <getJar name="ehcache" version="1.6.2" />
-    <getJar name="hibernate" version="3.3.1.ga" />
+    <getJar name="hibernate" version="3.6.9.Final" />
   	<getJar name="httpclient" version="4.1.2" />
   	<getJar name="httpcore" version="4.1.2" />
     <getJar name="ical4j" version="1.0-rc3-SNAPSHOT" />
