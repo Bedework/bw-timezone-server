@@ -21,7 +21,7 @@ package org.bedework.timezones.common;
 import net.fortuna.ical4j.model.TimeZone;
 
 import org.apache.log4j.Logger;
-import org.oasis_open.docs.ns.wscal.calws_soap.ComponentSelectionType;
+import org.oasis_open.docs.ws_calendar.ns.soap.ComponentSelectionType;
 
 import ietf.params.xml.ns.icalendar_2.IcalendarType;
 
