@@ -18,8 +18,6 @@
 */
 package org.bedework.timezones.common;
 
-import net.fortuna.ical4j.model.TimeZone;
-
 import org.apache.log4j.Logger;
 import org.oasis_open.docs.ws_calendar.ns.soap.ComponentSelectionType;
 
@@ -59,7 +57,7 @@ public class Differ {
 
     /** The spec
      */
-    public TimeZone tzSpec;
+    public String tzSpec;
 
     /** The XML spec
      */
@@ -169,7 +167,7 @@ public class Differ {
 
         dle.tzid = tzid;
         dle.add = true;
-        dle.tzSpec = newTzdata.getTimeZone(tzid);
+        dle.tzSpec = newTzdata.getCachedVtz(tzid);
         dle.aliases = newTzdata.findAliases(tzid);
 
         res.add(dle);
@@ -181,7 +179,7 @@ public class Differ {
 
         dle.tzid = tzid;
         dle.deleted = true;
-        dle.tzSpec = currentTzdata.getTimeZone(tzid);
+        dle.tzSpec = currentTzdata.getCachedVtz(tzid);
         dle.aliases = currentTzdata.findAliases(tzid);
 
         res.add(dle);
@@ -206,7 +204,7 @@ public class Differ {
       DiffListEntry dle = new DiffListEntry();
 
       dle.tzid = tzid;
-      dle.tzSpec = newTzdata.getTimeZone(tzid);
+      dle.tzSpec = newTzdata.getCachedVtz(tzid);
       dle.aliases = newTzdata.findAliases(tzid);
       dle.xcal = newXcal;
 

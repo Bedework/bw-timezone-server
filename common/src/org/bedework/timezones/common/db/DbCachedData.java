@@ -881,7 +881,7 @@ public class DbCachedData extends AbstractCachedData {
         dbspec.setSource(primaryUrl);
         dbspec.setActive(true);
         dbspec.setVtimezone(TzServerUtil.getCalHdr() +
-                            dle.tzSpec.getVTimeZone().toString() +
+                            dle.tzSpec +
                             TzServerUtil.getCalTlr());
 
         // XXX Localized names?

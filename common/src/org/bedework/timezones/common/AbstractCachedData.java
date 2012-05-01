@@ -45,6 +45,7 @@ import java.util.TreeSet;
 
 import edu.rpi.cmt.calendar.IcalToXcal;
 import edu.rpi.cmt.calendar.XcalUtil;
+import edu.rpi.sss.util.FlushMap;
 
 /** Abstract class to help simplify implementation
  *
@@ -65,13 +66,13 @@ public abstract class AbstractCachedData implements CachedData {
 
   private Map<String, String> vtzs = new HashMap<String, String>();
 
-  private Map<String, TimeZone> tzs = new HashMap<String, TimeZone>();
+  private Map<String, TimeZone> timeZones = new FlushMap<String, TimeZone>();
 
   private Map<String, IcalendarType> xtzs = new HashMap<String, IcalendarType>();
 
   private Map<String, String> aliasedVtzs = new HashMap<String, String>();
 
-  private Map<String, TimeZone> aliasedTzs = new HashMap<String, TimeZone>();
+//  private Map<String, TimeZone> aliasedTzs = new HashMap<String, TimeZone>();
 
   private Map<String, IcalendarType> aliasedXtzs = new HashMap<String, IcalendarType>();
 
@@ -112,11 +113,12 @@ public abstract class AbstractCachedData implements CachedData {
   public List<Stat> getStats() throws TzException {
     List<Stat> stats = new ArrayList<Stat>();
 
-    if (tzs == null) {
-      stats.add(new Stat(msgPrefix, "Unavailable"));
+    if (vtzs == null) {
+      stats.add(new Stat(msgPrefix, " #tzs  Unavailable"));
+    } else {
+      stats.add(new Stat(msgPrefix + " #tzs", String.valueOf(vtzs.size())));
     }
 
-    stats.add(new Stat(msgPrefix + " #tzs", String.valueOf(tzs.size())));
     stats.add(new Stat(msgPrefix + " dtstamp", dtstamp));
     stats.add(new Stat(msgPrefix + " cached expansions",
                        String.valueOf(expansions.size())));
@@ -207,16 +209,31 @@ public abstract class AbstractCachedData implements CachedData {
    */
   @Override
   public TimeZone getTimeZone(final String tzid) throws TzException {
-    return tzs.get(tzid);
+    TimeZone tz = timeZones.get(tzid);
+
+    if (tz != null) {
+      return tz;
+    }
+
+    net.fortuna.ical4j.model.Calendar cal = parseDef(TzServerUtil.getCalHdr() +
+                                                     getCachedVtz(tzid) +
+                                                     TzServerUtil.getCalTlr());
+
+    tz = new TimeZone(vtzFromCal(cal));
+
+
+    timeZones.put(tzid, tz);
+
+    return tz;
   }
 
   /* (non-Javadoc)
    * @see org.bedework.timezones.common.CachedData#getAliasedTimeZone(java.lang.String)
-   */
+   * /
   @Override
   public TimeZone getAliasedTimeZone(final String tzid) throws TzException {
     return aliasedTzs.get(tzid);
-  }
+  }*/
 
   @Override
   public IcalendarType getXTimeZone(final String tzid) throws TzException {
@@ -288,26 +305,22 @@ public abstract class AbstractCachedData implements CachedData {
    *                   protected methods
    * ==================================================================== */
 
+  /**
+   * @param id
+   * @param caldef a tz spec in the form of a CALENDAR component
+   * @param storedDtstamp
+   * @throws TzException
+   */
   protected void processSpec(final String id,
-                             final String tzdef,
+                             final String caldef,
                              final String storedDtstamp) throws TzException {
     try {
-      CalendarBuilder cb = new CalendarBuilder();
-
-      UnfoldingReader ufrdr = new UnfoldingReader(new StringReader(tzdef), true);
-
-      net.fortuna.ical4j.model.Calendar cal = cb.build(ufrdr);
-
-      VTimeZone vtz = (VTimeZone)cal.getComponents().getComponent(Component.VTIMEZONE);
-      if (vtz == null) {
-        throw new Exception("Incorrectly stored timezone");
-      }
-
-      TimeZone tz = new TimeZone(vtz);
+      net.fortuna.ical4j.model.Calendar cal = parseDef(caldef);
 
       nameList.add(id);
 
-      tzs.put(id, tz);
+      VTimeZone vtz = vtzFromCal(cal);
+
       vtzs.put(id, vtz.toString());
 
       /* Now build the XML version */
@@ -361,6 +374,27 @@ public abstract class AbstractCachedData implements CachedData {
     }
   }
 
+  protected net.fortuna.ical4j.model.Calendar parseDef(final String caldef) throws TzException {
+    try {
+      CalendarBuilder cb = new CalendarBuilder();
+
+      UnfoldingReader ufrdr = new UnfoldingReader(new StringReader(caldef), true);
+
+      return cb.build(ufrdr);
+    } catch (Throwable t) {
+      throw new TzException(t);
+    }
+  }
+
+  protected VTimeZone vtzFromCal(final net.fortuna.ical4j.model.Calendar cal) throws TzException {
+    VTimeZone vtz = (VTimeZone)cal.getComponents().getComponent(Component.VTIMEZONE);
+    if (vtz == null) {
+      throw new TzException("Incorrectly stored timezone");
+    }
+
+    return vtz;
+  }
+
   protected void resetTzs() {
     nameList = new TreeSet<String>();
     summaries = new ArrayList<SummaryType>();
@@ -377,7 +411,7 @@ public abstract class AbstractCachedData implements CachedData {
       TzId tzid = avtz.getTimeZoneId();
       tzid.setValue(alias);
 
-      aliasedTzs.put(alias, new TimeZone(avtz));
+//      aliasedTzs.put(alias, new TimeZone(avtz));
       aliasedVtzs.put(alias, avtz.toString());
 
       return avtz;

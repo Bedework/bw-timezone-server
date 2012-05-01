@@ -173,13 +173,14 @@ public interface CachedData extends Serializable {
    */
   TimeZone getTimeZone(final String tzid) throws TzException;
 
-  /** Get an aliased timezone object from the server given the id.
+  /* * Get an aliased timezone object from the server given the id.
    *
    * @param tzid
    * @return TimeZone with id or null
    * @throws TzException
-   */
+   * /
   TimeZone getAliasedTimeZone(final String tzid) throws TzException;
+  */
 
   /** Get a timezone object from the server given the id.
    *
