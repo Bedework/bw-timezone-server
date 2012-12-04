@@ -91,6 +91,10 @@
     <getJar name="jboss-system" version="5.1.0.GA" />
     <getJar name="jboss-system-jmx" version="5.1.0.GA" />
     <getJar name="log4j" version="1.2.8" />
+    <getJar name="jackson-core" version="2.1.1" />
+    <getJar name="jackson-annotations" version="2.1.1" />
+    <getJar name="jackson-databind" version="2.1.1" />
+    
     <getJar name="servlet-api" version="2.4" />
 
     <getJar name="rpiutil" version="${org.bedework.rpiutil.version}" project="rpiutil" 
@@ -103,6 +107,24 @@
     <getJar name="bw-calws-soapschema" 
             version="${org.bedework.bwxml.version}" project="bwxml" 
             projecthome="${bedework.home}/../bwxml" />
+    
+    <!--
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>2.1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <version>2.1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.1.1</version>
+    </dependency>
+    -->
   </target>
 
   <target name="deploy-init" depends="init">

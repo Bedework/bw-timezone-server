@@ -32,6 +32,8 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 
+import edu.rpi.sss.util.servlets.HttpServletUtils;
+
 /** Serve up timezone information. This server is an intermediate step towards
  * a real global timezone service being promoted in CalConnect
  *
@@ -51,7 +53,7 @@ public class TzServer extends HttpServlet
   protected transient Logger log;
 
   @Override
-  public void init(ServletConfig config) throws ServletException {
+  public void init(final ServletConfig config) throws ServletException {
     try {
       super.init(config);
 
@@ -72,8 +74,8 @@ public class TzServer extends HttpServlet
   }
 
   @Override
-  protected void service(HttpServletRequest req,
-                         HttpServletResponse resp) throws ServletException, IOException {
+  protected void service(final HttpServletRequest req,
+                         final HttpServletResponse resp) throws ServletException, IOException {
     try {
       String methodName = req.getMethod();
 
@@ -107,7 +109,7 @@ public class TzServer extends HttpServlet
    * @param req
    */
   @SuppressWarnings("unchecked")
-  public void dumpRequest(HttpServletRequest req) {
+  public void dumpRequest(final HttpServletRequest req) {
     Logger log = getLogger();
 
     try {
@@ -117,11 +119,7 @@ public class TzServer extends HttpServlet
 
       log.debug(title);
 
-      while (names.hasMoreElements()) {
-        String key = names.nextElement();
-        String val = req.getHeader(key);
-        log.debug("  " + key + " = \"" + val + "\"");
-      }
+      HttpServletUtils.dumpHeaders(req, log);
 
       names = req.getParameterNames();
 
@@ -165,7 +163,7 @@ public class TzServer extends HttpServlet
    *
    * @param msg
    */
-  public void debugMsg(String msg) {
+  public void debugMsg(final String msg) {
     getLogger().debug(msg);
   }
 
@@ -173,27 +171,29 @@ public class TzServer extends HttpServlet
    *
    * @param msg
    */
-  public void logIt(String msg) {
+  public void logIt(final String msg) {
     getLogger().info(msg);
   }
 
-  protected void error(String msg) {
+  protected void error(final String msg) {
     getLogger().error(msg);
   }
 
-  protected void error(Throwable t) {
+  protected void error(final Throwable t) {
     getLogger().error(this, t);
   }
 
   /* (non-Javadoc)
    * @see javax.servlet.http.HttpSessionListener#sessionCreated(javax.servlet.http.HttpSessionEvent)
    */
-  public void sessionCreated(HttpSessionEvent se) {
+  @Override
+  public void sessionCreated(final HttpSessionEvent se) {
   }
 
   /* (non-Javadoc)
    * @see javax.servlet.http.HttpSessionListener#sessionDestroyed(javax.servlet.http.HttpSessionEvent)
    */
-  public void sessionDestroyed(HttpSessionEvent se) {
+  @Override
+  public void sessionDestroyed(final HttpSessionEvent se) {
   }
 }

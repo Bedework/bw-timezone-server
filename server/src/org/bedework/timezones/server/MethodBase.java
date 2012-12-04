@@ -22,13 +22,20 @@ import org.bedework.timezones.common.TzServerUtil;
 
 import org.apache.log4j.Logger;
 
+import java.io.OutputStream;
 import java.net.URLDecoder;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 /**
  * @author douglm
@@ -38,6 +45,8 @@ public abstract class MethodBase {
   protected boolean debug;
 
   protected transient Logger log;
+
+  protected ObjectMapper mapper = new ObjectMapper(); // create once, reuse
 
   protected TzServerUtil util;
 
@@ -49,6 +58,16 @@ public abstract class MethodBase {
     this.debug = debug;
 
     try {
+      if (debug) {
+        mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+      }
+
+      DateFormat df = new SimpleDateFormat("yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'");
+
+      mapper.setDateFormat(df);
+
+      mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
       util = TzServerUtil.getInstance();
     } catch (Throwable t) {
       throw new ServletException(t);
@@ -171,6 +190,19 @@ public abstract class MethodBase {
     }
 
     return sb.toString();
+  }
+
+  /** ===================================================================
+   *                   Json methods
+   *  =================================================================== */
+
+  protected void writeJson(final OutputStream out,
+                           final Object val) throws ServletException {
+    try {
+      mapper.writeValue(out, val);
+    } catch (Throwable t) {
+      throw new ServletException(t);
+    }
   }
 
   /** ===================================================================

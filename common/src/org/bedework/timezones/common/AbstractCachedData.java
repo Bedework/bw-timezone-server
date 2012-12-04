@@ -18,6 +18,12 @@
 */
 package org.bedework.timezones.common;
 
+import edu.rpi.cmt.calendar.IcalToXcal;
+import edu.rpi.cmt.calendar.XcalUtil;
+import edu.rpi.cmt.timezones.model.TimezoneType;
+import edu.rpi.sss.util.DateTimeUtil;
+import edu.rpi.sss.util.FlushMap;
+
 import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.data.UnfoldingReader;
 import net.fortuna.ical4j.model.Component;
@@ -29,8 +35,6 @@ import net.fortuna.ical4j.model.property.TzId;
 import org.apache.log4j.Logger;
 
 import ietf.params.xml.ns.icalendar_2.IcalendarType;
-import ietf.params.xml.ns.timezone_service.AliasType;
-import ietf.params.xml.ns.timezone_service.SummaryType;
 
 import java.io.StringReader;
 import java.sql.Timestamp;
@@ -42,10 +46,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
-import edu.rpi.cmt.calendar.IcalToXcal;
-import edu.rpi.cmt.calendar.XcalUtil;
-import edu.rpi.sss.util.FlushMap;
 
 /** Abstract class to help simplify implementation
  *
@@ -61,7 +61,7 @@ public abstract class AbstractCachedData implements CachedData {
   /** When we were created for debugging */
   protected Timestamp objTimestamp;
 
-  /** dtstamp for the data */
+  /** XML formatted UTC dtstamp (i.e. separators) for the data */
   protected String dtstamp;
 
   private Map<String, String> vtzs = new HashMap<String, String>();
@@ -97,7 +97,7 @@ public abstract class AbstractCachedData implements CachedData {
 
   protected AliasMaps aliasMaps;
 
-  private List<SummaryType> summaries;
+  private List<TimezoneType> timezones;
 
   /**
    * @param msgPrefix - for messages
@@ -257,20 +257,20 @@ public abstract class AbstractCachedData implements CachedData {
    * @see org.bedework.timezones.common.CachedData#getSummaries(java.lang.String)
    */
   @Override
-  public List<SummaryType> getSummaries(final String changedSince) throws TzException {
+  public List<TimezoneType> getTimezones(final String changedSince) throws TzException {
     if (changedSince == null) {
-      return summaries;
+      return timezones;
     }
 
-    List<SummaryType> ss = new ArrayList<SummaryType>();
+    List<TimezoneType> ss = new ArrayList<TimezoneType>();
 
-    for (SummaryType sum: summaries) {
-      if (sum.getLastModified() == null) {
-        ss.add(sum);
+    for (TimezoneType tz: timezones) {
+      if (tz.getLastModified() == null) {
+        ss.add(tz);
         continue;
       }
 
-      String lm = sum.getLastModified().toXMLFormat();
+      String lm = DateTimeUtil.rfcDateTimeUTC(tz.getLastModified());
 
       /*
        * cs > lm +
@@ -279,7 +279,7 @@ public abstract class AbstractCachedData implements CachedData {
        */
 
       if (changedSince.compareTo(lm) < 0) {
-        ss.add(sum);
+        ss.add(tz);
       }
     }
 
@@ -287,14 +287,14 @@ public abstract class AbstractCachedData implements CachedData {
   }
 
   @Override
-  public List<SummaryType> findSummaries(final String name) throws TzException {
-    List<SummaryType> sums = new ArrayList<SummaryType>();
+  public List<TimezoneType> findTimezones(final String name) throws TzException {
+    List<TimezoneType> sums = new ArrayList<TimezoneType>();
 
     List<String> ids = findIds(name);
 
-    for (SummaryType sum: summaries) {
-      if (ids.contains(sum.getTzid())) {
-        sums.add(sum);
+    for (TimezoneType tz: timezones) {
+      if (ids.contains(tz.getTzid())) {
+        sums.add(tz);
       }
     }
 
@@ -330,17 +330,17 @@ public abstract class AbstractCachedData implements CachedData {
       xtzs.put(id, xcal);
 
       /* ================== Build summary info ======================== */
-      SummaryType st = new SummaryType();
+      TimezoneType tz = new TimezoneType();
 
-      st.setTzid(id);
+      tz.setTzid(id);
 
       LastModified lm = vtz.getLastModified();
       if (lm!= null) {
-        st.setLastModified(XcalUtil.getXMlUTCCal(lm.getValue()));
+        tz.setLastModified(DateTimeUtil.fromRfcDateTimeUTC(lm.getValue()));
       } else if (storedDtstamp != null) {
-        st.setLastModified(XcalUtil.getXMlUTCCal(storedDtstamp));
+        tz.setLastModified(DateTimeUtil.fromRfcDateTimeUTC(XcalUtil.getXmlFormatDateTime(storedDtstamp)));
       } else {
-        st.setLastModified(XcalUtil.getXMlUTCCal(dtstamp));
+        tz.setLastModified(DateTimeUtil.fromRfcDateTimeUTC(dtstamp));
       }
 
       SortedSet<String> aliases = findAliases(id);
@@ -349,11 +349,10 @@ public abstract class AbstractCachedData implements CachedData {
       //String ln = vtz.
       if (aliases != null) {
         for (String a: aliases) {
-          AliasType at = new AliasType();
-
-          // XXX Need locale as well as name
-          at.setValue(a);
-          st.getAlias().add(at);
+          if (tz.getAliases() == null) {
+            tz.setAliases(new ArrayList<String>());
+          }
+          tz.getAliases().add(a);
 
           VTimeZone avtz = addAlias(a, vtz);
 
@@ -366,7 +365,7 @@ public abstract class AbstractCachedData implements CachedData {
         }
       }
 
-      summaries.add(st);
+      timezones.add(tz);
     } catch (TzException te) {
       throw te;
     } catch (Throwable t) {
@@ -397,7 +396,7 @@ public abstract class AbstractCachedData implements CachedData {
 
   protected void resetTzs() {
     nameList = new TreeSet<String>();
-    summaries = new ArrayList<SummaryType>();
+    timezones = new ArrayList<TimezoneType>();
   }
 
   /* Construct a new vtimezone with the alias as id and then

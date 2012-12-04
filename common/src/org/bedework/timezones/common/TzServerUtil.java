@@ -27,18 +27,12 @@ import net.fortuna.ical4j.model.TimeZone;
 import net.fortuna.ical4j.model.UtcOffset;
 import net.fortuna.ical4j.model.component.Observance;
 import net.fortuna.ical4j.model.component.VTimeZone;
-import net.fortuna.ical4j.model.property.DtStamp;
 import net.fortuna.ical4j.util.TimeZones;
 
 import org.bedework.timezones.common.Differ.DiffListEntry;
 import org.bedework.timezones.common.db.DbCachedData;
 
 import org.apache.log4j.Logger;
-
-import ietf.params.xml.ns.timezone_service.ObservanceType;
-import ietf.params.xml.ns.timezone_service.SummaryType;
-import ietf.params.xml.ns.timezone_service.TimezonesType;
-import ietf.params.xml.ns.timezone_service.TzdataType;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -54,7 +48,10 @@ import java.util.TreeSet;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import edu.rpi.cmt.calendar.XcalUtil;
+import edu.rpi.cmt.timezones.model.ObservanceType;
+import edu.rpi.cmt.timezones.model.TimezoneType;
+import edu.rpi.cmt.timezones.model.TimezonesType;
+import edu.rpi.cmt.timezones.model.TzdataType;
 import edu.rpi.sss.util.DateTimeUtil;
 
 /** Common code for the timezone service.
@@ -100,7 +97,7 @@ public class TzServerUtil {
   /** Time we last fetched the data */
   public static long lastDataFetch;
 
-  static XMLGregorianCalendar dtstamp;
+  static Date dtstamp;
 
   /**
    * @throws TzException
@@ -393,20 +390,18 @@ public class TzServerUtil {
    * @return the data dtsamp
    * @throws TzException
    */
-  public XMLGregorianCalendar getDtstamp() throws TzException {
+  public Date getDtstamp() throws TzException {
     if (dtstamp == null) {
       String dtst = cache.getDtstamp();
 
       if (dtst == null) {
-        DtStamp dt =  new DtStamp(new DateTime(lastDataFetch));
-
-        dtst = dt.getValue();
-      }
-
-      try {
-        dtstamp = XcalUtil.fromDtval(dtst);
-      } catch (Throwable t) {
-        throw new TzException(t);
+        dtstamp =  new DateTime(lastDataFetch);
+      } else {
+        try {
+          dtstamp = DateTimeUtil.fromRfcDateTimeUTC(dtst);
+        } catch (Throwable t) {
+          throw new TzException(t);
+        }
       }
     }
 
@@ -566,8 +561,8 @@ public class TzServerUtil {
    * @return list of summary info
    * @throws TzException
    */
-  public List<SummaryType> getSummaries(final String changedSince) throws TzException {
-    return cache.getSummaries(changedSince);
+  public List<TimezoneType> getTimezones(final String changedSince) throws TzException {
+    return cache.getTimezones(changedSince);
   }
 
   /**
@@ -575,8 +570,8 @@ public class TzServerUtil {
    * @return list of summary info
    * @throws TzException
    */
-  public List<SummaryType> findSummaries(final String name) throws TzException {
-    return cache.findSummaries(name);
+  public List<TimezoneType> findTimezones(final String name) throws TzException {
+    return cache.findTimezones(name);
   }
 
   private static class ObservanceWrapper implements Comparable<ObservanceWrapper> {
@@ -588,7 +583,7 @@ public class TzServerUtil {
 
     @Override
     public int compareTo(final ObservanceWrapper o) {
-      return ot.getOnset().toXMLFormat().compareTo(o.ot.getOnset().toXMLFormat());
+      return ot.getOnset().compareTo(o.ot.getOnset());
     }
   }
 
@@ -644,7 +639,7 @@ public class TzServerUtil {
         ObservanceType ot = new ObservanceType();
 
         ot.setName(ob.getName());
-        ot.setOnset(XcalUtil.fromDtval(onsetPer.getStart().toString()));
+        ot.setOnset(onsetPer.getStart().toString());
 
         ot.setUtcOffsetFrom(delimited(ob.getOffsetFrom().getOffset()));
 
@@ -658,7 +653,7 @@ public class TzServerUtil {
 
     tzd.setTzid(tzid);
     for (ObservanceWrapper ow: obws) {
-      tzd.getObservance().add(ow.ot);
+      tzd.getObservances().add(ow.ot);
     }
 
     TimezonesType tzt = new TimezonesType();
@@ -742,7 +737,7 @@ public class TzServerUtil {
     StringBuilder val = new StringBuilder();
 
     val.append("\"");
-    val.append(getDtstamp().toXMLFormat());
+    val.append(DateTimeUtil.rfcDateTimeUTC(getDtstamp()));
     val.append("\"");
 
     return val.toString();

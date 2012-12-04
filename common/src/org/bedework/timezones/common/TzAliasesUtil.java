@@ -20,13 +20,6 @@ package org.bedework.timezones.common;
 
 import org.apache.log4j.Logger;
 
-import ietf.params.xml.ns.timezone_service.AliasType;
-import ietf.params.xml.ns.timezone_service_aliases.AliasInfoType;
-import ietf.params.xml.ns.timezone_service_aliases.ArrayOfAliasInfoType;
-import ietf.params.xml.ns.timezone_service_aliases.ArrayOfTimezoneAliasInfoType;
-import ietf.params.xml.ns.timezone_service_aliases.TimezoneAliasInfoType;
-import ietf.params.xml.ns.timezone_service_aliases.TimezonesAliasInfoType;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -43,6 +36,11 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 
+import edu.rpi.cmt.timezones.model.aliases.AliasInfoType;
+import edu.rpi.cmt.timezones.model.aliases.ArrayOfAliasInfoType;
+import edu.rpi.cmt.timezones.model.aliases.ArrayOfTimezoneAliasInfoType;
+import edu.rpi.cmt.timezones.model.aliases.TimezoneAliasInfoType;
+import edu.rpi.cmt.timezones.model.aliases.TimezonesAliasInfoType;
 import edu.rpi.sss.util.Args;
 
 /** Common code for timezones.
@@ -262,7 +260,7 @@ public class TzAliasesUtil {
     }
 
     for (AliasInfoType ai: aai.getAliasInfo()) {
-      if (ai.getAlias().getValue().equals(alias)) {
+      if (ai.getAlias().equals(alias)) {
         // Already there
         return;
       }
@@ -272,11 +270,7 @@ public class TzAliasesUtil {
     AliasInfoType ai = new AliasInfoType();
     aai.getAliasInfo().add(ai);
 
-    AliasType a = new AliasType();
-
-    a.setValue(alias);
-
-    ai.setAlias(a);
+    ai.setAlias(alias);
     ai.setSource(currentURIStr);
   }
 

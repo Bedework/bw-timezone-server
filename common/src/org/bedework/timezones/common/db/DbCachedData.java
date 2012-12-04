@@ -29,11 +29,6 @@ import org.bedework.timezones.common.ZipCachedData;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
-import ietf.params.xml.ns.timezone_service.AliasType;
-import ietf.params.xml.ns.timezone_service.LocalNameType;
-import ietf.params.xml.ns.timezone_service.SummaryType;
-import ietf.params.xml.ns.timezone_service.TimezoneListType;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,6 +41,10 @@ import edu.rpi.cmt.timezones.Timezones;
 import edu.rpi.cmt.timezones.Timezones.TaggedTimeZone;
 import edu.rpi.cmt.timezones.Timezones.TzUnknownHostException;
 import edu.rpi.cmt.timezones.TimezonesImpl;
+import edu.rpi.cmt.timezones.model.LocalNameType;
+import edu.rpi.cmt.timezones.model.TimezoneListType;
+import edu.rpi.cmt.timezones.model.TimezoneType;
+import edu.rpi.sss.util.DateTimeUtil;
 import edu.rpi.sss.util.Util;
 
 /** Cached timezone data in a database.
@@ -727,7 +726,7 @@ public class DbCachedData extends AbstractCachedData {
         return null;
       }
 
-      String svrCs = tzl.getDtstamp().toXMLFormat();
+      String svrCs = DateTimeUtil.rfcDateTimeUTC(tzl.getDtstamp());
 
       if ((changedSince == null) ||
                  !svrCs.equals(changedSince)) {
@@ -737,7 +736,7 @@ public class DbCachedData extends AbstractCachedData {
       }
 
       primaryFetches++;
-      lastFetchCt = tzl.getSummary().size();
+      lastFetchCt = tzl.getTimezones().size();
 
       String isAre = "are";
       String theS = "s";
@@ -757,7 +756,7 @@ public class DbCachedData extends AbstractCachedData {
 
       AliasMaps amaps = buildAliasMaps();
 
-      for (SummaryType sum: tzl.getSummary()) {
+      for (TimezoneType sum: tzl.getTimezones()) {
         String id = sum.getTzid();
         if (debug) {
           trace("Updating timezone " + id);
@@ -786,12 +785,12 @@ public class DbCachedData extends AbstractCachedData {
 
         dbspec.setName(id);
         dbspec.setEtag(ttz.etag);
-        dbspec.setDtstamp(sum.getLastModified().toXMLFormat());
+        dbspec.setDtstamp(DateTimeUtil.rfcDateTimeUTC(sum.getLastModified()));
         dbspec.setSource(primaryUrl);
         dbspec.setActive(true);
         dbspec.setVtimezone(ttz.vtz);
 
-        if (sum.getLocalName().size() > 0) {
+        if (!Util.isEmpty(sum.getLocalNames())) {
           Set<LocalizedString> dns = new TreeSet<LocalizedString>();
 
           if (add) {
@@ -801,7 +800,8 @@ public class DbCachedData extends AbstractCachedData {
             dns = dbspec.getDisplayNames();
             dns.clear(); // XXX not good - forces delete and recreate
           }
-          for (LocalNameType ln: sum.getLocalName()) {
+
+          for (LocalNameType ln: sum.getLocalNames()) {
             LocalizedString ls = new LocalizedString(ln.getLang(), ln.getValue());
 
             dns.add(ls);
@@ -816,13 +816,13 @@ public class DbCachedData extends AbstractCachedData {
 
         SortedSet<String> aliases = amaps.byTzid.get(id);
 
-        for (AliasType a: sum.getAlias()) {
-          String alias = amaps.byAlias.get(a.getValue());
+        for (String a: sum.getAliases()) {
+          String alias = amaps.byAlias.get(a);
 
           if (alias == null) {
             TzAlias tza = new TzAlias();
 
-            tza.setFromId(a.getValue());
+            tza.setFromId(a);
             tza.setToId(id);
 
             addTzAlias(tza);
@@ -831,7 +831,7 @@ public class DbCachedData extends AbstractCachedData {
           }
 
           if (aliases != null) {
-            aliases.remove(a.getValue());
+            aliases.remove(a);
           }
         }
 
@@ -942,21 +942,21 @@ public class DbCachedData extends AbstractCachedData {
 
       addTzInfo(dbi);
 
-      List<SummaryType> sums = z.getSummaries(null);
+      List<TimezoneType> tzs = z.getTimezones(null);
 
       if (debug) {
-        trace("Initial load has " + sums.size() + " timezones");
+        trace("Initial load has " + tzs.size() + " timezones");
       }
 
       int ct = 0;
 
-      for (SummaryType sum: sums) {
-        if (sum.getAlias() != null) {
-          for (AliasType at: sum.getAlias()) {
+      for (TimezoneType tz: tzs) {
+        if (tz.getAliases() != null) {
+          for (String a: tz.getAliases()) {
             TzAlias alias = new TzAlias();
 
-            alias.setFromId(at.getValue());
-            alias.setToId(sum.getTzid());
+            alias.setFromId(a);
+            alias.setToId(tz.getTzid());
 
             addTzAlias(alias);
           }
@@ -964,13 +964,13 @@ public class DbCachedData extends AbstractCachedData {
 
         TzDbSpec spec = new TzDbSpec();
 
-        spec.setName(sum.getTzid());
+        spec.setName(tz.getTzid());
 
         spec.setVtimezone(TzServerUtil.getCalHdr() +
-                          z.getCachedVtz(sum.getTzid()) +
+                          z.getCachedVtz(tz.getTzid()) +
                           TzServerUtil.getCalTlr());
         if (spec.getVtimezone() == null) {
-          error("No timezone spec for " + sum.getTzid());
+          error("No timezone spec for " + tz.getTzid());
         }
 
         spec.setDtstamp(z.getDtstamp());

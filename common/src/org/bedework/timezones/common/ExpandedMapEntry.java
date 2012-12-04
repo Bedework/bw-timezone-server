@@ -18,9 +18,8 @@
 */
 package org.bedework.timezones.common;
 
-import ietf.params.xml.ns.timezone_service.ObservanceType;
-import ietf.params.xml.ns.timezone_service.TimezonesType;
-import ietf.params.xml.ns.timezone_service.TzdataType;
+import edu.rpi.cmt.timezones.model.TimezonesType;
+import edu.rpi.sss.util.ToString;
 
 /** Allows us to cache expansions
  *
@@ -56,33 +55,12 @@ public class ExpandedMapEntry {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder(getClass().getSimpleName()).append("{");
+    ToString ts = new ToString(this);
 
-    sb.append(", etag=");
-    sb.append(getEtag());
-    sb.append(",\n   tzs=TimezonesType{");
-    sb.append(", dtstamp=");
-    sb.append(tzs.getDtstamp().toXMLFormat());
+    ts.append("etag=", getEtag());
+    ts.newLine();
+    ts.append("tzs", tzs.toString());
 
-    for (TzdataType tzd: tzs.getTzdata()){
-      sb.append(",\n       TzdataType{tzid=");
-      sb.append(tzd.getTzid());
-
-      for (ObservanceType ot: tzd.getObservance()) {
-        sb.append(",\n      {name=");
-        sb.append(ot.getName());
-        sb.append(", onset=");
-        sb.append(ot.getOnset().toXMLFormat());
-        sb.append(", offset-from=");
-        sb.append(ot.getUtcOffsetFrom());
-        sb.append(", offset-to=");
-        sb.append(ot.getUtcOffsetTo());
-        sb.append("}");
-      }
-    }
-
-    sb.append("}");
-
-    return sb.toString();
+    return ts.toString();
   }
 }

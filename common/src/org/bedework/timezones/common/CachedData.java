@@ -23,12 +23,13 @@ import net.fortuna.ical4j.model.TimeZone;
 import org.bedework.timezones.common.Differ.DiffListEntry;
 
 import ietf.params.xml.ns.icalendar_2.IcalendarType;
-import ietf.params.xml.ns.timezone_service.SummaryType;
 
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.SortedSet;
+
+import edu.rpi.cmt.timezones.model.TimezoneType;
 
 /** Cached data affected by the source data.
  *
@@ -211,12 +212,12 @@ public interface CachedData extends Serializable {
    * @return list of summary info
    * @throws TzException
    */
-  List<SummaryType> getSummaries(String changedSince) throws TzException;
+  List<TimezoneType> getTimezones(String changedSince) throws TzException;
 
   /**
    * @param name to be partially matched
    * @return list of matching summary info
    * @throws TzException
    */
-  List<SummaryType> findSummaries(String name) throws TzException;
+  List<TimezoneType> findTimezones(String name) throws TzException;
 }

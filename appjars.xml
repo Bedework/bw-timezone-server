@@ -30,14 +30,21 @@
 
       <getJar lib="${org.bedework.temp.extrajars.dir}"
               libcache="${org.bedework.libcache.dir}"
-              name="bw-tzschema" version="${org.bedework.bwxml.version}"
-              projecthome="${project.home}/../bwxml" />
-
-      <getJar lib="${org.bedework.temp.extrajars.dir}"
-              libcache="${org.bedework.libcache.dir}"
               name="bw-calws-soapschema" 
               version="${org.bedework.bwxml.version}"  
               projecthome="${project.home}/../bwxml" />
+
+      <!-- ======================== json jars ============================== -->
+      
+      <getJar lib="${org.bedework.temp.extrajars.dir}"
+              libcache="${org.bedework.libcache.dir}"
+              name="jackson-core" version="2.1.1" />
+      <getJar lib="${org.bedework.temp.extrajars.dir}"
+              libcache="${org.bedework.libcache.dir}"
+              name="jackson-annotations" version="2.1.1" />
+      <getJar lib="${org.bedework.temp.extrajars.dir}"
+              libcache="${org.bedework.libcache.dir}"
+              name="jackson-databind" version="2.1.1" />
 
       <!-- ====================== Bedework jars ============================ -->
       
