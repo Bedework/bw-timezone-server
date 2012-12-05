@@ -18,6 +18,11 @@
 */
 package org.bedework.timezones.common;
 
+import edu.rpi.cmt.timezones.model.aliases.AliasInfoType;
+import edu.rpi.cmt.timezones.model.aliases.TimezoneAliasInfoType;
+import edu.rpi.cmt.timezones.model.aliases.TimezonesAliasInfoType;
+import edu.rpi.sss.util.Args;
+
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -26,7 +31,9 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -35,13 +42,6 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
-
-import edu.rpi.cmt.timezones.model.aliases.AliasInfoType;
-import edu.rpi.cmt.timezones.model.aliases.ArrayOfAliasInfoType;
-import edu.rpi.cmt.timezones.model.aliases.ArrayOfTimezoneAliasInfoType;
-import edu.rpi.cmt.timezones.model.aliases.TimezoneAliasInfoType;
-import edu.rpi.cmt.timezones.model.aliases.TimezonesAliasInfoType;
-import edu.rpi.sss.util.Args;
 
 /** Common code for timezones.
  *
@@ -87,9 +87,9 @@ public class TzAliasesUtil {
       tzsaires = new TimezonesAliasInfoType();
     }
 
-    ArrayOfTimezoneAliasInfoType atai = tzsaires.getTimezoneAliasInfo();
+    List<TimezoneAliasInfoType> atai = tzsaires.getTimezoneAliasInfo();
     if (atai == null) {
-      atai = new ArrayOfTimezoneAliasInfoType();
+      atai = new ArrayList<TimezoneAliasInfoType>();
       tzsaires.setTimezoneAliasInfo(atai);
     }
 
@@ -106,7 +106,7 @@ public class TzAliasesUtil {
         tai = new TimezoneAliasInfoType();
         tai.setTzid(tzid);
         tzmap.put(tzid, tai);
-        atai.getTimezoneAliasInfo().add(tai);
+        atai.add(tai);
       }
 
       addAlias(tai, tzid, alias);
@@ -238,11 +238,15 @@ public class TzAliasesUtil {
     System.out.println("");
   }
 
-  private Map<String, TimezoneAliasInfoType> getTzMap(final ArrayOfTimezoneAliasInfoType atai) {
+  private Map<String, TimezoneAliasInfoType> getTzMap(final List<TimezoneAliasInfoType> atai) {
     Map<String, TimezoneAliasInfoType> tzmap =
         new HashMap<String, TimezoneAliasInfoType>();
 
-    for (TimezoneAliasInfoType tai: atai.getTimezoneAliasInfo()) {
+    if (atai == null) {
+      return tzmap;
+    }
+
+    for (TimezoneAliasInfoType tai: atai) {
       tzmap.put(tai.getTzid(), tai);
     }
 
@@ -252,14 +256,14 @@ public class TzAliasesUtil {
   private void addAlias(final TimezoneAliasInfoType tai,
                         final String tzid,
                         final String alias) {
-    ArrayOfAliasInfoType aai = tai.getAliases();
+    List<AliasInfoType> aai = tai.getAliases();
 
     if (aai == null) {
-      aai = new ArrayOfAliasInfoType();
+      aai = new ArrayList<AliasInfoType>();
       tai.setAliases(aai);
     }
 
-    for (AliasInfoType ai: aai.getAliasInfo()) {
+    for (AliasInfoType ai: aai) {
       if (ai.getAlias().equals(alias)) {
         // Already there
         return;
@@ -268,7 +272,7 @@ public class TzAliasesUtil {
 
     // Not found
     AliasInfoType ai = new AliasInfoType();
-    aai.getAliasInfo().add(ai);
+    aai.add(ai);
 
     ai.setAlias(alias);
     ai.setSource(currentURIStr);

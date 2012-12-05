@@ -204,8 +204,7 @@ public class GetMethod extends MethodBase {
                                 final CapabilitiesAcceptParameterType... pars) {
     CapabilitiesActionType cot = new CapabilitiesActionType();
 
-    cot.setAction(action);
-    cot.setDescription(description);
+    cot.setName(action);
 
     if (pars != null) {
       for (CapabilitiesAcceptParameterType par: pars) {
@@ -227,7 +226,6 @@ public class GetMethod extends MethodBase {
     capt.setRequired(required);
     capt.setMulti(multi);
     capt.setValue(value);
-    capt.setDescription(description);
 
     return capt;
   }
