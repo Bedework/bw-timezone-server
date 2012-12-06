@@ -20,6 +20,8 @@ package org.bedework.timezones.common;
 
 import org.bedework.timezones.common.Differ.DiffListEntry;
 
+import edu.rpi.cmt.calendar.XcalUtil;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -154,7 +156,7 @@ public class ZipCachedData  extends AbstractCachedData {
 
       for (String s: infoLines) {
         if (s.startsWith("buildTime=")) {
-          dtstamp = s.substring("buildTime=".length());
+          dtstamp = XcalUtil.getXmlFormatDateTime(s.substring("buildTime=".length()));
         }
       }
 
