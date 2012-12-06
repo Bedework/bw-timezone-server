@@ -26,6 +26,7 @@ import org.bedework.timezones.common.TzException;
 import org.bedework.timezones.common.TzServerUtil;
 import org.bedework.timezones.common.ZipCachedData;
 
+import edu.rpi.cmt.calendar.XcalUtil;
 import edu.rpi.cmt.timezones.Timezones;
 import edu.rpi.cmt.timezones.Timezones.TaggedTimeZone;
 import edu.rpi.cmt.timezones.TimezonesImpl;
@@ -1101,7 +1102,14 @@ public class DbCachedData extends AbstractCachedData {
       List<TzDbSpec> specs = sess.getList();
 
       for (TzDbSpec spec: specs) {
-        processSpec(spec.getName(), spec.getVtimezone(), spec.getDtstamp());
+        String dt = spec.getDtstamp();
+        if (!dt.endsWith("Z")) {
+          // Pretend it's UTC
+          dt += "Z";
+        }
+
+        processSpec(spec.getName(), spec.getVtimezone(),
+                    XcalUtil.getXmlFormatDateTime(dt));
       }
     } catch (TzException te) {
       throw te;

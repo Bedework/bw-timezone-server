@@ -19,7 +19,6 @@
 package org.bedework.timezones.common;
 
 import edu.rpi.cmt.calendar.IcalToXcal;
-import edu.rpi.cmt.calendar.XcalUtil;
 import edu.rpi.cmt.timezones.model.TimezoneType;
 import edu.rpi.sss.util.DateTimeUtil;
 import edu.rpi.sss.util.FlushMap;
@@ -338,7 +337,7 @@ public abstract class AbstractCachedData implements CachedData {
       if (lm!= null) {
         tz.setLastModified(DateTimeUtil.fromRfcDateTimeUTC(lm.getValue()));
       } else if (storedDtstamp != null) {
-        tz.setLastModified(DateTimeUtil.fromRfcDateTimeUTC(XcalUtil.getXmlFormatDateTime(storedDtstamp)));
+        tz.setLastModified(DateTimeUtil.fromRfcDateTimeUTC(storedDtstamp));
       } else {
         tz.setLastModified(DateTimeUtil.fromRfcDateTimeUTC(dtstamp));
       }
