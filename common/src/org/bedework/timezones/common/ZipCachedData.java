@@ -156,7 +156,12 @@ public class ZipCachedData  extends AbstractCachedData {
 
       for (String s: infoLines) {
         if (s.startsWith("buildTime=")) {
-          dtstamp = XcalUtil.getXmlFormatDateTime(s.substring("buildTime=".length()));
+          String bt = s.substring("buildTime=".length());
+          if (!bt.endsWith("Z")) {
+            // Pretend it's UTC
+            bt += "Z";
+          }
+          dtstamp = XcalUtil.getXmlFormatDateTime(bt);
         }
       }
 
