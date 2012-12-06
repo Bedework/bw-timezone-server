@@ -26,6 +26,16 @@ import org.bedework.timezones.common.TzException;
 import org.bedework.timezones.common.TzServerUtil;
 import org.bedework.timezones.common.ZipCachedData;
 
+import edu.rpi.cmt.timezones.Timezones;
+import edu.rpi.cmt.timezones.Timezones.TaggedTimeZone;
+import edu.rpi.cmt.timezones.TimezonesImpl;
+import edu.rpi.cmt.timezones.TzUnknownHostException;
+import edu.rpi.cmt.timezones.model.LocalNameType;
+import edu.rpi.cmt.timezones.model.TimezoneListType;
+import edu.rpi.cmt.timezones.model.TimezoneType;
+import edu.rpi.sss.util.DateTimeUtil;
+import edu.rpi.sss.util.Util;
+
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
@@ -36,16 +46,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
-import edu.rpi.cmt.timezones.Timezones;
-import edu.rpi.cmt.timezones.Timezones.TaggedTimeZone;
-import edu.rpi.cmt.timezones.Timezones.TzUnknownHostException;
-import edu.rpi.cmt.timezones.TimezonesImpl;
-import edu.rpi.cmt.timezones.model.LocalNameType;
-import edu.rpi.cmt.timezones.model.TimezoneListType;
-import edu.rpi.cmt.timezones.model.TimezoneType;
-import edu.rpi.sss.util.DateTimeUtil;
-import edu.rpi.sss.util.Util;
 
 /** Cached timezone data in a database.
  *

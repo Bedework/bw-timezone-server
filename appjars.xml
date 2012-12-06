@@ -72,11 +72,11 @@
       
       <getJar lib="${org.bedework.temp.extrajars.dir}"
               libcache="${org.bedework.libcache.dir}"
-              name="httpclient" version="4.1.2"/>
+              name="httpclient" version="4.2.2"/>
       
       <getJar lib="${org.bedework.temp.extrajars.dir}"
               libcache="${org.bedework.libcache.dir}"
-              name="httpcore" version="4.1.2"/>
+              name="httpcore" version="4.2.1"/>
 
       <!-- ======================= Hibernate jars ========================== -->
       
