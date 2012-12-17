@@ -18,6 +18,15 @@
 */
 package org.bedework.timezones.common;
 
+import org.bedework.timezones.common.Differ.DiffListEntry;
+import org.bedework.timezones.common.db.DbCachedData;
+
+import edu.rpi.cmt.timezones.model.ObservanceType;
+import edu.rpi.cmt.timezones.model.TimezoneType;
+import edu.rpi.cmt.timezones.model.TimezonesType;
+import edu.rpi.cmt.timezones.model.TzdataType;
+import edu.rpi.sss.util.DateTimeUtil;
+
 import net.fortuna.ical4j.model.ComponentList;
 import net.fortuna.ical4j.model.DateTime;
 import net.fortuna.ical4j.model.Dur;
@@ -28,9 +37,6 @@ import net.fortuna.ical4j.model.UtcOffset;
 import net.fortuna.ical4j.model.component.Observance;
 import net.fortuna.ical4j.model.component.VTimeZone;
 import net.fortuna.ical4j.util.TimeZones;
-
-import org.bedework.timezones.common.Differ.DiffListEntry;
-import org.bedework.timezones.common.db.DbCachedData;
 
 import org.apache.log4j.Logger;
 
@@ -47,12 +53,6 @@ import java.util.TreeSet;
 
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import edu.rpi.cmt.timezones.model.ObservanceType;
-import edu.rpi.cmt.timezones.model.TimezoneType;
-import edu.rpi.cmt.timezones.model.TimezonesType;
-import edu.rpi.cmt.timezones.model.TzdataType;
-import edu.rpi.sss.util.DateTimeUtil;
 
 /** Common code for the timezone service.
  *
@@ -96,8 +96,6 @@ public class TzServerUtil {
 
   /** Time we last fetched the data */
   public static long lastDataFetch;
-
-  static Date dtstamp;
 
   /**
    * @throws TzException
@@ -391,17 +389,16 @@ public class TzServerUtil {
    * @throws TzException
    */
   public Date getDtstamp() throws TzException {
-    if (dtstamp == null) {
-      String dtst = cache.getDtstamp();
+    String dtst = cache.getDtstamp();
+    Date dtstamp;
 
-      if (dtst == null) {
-        dtstamp =  new DateTime(lastDataFetch);
-      } else {
-        try {
-          dtstamp = DateTimeUtil.fromRfcDateTimeUTC(dtst);
-        } catch (Throwable t) {
-          throw new TzException(t);
-        }
+    if (dtst == null) {
+      dtstamp = new DateTime(lastDataFetch);
+    } else {
+      try {
+        dtstamp = DateTimeUtil.fromRfcDateTimeUTC(dtst);
+      } catch (Throwable t) {
+        throw new TzException(t);
       }
     }
 

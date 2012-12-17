@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="common/src"/>
+	<classpathentry kind="src" path="tzdata/src"/>
 	<classpathentry kind="src" path="server/src"/>
 	<classpathentry kind="src" path="service/src"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.8.jar"/>

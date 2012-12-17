@@ -20,6 +20,8 @@ package org.bedework.timezones.server;
 
 import org.bedework.timezones.common.TzServerUtil;
 
+import edu.rpi.cmt.timezones.model.ErrorResponseType;
+
 import org.apache.log4j.Logger;
 
 import java.io.OutputStream;
@@ -42,6 +44,33 @@ import com.fasterxml.jackson.databind.SerializationFeature;
  *
  */
 public abstract class MethodBase {
+  protected static final ErrorResponseType invalidTzid =
+      new ErrorResponseType("invalid-tzid",
+                            "The \"tzid\" query parameter is not present, or" +
+                            " appears more than once.");
+
+  protected static final ErrorResponseType missingTzid =
+      new ErrorResponseType("missing-tzid",
+                            "The \"tzid\" query parameter value does not map " +
+                            "to a timezone identifier known to the server.");
+
+  protected static final ErrorResponseType invalidStart =
+      new ErrorResponseType("invalid-start",
+                            "The \"start\" query parameter has an incorrect" +
+                            " value, or appears more than once.");
+
+  protected static final ErrorResponseType invalidEnd =
+      new ErrorResponseType("invalid-end",
+                            "The \"end\" query parameter has an incorrect " +
+                            "value, or appears more than once, or has a value" +
+                            " less than our equal to the \"start\" query " +
+                            "parameter.");
+
+  protected static final ErrorResponseType invalidChangedsince =
+      new ErrorResponseType("invalid-changedsince",
+                            "The \"changedsince\" query parameter has an " +
+                            "incorrect value, or appears more than once.");
+
   protected boolean debug;
 
   protected transient Logger log;

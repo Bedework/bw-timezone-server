@@ -24,6 +24,7 @@ import org.bedework.timezones.common.TzServerUtil;
 
 import edu.rpi.cmt.timezones.model.CapabilitiesAcceptParameterType;
 import edu.rpi.cmt.timezones.model.CapabilitiesActionType;
+import edu.rpi.cmt.timezones.model.CapabilitiesInfoType;
 import edu.rpi.cmt.timezones.model.CapabilitiesType;
 import edu.rpi.cmt.timezones.model.TimezoneListType;
 import edu.rpi.cmt.timezones.model.TimezoneType;
@@ -49,6 +50,8 @@ public class GetMethod extends MethodBase {
   static final CapabilitiesType capabilities = new CapabilitiesType();
 
   static {
+    capabilities.setVersion(1);
+
     addAction(capabilities, "capabilities",
               "This action returns the capabilities of the server, " +
                 "allowing clients to determine if a specific feature has been" +
@@ -324,6 +327,17 @@ public class GetMethod extends MethodBase {
     try {
       resp.setContentType("application/json; charset=UTF-8");
 
+      CapabilitiesInfoType ci = new CapabilitiesInfoType();
+
+      if (!util.getPrimaryServer()) {
+        ci.setPrimarySource(util.getPrimaryUrl());
+      } else {
+        ci.setSource(TzServerUtil.getTzdataUrl());
+      }
+
+      //ci.getContacts().add(util.get)
+      capabilities.setInfo(ci);
+
       writeJson(resp.getOutputStream(), capabilities);
     } catch (ServletException se) {
       throw se;
@@ -390,6 +404,26 @@ public class GetMethod extends MethodBase {
     }
   }
 
+  /*
+   *    Possible Error Codes
+
+      invalid-tzid  The "tzid" query parameter is not present, or
+         appears more than once.
+
+      missing-tzid  The "tzid" query parameter value does not map to a
+         timezone identifier known to the server.
+
+      invalid-start  The "start" query parameter has an incorrect value,
+         or appears more than once.
+
+      invalid-end  The "end" query parameter has an incorrect value, or
+         appears more than once, or has a value less than our equal to
+         the "start" query parameter.
+
+      invalid-changedsince  The "changedsince" query parameter has an
+         incorrect value, or appears more than once.
+
+   */
   private void doExpand(final HttpServletRequest req,
                         final HttpServletResponse resp) throws ServletException {
     try {
@@ -402,6 +436,7 @@ public class GetMethod extends MethodBase {
 
       if (tzs == null) {
         resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        writeJson(resp.getOutputStream(), missingTzid);
         return;
       }
 
