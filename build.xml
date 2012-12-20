@@ -72,7 +72,7 @@
 
     <property name="service.jar"
               location="${dist.home}/bw-tzsvr-svc-${project.version}.jar" />
-    </target>
+  </target>
     
   <target name="build-init" depends="init">
     <!-- Make sure bwxml is built -->
