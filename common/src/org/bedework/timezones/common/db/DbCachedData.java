@@ -777,6 +777,11 @@ public class DbCachedData extends AbstractCachedData {
           continue;
         }
 
+        if (ttz == null) {
+          warn("Received timezone id " + id + " but not available.");
+          continue;
+        }
+
         boolean add = dbspec == null;
 
         if (add) {
