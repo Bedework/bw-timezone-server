@@ -379,16 +379,8 @@ public class DbCachedData extends AbstractCachedData {
    * @param val
    * @throws TzException
    */
-  public void addTzInfo(final TzDbInfo val) throws TzException {
-    sess.save(val);
-  }
-
-  /**
-   * @param val
-   * @throws TzException
-   */
   public void updateTzInfo(final TzDbInfo val) throws TzException {
-    sess.update(val);
+    sess.saveOrUpdate(val);
   }
 
   /**
@@ -691,7 +683,7 @@ public class DbCachedData extends AbstractCachedData {
       if (inf == null) {
         inf = initialInfo();
 
-        addTzInfo(inf);
+        updateTzInfo(inf);
       }
 
       isPrimary = inf.getPrimaryServer();
@@ -822,22 +814,24 @@ public class DbCachedData extends AbstractCachedData {
 
         SortedSet<String> aliases = amaps.byTzid.get(id);
 
-        for (String a: sum.getAliases()) {
-          String alias = amaps.byAlias.get(a);
+        if (!Util.isEmpty(sum.getAliases())) {
+          for (String a: sum.getAliases()) {
+            String alias = amaps.byAlias.get(a);
 
-          if (alias == null) {
-            TzAlias tza = new TzAlias();
+            if (alias == null) {
+              TzAlias tza = new TzAlias();
 
-            tza.setFromId(a);
-            tza.setToId(id);
+              tza.setFromId(a);
+              tza.setToId(id);
 
-            addTzAlias(tza);
+              addTzAlias(tza);
 
-            continue;
-          }
+              continue;
+            }
 
-          if (aliases != null) {
-            aliases.remove(a);
+            if (aliases != null) {
+              aliases.remove(a);
+            }
           }
         }
 
@@ -946,7 +940,7 @@ public class DbCachedData extends AbstractCachedData {
 
       dbi.setDtstamp(z.getDtstamp());
 
-      addTzInfo(dbi);
+      updateTzInfo(dbi);
 
       List<TimezoneType> tzs = z.getTimezones(null);
 
@@ -1018,15 +1012,15 @@ public class DbCachedData extends AbstractCachedData {
     return dbi;
   }
 
+  private static final String getDbInfoQuery =
+      "from " +
+          TzDbInfo.class.getName();
+
   private TzDbInfo getDbInfo() throws TzException {
-    sess.createQuery("from " + TzDbInfo.class.getName());
+    sess.createQuery(getDbInfoQuery);
     List infos = sess.getList();
 
-    if (infos == null) {
-      return null;
-    }
-
-    if (infos.size() == 0) {
+    if (Util.isEmpty(infos)) {
       return null;
     }
 
@@ -1037,19 +1031,22 @@ public class DbCachedData extends AbstractCachedData {
     return (TzDbInfo)infos.get(0);
   }
 
+  private static final String getSpecQuery =
+    "from " +
+      TzDbSpec.class.getName() +
+      " where name=:name";
+
   private TzDbSpec getSpec(final String id) throws TzException {
-    StringBuilder sb = new StringBuilder();
-
-    sb.append("from ");
-    sb.append(TzDbSpec.class.getName());
-    sb.append(" where name=:name");
-
-    sess.createQuery(sb.toString());
+    sess.createQuery(getSpecQuery);
 
     sess.setParameter("name", id);
 
     return (TzDbSpec)sess.getUnique();
   }
+
+  private static final String getAliasesQuery =
+      "from " +
+          TzAlias.class.getName();
 
   @SuppressWarnings("unchecked")
   private AliasMaps buildAliasMaps() throws TzException {
@@ -1060,7 +1057,7 @@ public class DbCachedData extends AbstractCachedData {
       maps.byAlias = new HashMap<String, String>();
       maps.aliases = new Properties();
 
-      sess.createQuery("from " + TzAlias.class.getName());
+      sess.createQuery(getAliasesQuery);
       List<TzAlias> aliases = sess.getList();
       if (aliases == null) {
         return maps;
@@ -1098,12 +1095,16 @@ public class DbCachedData extends AbstractCachedData {
     }
   }
 
+  private static final String getSpecsQuery =
+    "from " +
+      TzDbSpec.class.getName();
+
   @SuppressWarnings("unchecked")
   private void processSpecs(final String dtstamp) throws TzException {
     try {
       resetTzs();
 
-      sess.createQuery("from " + TzDbSpec.class.getName());
+      sess.createQuery(getSpecsQuery);
       List<TzDbSpec> specs = sess.getList();
 
       for (TzDbSpec spec: specs) {
