@@ -28,7 +28,6 @@ import edu.rpi.cmt.timezones.model.CapabilitiesInfoType;
 import edu.rpi.cmt.timezones.model.CapabilitiesType;
 import edu.rpi.cmt.timezones.model.TimezoneListType;
 import edu.rpi.cmt.timezones.model.TimezoneType;
-import edu.rpi.sss.util.DateTimeUtil;
 
 import org.apache.log4j.Logger;
 
@@ -565,7 +564,7 @@ public class GetMethod extends MethodBase {
                 "cellspacing=\"0\"" +
                 " cellpadding=\"4\">\r\n");
 
-      infoLine(wtr, "dtstamp", DateTimeUtil.rfcDateTimeUTC(util.getDtstamp()));
+      infoLine(wtr, "dtstamp", util.getDtstamp());
 
       wtr.write("</table>\r\n");
 
@@ -706,8 +705,7 @@ public class GetMethod extends MethodBase {
       if (tz == null) {
         resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
       } else {
-        resp.setHeader("ETag", "\"" +
-                       DateTimeUtil.rfcDateTimeUTC(util.getDtstamp()) +
+        resp.setHeader("ETag", "\"" + util.getDtstamp() +
                        "\"");
         writeCalHdr(wtr);
 

@@ -385,24 +385,16 @@ public class TzServerUtil {
   }
 
   /**
-   * @return the data dtsamp
+   * @return the data dtstamp
    * @throws TzException
    */
-  public Date getDtstamp() throws TzException {
+  public String getDtstamp() throws TzException {
     String dtst = cache.getDtstamp();
-    Date dtstamp;
-
-    if (dtst == null) {
-      dtstamp = new DateTime(lastDataFetch);
-    } else {
-      try {
-        dtstamp = DateTimeUtil.fromRfcDateTimeUTC(dtst);
-      } catch (Throwable t) {
-        throw new TzException(t);
-      }
+    if (dtst != null) {
+      return dtst;
     }
 
-    return dtstamp;
+    return DateTimeUtil.rfcDateTimeUTC(new DateTime(lastDataFetch));
   }
 
   /**
@@ -734,7 +726,7 @@ public class TzServerUtil {
     StringBuilder val = new StringBuilder();
 
     val.append("\"");
-    val.append(DateTimeUtil.rfcDateTimeUTC(getDtstamp()));
+    val.append(getDtstamp());
     val.append("\"");
 
     return val.toString();

@@ -719,7 +719,7 @@ public class DbCachedData extends AbstractCachedData {
         return null;
       }
 
-      String svrCs = DateTimeUtil.rfcDateTimeUTC(tzl.getDtstamp());
+      String svrCs = tzl.getDtstamp();
 
       if ((changedSince == null) ||
                  !svrCs.equals(changedSince)) {
