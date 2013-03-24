@@ -104,7 +104,7 @@ public class DayInfo extends Data {
    *
    * @param val
    * @return DayInfo object
-   * @throws Exception for invalid input
+   * @throws TzdataException for invalid input
    */
   public static DayInfo fromString(final String val) throws TzdataException {
     if (val == null) {

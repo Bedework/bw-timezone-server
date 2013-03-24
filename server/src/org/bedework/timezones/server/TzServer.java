@@ -18,6 +18,8 @@
 */
 package org.bedework.timezones.server;
 
+import edu.rpi.sss.util.servlets.HttpServletUtils;
+
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -31,8 +33,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
-
-import edu.rpi.sss.util.servlets.HttpServletUtils;
 
 /** Serve up timezone information. This server is an intermediate step towards
  * a real global timezone service being promoted in CalConnect
@@ -57,15 +57,9 @@ public class TzServer extends HttpServlet
     try {
       super.init(config);
 
-      String debugStr = getInitParameter("debug");
-      if (debugStr != null) {
-        debug = !"0".equals(debugStr);
-      }
+      debug = getLogger().isDebugEnabled();
 
       dumpContent = "true".equals(config.getInitParameter("dumpContent"));
-
-      //Properties props = TzServerUtil.getResources(this, config);
-
     } catch (ServletException se) {
       throw se;
     } catch (Throwable t) {

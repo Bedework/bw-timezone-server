@@ -96,15 +96,24 @@ public abstract class AbstractCachedData implements CachedData {
 
   protected AliasMaps aliasMaps;
 
+  protected TzConfig cfg;
+
   private List<TimezoneType> timezones;
 
   /**
+   * @param cfg
    * @param msgPrefix - for messages
    * @throws TzException
    */
-  public AbstractCachedData(final String msgPrefix) throws TzException {
+  public AbstractCachedData(final TzConfig cfg,
+                            final String msgPrefix) throws TzException {
     debug = getLogger().isDebugEnabled();
 
+    if (cfg == null) {
+      throw new TzException("No configuration data");
+    }
+
+    this.cfg = cfg;
     this.msgPrefix = msgPrefix;
   }
 
@@ -417,6 +426,70 @@ public abstract class AbstractCachedData implements CachedData {
       throw new TzException(t);
     }
   }
+
+  protected String escape(final String val) {
+    StringBuilder sb = new StringBuilder();
+
+    for (int i = 0; i < val.length(); i++) {
+      char ch = val.charAt(i);
+
+      if ((ch > 61) && (ch < 127)) {
+        if (ch == '\\') {
+          sb.append("\\\\");
+          continue;
+        }
+
+        sb.append(ch);
+        continue;
+      }
+
+      switch(ch) {
+      case ' ':
+        if (i == 0) {
+          sb.append('\\');
+        }
+
+        sb.append(' ');
+        break;
+      case '\f':
+        sb.append("\\f");
+        break;
+      case '\n':
+        sb.append("\\n");
+        break;
+      case '\r':
+        sb.append("\\r");
+        break;
+      case '\t':
+        sb.append("\\t");
+        break;
+      case '=':
+      case ':':
+      case '#':
+      case '!':
+        sb.append('\\');
+        sb.append(ch);
+        break;
+      default:
+        if ((ch < 0x0020) || (ch > 0x007e)) {
+          sb.append("\\u");
+
+          sb.append(hex[(ch >> 12) & 0xF]);
+          sb.append(hex[(ch >>  8) & 0xF]);
+          sb.append(hex[(ch >>  4) & 0xF]);
+          sb.append(hex[ch & 0xF]);
+        } else {
+          sb.append(ch);
+        }
+      }
+    }
+    return sb.toString();
+  }
+
+  private static final char[] hex = {
+        '0', '1', '2', '3', '4', '5', '6', '7',
+        '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+   };
 
   /* ====================================================================
    *                   private methods

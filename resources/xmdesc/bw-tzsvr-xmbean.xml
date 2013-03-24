@@ -18,6 +18,7 @@
    
    &defaultAttributes;
 
+<!-- 
    <attribute access="read-only" getMethod="getAppname" >
 		<description>Bedework internal name.</description>
 		<name>Appname</name>
@@ -47,9 +48,10 @@
 		<name>TzdataUrl</name>
     <type>java.lang.String</type>
 	</attribute>
-
+ -->
 	<!-- Operations -->
 
+<!-- 
   <operation>
     <description>Provide some statistics.</description>
     <name>getStats</name>
@@ -96,7 +98,7 @@ May take a while if it updates from a primary.</description>
     <name>recreateDb</name>
     <return-type>java.lang.String</return-type>
   </operation>
-
+ -->
    &defaultOperations;   			
 
 </mbean>

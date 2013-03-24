@@ -18,30 +18,29 @@
 */
 package org.bedework.timezones.service;
 
-import org.bedework.timezones.common.Stat;
 import org.bedework.timezones.common.TzServerUtil;
 
-import org.apache.log4j.Logger;
-import org.hibernate.cfg.Configuration;
-import org.hibernate.tool.hbm2ddl.SchemaExport;
-import org.jboss.system.ServiceMBeanSupport;
+import edu.rpi.cmt.config.ConfigurationType;
+import edu.rpi.cmt.jmx.ConfBase;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
-import javax.management.MBeanServer;
-import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
-/**
+/** This bootstraps the annotated jmx bean.
+ *
  * @author douglm
  *
  */
-public class Tzsvc extends ServiceMBeanSupport implements TzsvcMBean {
-  private transient Logger log;
+public class Tzsvc extends ConfBase implements TzsvcMBean {
+  private static volatile String hostsConfigDir;
 
-  private Configuration cfg;
+  private static Set<ObjectName> registeredMBeans = new CopyOnWriteArraySet<ObjectName>();
+
+  private String serviceName = "org.bedework.timezones:service=TzSvr";
+
+  private TzConf tzConf;
 
   private TzServerUtil tzutil;
 
@@ -49,219 +48,43 @@ public class Tzsvc extends ServiceMBeanSupport implements TzsvcMBean {
    * Attributes
    * ======================================================================== */
 
-  @Override
-  public String getAppname() {
-    return TzServerUtil.getAppname();
-  }
-
-  /** Tzdata url
-   *
+  /**
    * @param val
    */
   @Override
-  public void setTzdataUrl(final String val) {
-    try {
-      TzServerUtil.setTzdataUrl(val);
-    } catch (Throwable t) {
-      error("Error setting url");
-      error(t);
-    }
+  public void setHostsConfigDir(final String val) {
+    hostsConfigDir = val;
+  }
+
+  /**
+   * @return String path to configs
+   */
+  @Override
+  public String getHostsConfigDir() {
+    return hostsConfigDir;
   }
 
   @Override
-  public String getTzdataUrl() {
-    return TzServerUtil.getTzdataUrl();
+  public String getServiceName() {
+    return serviceName;
   }
 
   @Override
-  public void setPrimaryUrl(final String val) {
-    try {
-      TzServerUtil.getInstance().setPrimaryUrl(val);
-    } catch (Throwable t) {
-      error("Error setting url");
-      error(t);
-    }
+  public String getName() {
+    /* This apparently must be the same as the name attribute in the
+     * jboss service definition
+     */
+    return getServiceName();
   }
 
   @Override
-  public String getPrimaryUrl() {
-    try {
-      return TzServerUtil.getInstance().getPrimaryUrl();
-    } catch (Throwable t) {
-      error(t);
-      return "Error getting url";
-    }
+  protected Set<ObjectName> getRegisteredMBeans() {
+    return registeredMBeans;
   }
 
   @Override
-  public void setPrimaryServer(final boolean val) {
-    try {
-      TzServerUtil.getInstance().setPrimaryServer(val);
-    } catch (Throwable t) {
-      error("Error setting url");
-      error(t);
-    }
-  }
-
-  @Override
-  public boolean getPrimaryServer() {
-    try {
-      return TzServerUtil.getInstance().getPrimaryServer();
-    } catch (Throwable t) {
-      error("Error getting primary flag");
-      error(t);
-
-      return false;
-    }
-  }
-
-  @Override
-  public void setRefreshInterval(final long val) {
-    try {
-      TzServerUtil.getInstance().setRefreshInterval(val);
-    } catch (Throwable t) {
-      error("Error setting refresh");
-      error(t);
-    }
-  }
-
-  @Override
-  public long getRefreshInterval() {
-    try {
-      return TzServerUtil.getInstance().getRefreshInterval();
-    } catch (Throwable t) {
-      error("Error getting refresh");
-      error(t);
-      return -99999;
-    }
-  }
-
-  /* ========================================================================
-   * Operations
-   * ======================================================================== */
-
-  @Override
-  public List<Stat> getStats() {
-    try {
-      return TzServerUtil.getStats();
-    } catch (Throwable t) {
-      error("Error getting stats");
-      error(t);
-      return null;
-    }
-  }
-
-  @Override
-  public String refreshData() {
-    try {
-      TzServerUtil.fireRefresh();
-      return "Ok";
-    } catch (Throwable t) {
-      error(t);
-      return "Refresh error: " + t.getLocalizedMessage();
-    }
-  }
-
-  @Override
-  public String checkData() {
-    try {
-      TzServerUtil.fireCheck();
-      return "Ok";
-    } catch (Throwable t) {
-      error(t);
-      return "Update error: " + t.getLocalizedMessage();
-    }
-  }
-
-  @Override
-  public String recreateDb() {
-    String res = schema(true);
-
-    if (res != null) {
-      return res;
-    }
-
-    res = schema(false);
-
-    if (res != null) {
-      return res;
-    }
-
-    return "Action complete: check logs";
-  }
-
-  @Override
-  public String compareData(final String tzdataUrl) {
-    StringWriter sw = new StringWriter();
-
-    try {
-      PrintWriter pw = new PrintWriter(sw);
-
-      List<String> chgs = TzServerUtil.compareData(tzdataUrl);
-
-      for (String s: chgs) {
-        pw.println(s);
-      }
-
-    } catch (Throwable t) {
-      t.printStackTrace(new PrintWriter(sw));
-    }
-
-    return sw.toString();
-  }
-
-  @Override
-  public String updateData(final String tzdataUrl) {
-    StringWriter sw = new StringWriter();
-
-    try {
-      PrintWriter pw = new PrintWriter(sw);
-
-      List<String> chgs = TzServerUtil.updateData(tzdataUrl);
-
-      for (String s: chgs) {
-        pw.println(s);
-      }
-
-    } catch (Throwable t) {
-      t.printStackTrace(new PrintWriter(sw));
-    }
-
-    return sw.toString();
-  }
-
-  /* ====================================================================
-   *                   Private methods
-   * ==================================================================== */
-
-  private String schema(final boolean drop) {
-    String result = null;
-
-    try {
-      SchemaExport se = new SchemaExport(getConfiguration());
-
-      se.setDelimiter(";");
-
-      se.setHaltOnError(false);
-
-      se.execute(false, // script - causes write to System.out if true
-                 true,
-                 drop, // justDrop
-                 !drop); // justCreate
-    } catch (Throwable t) {
-      error(t);
-      result = "Exception: " + t.getLocalizedMessage();
-    }
-
-    return result;
-  }
-
-  private synchronized Configuration getConfiguration() {
-    if (cfg == null) {
-      cfg = new Configuration().configure();
-    }
-
-    return cfg;
+  public ConfigurationType getConfigObject() {
+    return tzConf.getConfigObject();
   }
 
   /* ========================================================================
@@ -269,65 +92,55 @@ public class Tzsvc extends ServiceMBeanSupport implements TzsvcMBean {
    * ======================================================================== */
 
   @Override
-  protected ObjectName getObjectName(final MBeanServer server,
-                                     final ObjectName name)
-      throws MalformedObjectNameException {
-    if (name == null) {
-      return OBJECT_NAME;
-    }
+  public void create() {
+    try {
+      /* Register the carddav mbean and load the configs. */
 
-    return name;
-   }
+      getManagementContext().start();
+
+      tzConf = new TzConf(getHostsConfigDir());
+      register("tzConf", "tzConf", tzConf);
+      tzConf.loadConfig();
+    } catch (Throwable t) {
+      error("Failed to create service");
+      error(t);
+    }
+  }
 
   @Override
-  public void startService() throws Exception {
+  public synchronized void start() {
     try {
       tzutil = TzServerUtil.getInstance();
     } catch (Throwable t) {
       error("Error starting service");
       error(t);
-      throw new Exception(t);
     }
   }
 
   @Override
-  public void stopService() throws Exception {
+  public synchronized void stop() {
     try {
       tzutil.stop();
     } catch (Throwable t) {
       error("Error stopping service");
       error(t);
-      throw new Exception(t);
+    } finally {
+      tzutil = null;
     }
   }
 
-  /* ====================================================================
-   *                   Protected methods
-   * ==================================================================== */
-
-  protected void info(final String msg) {
-    getLogger().info(msg);
+  @Override
+  public boolean isStarted() {
+    return tzutil != null;
   }
 
-  protected void trace(final String msg) {
-    getLogger().debug(msg);
-  }
-
-  protected void error(final Throwable t) {
-    getLogger().error(this, t);
-  }
-
-  protected void error(final String msg) {
-    getLogger().error(msg);
-  }
-
-  /* Get a logger for messages
-   */
-  protected Logger getLogger() {
-    if (log == null) {
-      log = Logger.getLogger(this.getClass());
+  @Override
+  public void destroy() {
+    try {
+      getManagementContext().stop();
+    } catch (Throwable t) {
+      error("Failed to stop management context");
+      error(t);
     }
-
-    return log;
   }
 }

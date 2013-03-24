@@ -328,10 +328,10 @@ public class GetMethod extends MethodBase {
 
       CapabilitiesInfoType ci = new CapabilitiesInfoType();
 
-      if (!util.getPrimaryServer()) {
-        ci.setPrimarySource(util.getPrimaryUrl());
-      } else {
-        ci.setSource(TzServerUtil.getTzdataUrl());
+      if (!TzServerUtil.getTzConfig().getPrimaryServer()) {
+        ci.setPrimarySource(TzServerUtil.getTzConfig().getPrimaryUrl());
+      } else if (TzServerUtil.getTzConfig() != null) {
+        ci.setSource(TzServerUtil.getTzConfig().getTzdataUrl());
       }
 
       //ci.getContacts().add(util.get)

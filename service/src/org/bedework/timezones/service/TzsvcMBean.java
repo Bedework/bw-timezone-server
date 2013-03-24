@@ -18,115 +18,59 @@
 */
 package org.bedework.timezones.service;
 
-import org.bedework.timezones.common.Stat;
-
-import org.jboss.mx.util.ObjectNameFactory;
-import org.jboss.system.ServiceMBean;
-
-import java.util.List;
-
-import javax.management.ObjectName;
+import edu.rpi.cmt.jmx.ConfBaseMBean;
+import edu.rpi.cmt.jmx.MBeanInfo;
 
 /** Run the timezones service
  *
  * @author douglm
  */
-public interface TzsvcMBean extends ServiceMBean {
-  /** The default object name */
-  ObjectName OBJECT_NAME = ObjectNameFactory.create("org.bedework:service=Tzsvr");
+public interface TzsvcMBean extends ConfBaseMBean {
+  /**
+   * @param val
+   */
+  void setHostsConfigDir(final String val);
+
+  /**
+   * @return String path to configs
+   */
+  @MBeanInfo("Directory for host configuration files")
+  String getHostsConfigDir();
+
+  /** Name apparently must be the same as the name attribute in the
+   * jboss service definition
+   *
+   * @return Name
+   */
+  public String getName();
 
   /* ========================================================================
-   * Attributes
+   * Lifecycle
    * ======================================================================== */
 
-  /**
-   * @return String application name
-   */
-  String getAppname();
-
-  /** Tzdata url
+  /** Lifecycle
    *
-   * @param val
    */
-  void setTzdataUrl(String val);
+  public void create();
 
-  /**
-   * @return String tzdata url
-   */
-  String getTzdataUrl();
-
-  /** Primary url
+  /** Lifecycle
    *
-   * @param val
    */
-  void setPrimaryUrl(String val);
+  public void start();
 
-  /**
-   * @return String Primary url
-   */
-  String getPrimaryUrl();
-
-  /** Are we a primary server?
+  /** Lifecycle
    *
-   * @param val    boolean
    */
-  void setPrimaryServer(final boolean val);
+  public void stop();
 
-  /** Are we a primary server?
-   * @return boolean
-   */
-  boolean getPrimaryServer();
-
-  /** Refresh interval - seconds
+  /** Lifecycle
    *
-   * @param val
+   * @return true if started
    */
-  void setRefreshInterval(long val);
+  public boolean isStarted();
 
-  /**
-   * @return long Refresh interval - seconds
-   */
-  long getRefreshInterval();
-
-  /* ========================================================================
-   * Operations
-   * ======================================================================== */
-
-  /** Get the current stats
+  /** Lifecycle
    *
-   * @return List of Stat
    */
-  List<Stat> getStats();
-
-  /** Compare data pointed to by tzdataUrl with the current data.
-   *
-   * @param tzdataUrl
-   * @return completion code.
-   */
-  String compareData(String tzdataUrl);
-
-  /** Refresh all the data - almost a restart
-   *
-   * @return completion code.
-   */
-  String refreshData();
-
-  /** Update the data from the zipped data at the given url
-   *
-   * @param tzdataUrl
-   * @return completion code.
-   */
-  String updateData(String tzdataUrl);
-
-  /** Check with primary source
-   *
-   * @return completion code.
-   */
-  String checkData();
-
-  /** Recreate the tzdb
-   *
-   * @return completion code.
-   */
-  String recreateDb();
+  public void destroy();
 }

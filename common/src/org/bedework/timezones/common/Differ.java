@@ -18,6 +18,8 @@
 */
 package org.bedework.timezones.common;
 
+import edu.rpi.cmt.calendar.diff.XmlIcalCompare;
+
 import org.apache.log4j.Logger;
 import org.oasis_open.docs.ws_calendar.ns.soap.ComponentSelectionType;
 
@@ -28,8 +30,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
-import edu.rpi.cmt.calendar.diff.XmlIcalCompare;
 
 /** This class provides support for diffing timezone data to determine if
  * updates need to be made to stored data.
@@ -110,19 +110,6 @@ public class Differ {
    */
   public Differ() {
     debug = getLogger().isDebugEnabled();
-  }
-
-  /** Compares the zipped data specified by the url with the supplied set
-   * of data.
-   *
-   * @param newTzdataUrl
-   * @param currentTzdata
-   * @return possibly empty list - never null.
-   * @throws TzException
-   */
-  public List<DiffListEntry> compare(final String newTzdataUrl,
-                                     final CachedData currentTzdata) throws TzException {
-    return compare(new ZipCachedData(newTzdataUrl), currentTzdata);
   }
 
   /** Compares the new set of data with the supplied current set of data.

@@ -16,7 +16,7 @@
     specific language governing permissions and limitations
     under the License.
 */
-package org.bedework.timezones.common.db;
+package org.bedework.timezones.common.leveldb;
 
 import org.bedework.timezones.common.AbstractCachedData;
 import org.bedework.timezones.common.CachedData;
@@ -26,6 +26,9 @@ import org.bedework.timezones.common.TzConfig;
 import org.bedework.timezones.common.TzException;
 import org.bedework.timezones.common.TzServerUtil;
 import org.bedework.timezones.common.ZipCachedData;
+import org.bedework.timezones.common.db.LocalizedString;
+import org.bedework.timezones.common.db.TzAlias;
+import org.bedework.timezones.common.db.TzDbSpec;
 
 import edu.rpi.cmt.calendar.XcalUtil;
 import edu.rpi.cmt.timezones.Timezones;
@@ -38,9 +41,18 @@ import edu.rpi.cmt.timezones.model.TimezoneType;
 import edu.rpi.sss.util.DateTimeUtil;
 import edu.rpi.sss.util.Util;
 
-import org.hibernate.SessionFactory;
-import org.hibernate.cfg.Configuration;
+import org.iq80.leveldb.DB;
+import org.iq80.leveldb.DBIterator;
+import org.iq80.leveldb.Options;
+import org.iq80.leveldb.impl.Iq80DBFactory;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -49,18 +61,32 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-/** Cached timezone data in a database.
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
+/** Cached timezone data in a leveldb database.
  *
  * @author douglm
  */
-public class DbCachedData extends AbstractCachedData {
+public class LdbCachedData extends AbstractCachedData {
   private boolean running;
 
-  /** Current hibernate session - exists only across one user interaction
-   */
-  protected HibSession sess;
+  protected ObjectMapper mapper = new ObjectMapper(); // create once, reuse
 
-  private static SessionFactory sessionFactory;
+  /** Current Database
+   */
+  protected DB db;
+
+  /* Leveldb has no concept of table. It's just key-value pairs.
+   * We prefix all the timezone spec names with timezoneSpecPrefix and all the
+   * aliases with aliasPrefix. The remainder of the name is the 'table' key,
+   * usually a tzid.
+   */
+
+  private final static String timezoneSpecPrefix = "TZ:";
+
+  private final static String aliasPrefix = "AL:";
 
   /** */
   protected boolean open;
@@ -85,34 +111,36 @@ public class DbCachedData extends AbstractCachedData {
       while (running) {
         long refreshWait = 9999;
 
-        try {
-          open();
-          refreshWait = cfg.getRefreshDelay();
-
-          if (debug) {
-            trace("Updater: About to update");
-          }
-
-          if (!updateFromPrimary()) {
-            // Try again in at most 10 minutes (need an error retry param)
-            refreshWait = Math.min(refreshWait, 600);
-          }
-        } catch (Throwable t) {
-          if (!showedTrace) {
-            error(t);
-            showedTrace = true;
-          } else {
-            error(t.getMessage());
-          }
-
+        synchronized (LdbCachedData.this) {
           try {
-            fail();
-          } catch (Throwable t1) {
-          }
-        } finally {
-          try {
-            close();
-          } catch (Throwable t1) {
+            open();
+            refreshWait = cfg.getRefreshDelay();
+
+            if (debug) {
+              trace("Updater: About to update");
+            }
+
+            if (!updateFromPrimary()) {
+              // Try again in at most 10 minutes (need an error retry param)
+              refreshWait = Math.min(refreshWait, 600);
+            }
+          } catch (Throwable t) {
+            if (!showedTrace) {
+              error(t);
+              showedTrace = true;
+            } else {
+              error(t.getMessage());
+            }
+
+            try {
+              fail();
+            } catch (Throwable t1) {
+            }
+          } finally {
+            try {
+              close();
+            } catch (Throwable t1) {
+            }
           }
         }
 
@@ -152,8 +180,22 @@ public class DbCachedData extends AbstractCachedData {
    * @param cfg
    * @throws TzException
    */
-  public DbCachedData(final TzConfig cfg) throws TzException {
+  public LdbCachedData(final TzConfig cfg) throws TzException {
     super(cfg, "Db");
+
+    try {
+      if (debug) {
+        mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+      }
+
+      DateFormat df = new SimpleDateFormat("yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'");
+
+      mapper.setDateFormat(df);
+
+      mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    } catch (Throwable t) {
+      throw new TzException(t);
+    }
 
     loadData();
 
@@ -274,7 +316,8 @@ public class DbCachedData extends AbstractCachedData {
    * @throws TzException
    */
   public void addTzAlias(final TzAlias val) throws TzException {
-    sess.save(val);
+    db.put(Iq80DBFactory.bytes(aliasPrefix + val.getFromId()),
+           bytesJson(val));
   }
 
   /**
@@ -282,11 +325,8 @@ public class DbCachedData extends AbstractCachedData {
    * @throws TzException
    */
   public void removeTzAlias(final TzAlias val) throws TzException {
-    sess.delete(val);
+    db.delete(Iq80DBFactory.bytes(aliasPrefix + val.getFromId()));
   }
-
-  private final String getTzAliasQuery =
-      "from " + TzAlias.class.getName() + " alias where alias.fromId=:id";
 
   /**
    * @param val
@@ -294,45 +334,90 @@ public class DbCachedData extends AbstractCachedData {
    * @throws TzException
    */
   public TzAlias getTzAlias(final String val) throws TzException {
-    sess.createQuery(getTzAliasQuery);
+    byte[] aliasBytes = db.get(Iq80DBFactory.bytes(aliasPrefix + val));
 
-    sess.setString("id", val);
+    if (aliasBytes == null) {
+      return null;
+    }
 
-    return (TzAlias)sess.getUnique();
+    return getJson(aliasBytes, TzAlias.class);
   }
-
-  private final String findTzAliasesQuery =
-      "from " + TzAlias.class.getName() + " alias where alias.fromId like :id";
 
   /**
    * @param val
    * @return matching alias entries
    * @throws TzException
    */
-  @SuppressWarnings("unchecked")
   public List<TzAlias> findTzAliases(final String val) throws TzException {
-    sess.createQuery(findTzAliasesQuery);
+    try {
+      List<TzAlias> aliases = new ArrayList<TzAlias>();
 
-    sess.setString("id", "%" + val + "%");
+      DBIterator it = db.iterator();
 
-    return sess.getList();
+      try {
+        for(it.seekToFirst(); it.hasNext(); it.next()) {
+          String key = Iq80DBFactory.asString(it.peekNext().getKey());
+
+          if (!key.startsWith(timezoneSpecPrefix)) {
+            continue;
+          }
+
+          String id = key.substring(aliasPrefix.length());
+
+          if (!id.contains(val)) {
+            continue;
+          }
+
+          TzAlias alias = getJson(it.peekNext().getValue(),
+                                  TzAlias.class);
+
+          aliases.add(alias);
+        }
+      } finally {
+        it.close();
+      }
+
+      return aliases;
+    } catch (Throwable t) {
+      throw new TzException(t);
+    }
   }
-
-  private final String findTzsQuery =
-      "select spec.name from " + TzDbSpec.class.getName() + " spec where spec.name like :name";
 
   /**
    * @param val
    * @return matching tz entry names
    * @throws TzException
    */
-  @SuppressWarnings("unchecked")
   public List<String> findTzs(final String val) throws TzException {
-    sess.createQuery(findTzsQuery);
+    try {
+      List<String> ids = new ArrayList<String>();
 
-    sess.setString("name", "%" + val + "%");
+      DBIterator it = db.iterator();
 
-    return sess.getList();
+      try {
+        for(it.seekToFirst(); it.hasNext(); it.next()) {
+          String key = Iq80DBFactory.asString(it.peekNext().getKey());
+
+          if (!key.startsWith(timezoneSpecPrefix)) {
+            continue;
+          }
+
+          String tzid = key.substring(timezoneSpecPrefix.length());
+
+          if (!tzid.contains(val)) {
+            continue;
+          }
+
+          ids.add(tzid);
+        }
+      } finally {
+        it.close();
+      }
+
+      return ids;
+    } catch (Throwable t) {
+      throw new TzException(t);
+    }
   }
 
   /**
@@ -340,7 +425,8 @@ public class DbCachedData extends AbstractCachedData {
    * @throws TzException
    */
   public void addTzSpec(final TzDbSpec val) throws TzException {
-    sess.save(val);
+    db.put(Iq80DBFactory.bytes(timezoneSpecPrefix + val.getName()),
+           bytesJson(val));
   }
 
   /**
@@ -348,43 +434,31 @@ public class DbCachedData extends AbstractCachedData {
    * @throws TzException
    */
   public void updateTzSpec(final TzDbSpec val) throws TzException {
-    sess.save(val);
+    db.put(Iq80DBFactory.bytes(timezoneSpecPrefix + val.getName()),
+           bytesJson(val));
   }
 
   /* ====================================================================
    *                   Transaction methods
    * ==================================================================== */
 
-  private void open() throws TzException {
+  private synchronized void open() throws TzException {
     if (isOpen()) {
       return;
     }
-    openSession();
+    getDb();
     open = true;
   }
 
-  private void close() {
-    try {
-      endTransaction();
-    } catch (TzException wde) {
-      try {
-        rollbackTransaction();
-      } catch (TzException wde1) {}
-
-      getLogger().error("failed close", wde);
-    } finally {
-      try {
-        closeSession();
-      } catch (TzException wde1) {}
+  private synchronized void close() {
+    if (!open) {
+      return;
     }
+    closeDb();
+    open = false;
   }
 
   private void fail() {
-    try {
-      rollbackTransaction();
-    } catch (TzException wde) {
-      getLogger().error("failed fail", wde);
-    }
   }
 
   private boolean isOpen() {
@@ -399,95 +473,6 @@ public class DbCachedData extends AbstractCachedData {
     if (!isOpen()) {
       throw new TzException("Session call when closed");
     }
-  }
-
-  protected synchronized void openSession() throws TzException {
-    if (isOpen()) {
-      throw new TzException("Already open");
-    }
-
-    open = true;
-
-    if (sess != null) {
-      warn("Session is not null. Will close");
-      try {
-        close();
-      } finally {
-      }
-    }
-
-    if (sess == null) {
-      if (debug) {
-        trace("New hibernate session for " + objTimestamp);
-      }
-      sess = new HibSessionImpl();
-      sess.init(getSessionFactory(), getLogger());
-      trace("Open session for " + objTimestamp);
-    }
-
-    beginTransaction();
-  }
-
-  protected synchronized void closeSession() throws TzException {
-    if (!isOpen()) {
-      if (debug) {
-        trace("Close for " + objTimestamp + " closed session");
-      }
-      return;
-    }
-
-    if (debug) {
-      trace("Close for " + objTimestamp);
-    }
-
-    try {
-      if (sess != null) {
-        if (sess.rolledback()) {
-          sess = null;
-          return;
-        }
-
-        if (sess.transactionStarted()) {
-          sess.rollback();
-        }
-//        sess.disconnect();
-        sess.close();
-        sess = null;
-      }
-    } catch (Throwable t) {
-      try {
-        sess.close();
-      } catch (Throwable t1) {}
-      sess = null; // Discard on error
-    } finally {
-      open = false;
-    }
-  }
-
-  protected void beginTransaction() throws TzException {
-    checkOpen();
-
-    if (debug) {
-      trace("Begin transaction for " + objTimestamp);
-    }
-    sess.beginTransaction();
-  }
-
-  protected void endTransaction() throws TzException {
-    checkOpen();
-
-    if (debug) {
-      trace("End transaction for " + objTimestamp);
-    }
-
-    if (!sess.rolledback()) {
-      sess.commit();
-    }
-  }
-
-  protected void rollbackTransaction() throws TzException {
-    checkOpen();
-    sess.rollback();
   }
 
   /* ====================================================================
@@ -856,24 +841,16 @@ public class DbCachedData extends AbstractCachedData {
     }
   }
 
-  private static final String getSpecQuery =
-    "from " +
-      TzDbSpec.class.getName() +
-      " where name=:name";
-
   private TzDbSpec getSpec(final String id) throws TzException {
-    sess.createQuery(getSpecQuery);
+    byte[] specBytes = db.get(Iq80DBFactory.bytes(timezoneSpecPrefix + id));
 
-    sess.setParameter("name", id);
+    if (specBytes == null) {
+      return null;
+    }
 
-    return (TzDbSpec)sess.getUnique();
+    return getJson(specBytes, TzDbSpec.class);
   }
 
-  private static final String getAliasesQuery =
-      "from " +
-          TzAlias.class.getName();
-
-  @SuppressWarnings("unchecked")
   private AliasMaps buildAliasMaps() throws TzException {
     try {
       AliasMaps maps = new AliasMaps();
@@ -882,34 +859,43 @@ public class DbCachedData extends AbstractCachedData {
       maps.byAlias = new HashMap<String, String>();
       maps.aliases = new Properties();
 
-      sess.createQuery(getAliasesQuery);
-      List<TzAlias> aliases = sess.getList();
-      if (aliases == null) {
-        return maps;
-      }
-
       StringBuilder aliasStr = new StringBuilder();
 
-      for (TzAlias alias: aliases) {
-        String from = alias.getFromId();
-        String id = alias.getToId();
+      DBIterator it = db.iterator();
 
-        aliasStr.append(escape(from));
-        aliasStr.append('=');
-        aliasStr.append(escape(id));
+      try {
+        for(it.seekToFirst(); it.hasNext(); it.next()) {
+          String key = Iq80DBFactory.asString(it.peekNext().getKey());
 
-        maps.aliases.setProperty(from, id);
+          if (!key.startsWith(aliasPrefix)) {
+            continue;
+          }
 
-        maps.byAlias.put(from, id);
+          TzAlias alias = getJson(it.peekNext().getValue(),
+                                  TzAlias.class);
 
-        SortedSet<String> as = maps.byTzid.get(id);
+          String from = alias.getFromId();
+          String id = alias.getToId();
 
-        if (as == null) {
-          as = new TreeSet<String>();
-          maps.byTzid.put(id, as);
+          aliasStr.append(escape(from));
+          aliasStr.append('=');
+          aliasStr.append(escape(id));
+
+          maps.aliases.setProperty(from, id);
+
+          maps.byAlias.put(from, id);
+
+          SortedSet<String> as = maps.byTzid.get(id);
+
+          if (as == null) {
+            as = new TreeSet<String>();
+            maps.byTzid.put(id, as);
+          }
+
+          as.add(from);
         }
-
-        as.add(from);
+      } finally {
+        it.close();
       }
 
       maps.aliasesStr = aliasStr.toString();
@@ -920,27 +906,34 @@ public class DbCachedData extends AbstractCachedData {
     }
   }
 
-  private static final String getSpecsQuery =
-    "from " +
-      TzDbSpec.class.getName();
-
-  @SuppressWarnings("unchecked")
   private void processSpecs(final String dtstamp) throws TzException {
     try {
       resetTzs();
 
-      sess.createQuery(getSpecsQuery);
-      List<TzDbSpec> specs = sess.getList();
+      DBIterator it = db.iterator();
 
-      for (TzDbSpec spec: specs) {
-        String dt = spec.getDtstamp();
-        if (!dt.endsWith("Z")) {
-          // Pretend it's UTC
-          dt += "Z";
+      try {
+        for(it.seekToFirst(); it.hasNext(); it.next()) {
+          String key = Iq80DBFactory.asString(it.peekNext().getKey());
+
+          if (!key.startsWith(timezoneSpecPrefix)) {
+            continue;
+          }
+
+          TzDbSpec spec = getJson(it.peekNext().getValue(),
+                                  TzDbSpec.class);
+
+          String dt = spec.getDtstamp();
+          if (!dt.endsWith("Z")) {
+            // Pretend it's UTC
+            dt += "Z";
+          }
+
+          processSpec(spec.getName(), spec.getVtimezone(),
+                      XcalUtil.getXmlFormatDateTime(dt));
         }
-
-        processSpec(spec.getName(), spec.getVtimezone(),
-                    XcalUtil.getXmlFormatDateTime(dt));
+      } finally {
+        it.close();
       }
     } catch (TzException te) {
       throw te;
@@ -949,43 +942,79 @@ public class DbCachedData extends AbstractCachedData {
     }
   }
 
-  private SessionFactory getSessionFactory() throws TzException {
-    if (sessionFactory != null) {
-      return sessionFactory;
+  private DB getDb() throws TzException {
+    if (db != null) {
+      return db;
     }
 
-    synchronized (this) {
-      if (sessionFactory != null) {
-        return sessionFactory;
-      }
+    try {
+      Options options = new Options();
+      options.createIfMissing(true);
+      db = Iq80DBFactory.factory.open(new File(cfg.getLeveldbPath()), options);
+    } catch (Throwable t) {
+      // Always bad.
+      error(t);
+      throw new TzException(t);
+    }
 
-      /** Get a new hibernate session factory. This is configured from an
-       * application resource hibernate.cfg.xml together with some run time values
-       */
-      try {
-        Configuration conf = new Configuration();
+    return db;
+  }
 
-        /*
-        if (props != null) {
-          String cachePrefix = props.getProperty("cachePrefix");
-          if (cachePrefix != null) {
-            conf.setProperty("hibernate.cache.use_second_level_cache",
-                             props.getProperty("cachingOn"));
-            conf.setProperty("hibernate.cache.region_prefix",
-                             cachePrefix);
-          }
-        }
-        */
+  private void closeDb() {
+    if (db == null) {
+      return;
+    }
 
-        conf.configure();
+    try {
+      db.close();
+      db = null;
+    } catch (Throwable t) {
+      warn("Error closing db: " + t.getMessage());
+      error(t);
+    }
+  }
 
-        sessionFactory = conf.buildSessionFactory();
+  /** ===================================================================
+   *                   Json methods
+   *  =================================================================== */
 
-        return sessionFactory;
-      } catch (Throwable t) {
-        // Always bad.
-        error(t);
-        throw new TzException(t);
+  protected void writeJson(final OutputStream out,
+                           final Object val) throws TzException {
+    try {
+      mapper.writeValue(out, val);
+    } catch (Throwable t) {
+      throw new TzException(t);
+    }
+  }
+
+  protected byte[] bytesJson(final Object val) throws TzException {
+    try {
+      ByteArrayOutputStream os = new ByteArrayOutputStream();
+
+      mapper.writeValue(os, val);
+
+      return os.toByteArray();
+    } catch (Throwable t) {
+      throw new TzException(t);
+    }
+  }
+
+
+
+  protected <T> T getJson(final byte[] value,
+                          final Class<T> valueType) throws TzException {
+    InputStream is = null;
+    try {
+      is = new ByteArrayInputStream(value);
+
+      return mapper.readValue(is, valueType);
+    } catch (Throwable t) {
+      throw new TzException(t);
+    } finally {
+      if (is != null) {
+        try {
+          is.close();
+        } catch (Throwable t) {}
       }
     }
   }

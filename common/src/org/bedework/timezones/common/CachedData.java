@@ -18,9 +18,11 @@
 */
 package org.bedework.timezones.common;
 
-import net.fortuna.ical4j.model.TimeZone;
-
 import org.bedework.timezones.common.Differ.DiffListEntry;
+
+import edu.rpi.cmt.timezones.model.TimezoneType;
+
+import net.fortuna.ical4j.model.TimeZone;
 
 import ietf.params.xml.ns.icalendar_2.IcalendarType;
 
@@ -28,8 +30,6 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.SortedSet;
-
-import edu.rpi.cmt.timezones.model.TimezoneType;
 
 /** Cached data affected by the source data.
  *
@@ -47,45 +47,6 @@ public interface CachedData extends Serializable {
    * @throws TzException
    */
   List<Stat> getStats() throws TzException;
-
-  /** Url of server we refresh from. Ignore if we are a primary server
-   *
-   * @param val    String
-   * @throws TzException
-   */
-  void setPrimaryUrl(final String val) throws TzException;
-
-  /**
-   * @return String
-   * @throws TzException
-   */
-  String getPrimaryUrl() throws TzException;
-
-  /** Are we a primary server?
-   *
-   * @param val    boolean
-   * @throws TzException
-   */
-  void setPrimaryServer(final boolean val) throws TzException;
-
-  /** Are we a primary server?
-   * @return boolean
-   * @throws TzException
-   */
-  boolean getPrimaryServer() throws TzException;
-
-  /** Refresh interval - seconds
-   *
-   * @param val
-   * @throws TzException
-   */
-  void setRefreshInterval(final long val) throws TzException;
-
-  /**
-   * @return long Refresh interval - seconds
-   * @throws TzException
-   */
-  long getRefreshInterval() throws TzException;
 
   /** Update from primary source if any.
    *

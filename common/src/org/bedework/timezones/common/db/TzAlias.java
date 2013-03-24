@@ -55,7 +55,7 @@ public class TzAlias extends TzDbentity<TzAlias> {
     fromId = val;
   }
 
-  /** Get the fromId
+  /** Get the fromId - this should be unique.
    *
    * @return String   fromId
    */
@@ -71,7 +71,7 @@ public class TzAlias extends TzDbentity<TzAlias> {
     toId = val;
   }
 
-  /** Get the toId
+  /** Get the toId - this should be a valid tzid
    *
    *  @return String   toId
    */

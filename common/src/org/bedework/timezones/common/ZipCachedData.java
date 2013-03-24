@@ -49,54 +49,21 @@ import java.util.zip.ZipFile;
  * @author douglm
  */
 public class ZipCachedData  extends AbstractCachedData {
-  private String tzdataUrl;
-
   private ZipFile tzDefsZipFile;
 
   private File tzDefsFile;
 
   /**
-   * @param tzdataUrl
+   * @param cfg
    * @throws TzException
    */
-  public ZipCachedData(final String tzdataUrl) throws TzException {
-    super("Zip");
-    this.tzdataUrl = tzdataUrl;
+  public ZipCachedData(final TzConfig cfg) throws TzException {
+    super(cfg, "Zip");
     loadData();
   }
 
   @Override
   public void stop() throws TzException {
-  }
-
-  @Override
-  public void setPrimaryUrl(final String val) throws TzException {
-    // Ignore
-  }
-
-  @Override
-  public String getPrimaryUrl() throws TzException {
-    return TzServerUtil.getInitialPrimaryUrl();
-  }
-
-  @Override
-  public void setPrimaryServer(final boolean val) throws TzException {
-    // Ignore
-  }
-
-  @Override
-  public boolean getPrimaryServer() throws TzException {
-    return TzServerUtil.getInitialPrimaryServer();
-  }
-
-  @Override
-  public void setRefreshInterval(final long val) throws TzException {
-    // Ignore
-  }
-
-  @Override
-  public long getRefreshInterval() throws TzException {
-    return TzServerUtil.getInitialRefreshInterval();
   }
 
   @Override
@@ -253,7 +220,7 @@ public class ZipCachedData  extends AbstractCachedData {
    */
   private File getdata() throws TzException {
     try {
-      String dataUrl = tzdataUrl;
+      String dataUrl = cfg.getTzdataUrl();
       if (dataUrl == null) {
         throw new TzException("No data url defined");
       }

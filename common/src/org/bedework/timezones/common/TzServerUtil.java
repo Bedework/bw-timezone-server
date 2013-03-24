@@ -20,6 +20,7 @@ package org.bedework.timezones.common;
 
 import org.bedework.timezones.common.Differ.DiffListEntry;
 import org.bedework.timezones.common.db.DbCachedData;
+import org.bedework.timezones.common.leveldb.LdbCachedData;
 
 import edu.rpi.cmt.timezones.model.ObservanceType;
 import edu.rpi.cmt.timezones.model.TimezoneType;
@@ -63,8 +64,7 @@ public class TzServerUtil {
 
   private static TzServerUtil instance;
 
-  /* A URL for retrieving the tzdata jar */
-  static String tzdataUrl;
+  static TzConfigHolder cfgHolder;
 
   private static Object locker = new Object();
 
@@ -135,56 +135,30 @@ public class TzServerUtil {
     return appname;
   }
 
-  /** Set before calling getInstance if overriding config
-   *
+  /**
    * @param val
    */
-  public static void setTzdataUrl(final String val) {
-    tzdataUrl = val;
+  public static void setTzConfigHolder(final TzConfigHolder val) {
+    cfgHolder = val;
   }
 
   /**
-   * @return tzdataUrl
+   * @return current state of the configuration
    */
-  public static String getTzdataUrl() {
-    return tzdataUrl;
+  public static TzConfig getTzConfig() {
+    if (cfgHolder == null) {
+      return null;
+    }
+
+    return cfgHolder.geTzConfig();
   }
 
-  /** Initial value from config of url of server we refresh from.
-   * Ignore if we are a primary server
+  /**
    *
-   * @return String
-   * @throws TzException
    */
-  public static String getInitialPrimaryUrl() throws TzException {
-    try {
-      return TzsvrOptionsFactory.getOptions().getGlobalStringProperty("initialPrimaryUrl");
-    } catch (Throwable t) {
-      throw new TzException(t);
-    }
-  }
-
-  /** Initial value from config for are we a primary server?
-   * @return boolean
-   * @throws TzException
-   */
-  public static boolean getInitialPrimaryServer() throws TzException {
-    try {
-      return TzsvrOptionsFactory.getOptions().getGlobalBoolProperty("initialPrimaryServer");
-    } catch (Throwable t) {
-      throw new TzException(t);
-    }
-  }
-
-  /**
-   * @return long Refresh interval - seconds
-   * @throws TzException
-   */
-  public static long getInitialRefreshInterval() throws TzException {
-    try {
-      return TzsvrOptionsFactory.getOptions().getGlobalIntProperty("initialRefreshInterval");
-    } catch (Throwable t) {
-      throw new TzException(t);
+  public static void saveConfig() {
+    if (cfgHolder != null) {
+      cfgHolder.saveTzConfig();
     }
   }
 
@@ -225,7 +199,13 @@ public class TzServerUtil {
 
     Differ diff = new Differ();
 
-    List<DiffListEntry> dles = diff.compare(tzdataUrl, util.cache);
+    TzConfig newConfig = new TzConfig();
+    getTzConfig().copyTo(newConfig);
+    newConfig.setTzdataUrl(tzdataUrl);
+
+    CachedData cd = new ZipCachedData(newConfig);
+
+    List<DiffListEntry> dles = diff.compare(cd, util.cache);
 
     List<String> out = new ArrayList<String>();
 
@@ -274,7 +254,13 @@ public class TzServerUtil {
 
     Differ diff = new Differ();
 
-    List<DiffListEntry> dles = diff.compare(tzdataUrl, util.cache);
+    TzConfig newConfig = new TzConfig();
+    getTzConfig().copyTo(newConfig);
+    newConfig.setTzdataUrl(tzdataUrl);
+
+    CachedData cd = new ZipCachedData(newConfig);
+
+    List<DiffListEntry> dles = diff.compare(cd, util.cache);
 
     List<String> out = new ArrayList<String>();
 
@@ -331,57 +317,6 @@ public class TzServerUtil {
     if (cache != null) {
       cache.stop();
     }
-  }
-
-  /** Url of server we refresh from. Ignore if we are a primary server
-   *
-   * @param val    String
-   * @throws TzException
-   */
-  public void setPrimaryUrl(final String val) throws TzException {
-    cache.setPrimaryUrl(val);
-  }
-
-  /**
-   * @return String
-   * @throws TzException
-   */
-  public String getPrimaryUrl() throws TzException {
-    return cache.getPrimaryUrl();
-  }
-
-  /** Are we a primary server?
-   *
-   * @param val    boolean
-   * @throws TzException
-   */
-  public void setPrimaryServer(final boolean val) throws TzException {
-    cache.setPrimaryServer(val);
-  }
-
-  /** Are we a primary server?
-   * @return boolean
-   * @throws TzException
-   */
-  public boolean getPrimaryServer() throws TzException {
-    return cache.getPrimaryServer();
-  }
-
-  /** Refresh interval - seconds
-   *
-   * @param val
-   * @throws TzException
-   */
-  public void setRefreshInterval(final long val) throws TzException {
-    cache.setRefreshInterval(val);
-  }
-
-  /**
-   * @return long Refresh interval - seconds
-   * @throws TzException
-   */
-  public long getRefreshInterval() throws TzException {
-    return cache.getRefreshInterval();
   }
 
   /**
@@ -759,15 +694,31 @@ public class TzServerUtil {
   }
 
   private void getcache() throws TzException {
+    TzConfig cfg = getTzConfig();
+
+    if (cfg == null) {
+      error("No config data");
+      return;
+    }
+
     try {
-      cache = new DbCachedData();
+      if (cfg.getLeveldbPath() != null) {
+        cache = new LdbCachedData(getTzConfig());
+      } else {
+        cache = new DbCachedData(getTzConfig());
+      }
     } catch (TzException te) {
       error(te);
       cache = null;
     }
 
     if (cache == null) {
-      cache = new ZipCachedData(tzdataUrl);
+      if (cfg.getTzdataUrl() == null) {
+        error("No data url");
+        return;
+      }
+
+      cache = new ZipCachedData(cfg);
     }
   }
 

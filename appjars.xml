@@ -113,6 +113,13 @@
       <getJar lib="${org.bedework.temp.extrajars.dir}"
               libcache="${org.bedework.libcache.dir}"
               name="commons-lang" version="2.6"/>      
+      
+      <!-- ======================= leveldb jars =========================== -->
+      
+      <getJar lib="${org.bedework.temp.extrajars.dir}"
+              libcache="${org.bedework.libcache.dir}"
+              name="leveldb" version="0.5-min" />
+      
     </sequential>
  </macrodef>
 </project>
