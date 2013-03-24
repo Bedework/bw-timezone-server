@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <server>
+  <!-- 
   <mbean code="org.bedework.timezones.service.Tzsvc"
          name="org.bedework:service=Tzsvr">
     <attribute name="HostsConfigDir">${jboss.server.data.dir}/bedework/tzsvr</attribute>
     
-    <!-- We also need the database -->
+    < ! - - We also need the database - - >
     <depends>jboss.jca:service=DataSourceBinding,name=TzDS</depends>
     
-    <!-- We need activemq 
+    < ! - - We need activemq 
     <depends>jboss.jca:service=ConnectionFactoryBinding,name=activemq/QueueConnectionFactory</depends>
-    -->    
+    - - >    
   </mbean>
+   -->
 </server>

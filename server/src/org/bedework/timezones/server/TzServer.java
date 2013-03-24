@@ -18,14 +18,23 @@
 */
 package org.bedework.timezones.server;
 
+import org.bedework.timezones.service.TzConf;
+
+import edu.rpi.cmt.config.ConfigurationType;
+import edu.rpi.cmt.jmx.ConfBase;
 import edu.rpi.sss.util.servlets.HttpServletUtils;
 
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.Enumeration;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
+import javax.management.ObjectName;
 import javax.servlet.ServletConfig;
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -45,7 +54,7 @@ import javax.servlet.http.HttpSessionListener;
  *
  */
 public class TzServer extends HttpServlet
-        implements HttpSessionListener {
+        implements HttpSessionListener, ServletContextListener {
   private boolean debug;
 
   protected boolean dumpContent;
@@ -140,6 +149,59 @@ public class TzServer extends HttpServlet
       }
     } catch (Throwable t) {
     }
+  }
+
+  private static Set<ObjectName> registeredMBeans = new CopyOnWriteArraySet<ObjectName>();
+
+  class Configurator extends ConfBase {
+    TzConf tzConf;
+
+    @Override
+    protected Set<ObjectName> getRegisteredMBeans() {
+      return registeredMBeans;
+    }
+
+    @Override
+    public String getServiceName() {
+      return "org.bedework.timezones:service=TzSvr";
+    }
+
+    @Override
+    public ConfigurationType getConfigObject() {
+      return tzConf.getConfigObject();
+    }
+
+    void start(final String configDir) {
+      try {
+        getManagementContext().start();
+
+        tzConf = new TzConf(configDir);
+        register("tzConf", "tzConf", tzConf);
+        tzConf.loadConfig();
+      } catch (Throwable t){
+        t.printStackTrace();
+      }
+    }
+
+    void stop() {
+      try {
+        getManagementContext().stop();
+      } catch (Throwable t){
+        t.printStackTrace();
+      }
+    }
+  }
+
+  private Configurator conf = new Configurator();
+
+  @Override
+  public void contextInitialized(final ServletContextEvent sce) {
+    conf.start(sce.getServletContext().getInitParameter("configDir"));
+  }
+
+  @Override
+  public void contextDestroyed(final ServletContextEvent sce) {
+    conf.stop();
   }
 
   /**

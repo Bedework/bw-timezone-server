@@ -56,7 +56,7 @@ public interface TzConfMBean extends ConfBaseMBean {
    *
    * @return String, null for unset
    */
-  @MBeanInfo("Location of the leveldb data - a directory. If set we use leveldb")
+  @MBeanInfo("Location of the leveldb data - a directory. If relative will be in config dir")
   String getLeveldbPath();
 
   /** Primary url
@@ -137,57 +137,65 @@ public interface TzConfMBean extends ConfBaseMBean {
   @MBeanInfo("Check with primary source.")
   String checkData();
 
-  /** Recreate the tzdb
+  // No sql
+  /* * Recreate the tzdb
    *
    * @return completion code.
-   */
+   * /
   @MBeanInfo("Recreate the database - drop tables, rewrite the schema.")
   String recreateDb();
+  */
 
-  /** Returns status of the schema build.
+  /* * Returns status of the schema build.
    *
    * @return Completion messages
-   */
+   * /
   @MBeanInfo("Status of the database recreate.")
   public List<String> recreateStatus();
+  */
 
-  /** List the hibernate properties
+  /* * List the hibernate properties
    *
    * @return properties
-   */
+   * /
   @MBeanInfo("List the hibernate properties")
   String listHibernateProperties();
+  */
 
-  /** Display the named property
+  /* * Display the named property
    *
    * @param name
    * @return value
-   */
+   * /
   @MBeanInfo("Display the named hibernate property")
   String displayHibernateProperty(@MBeanInfo("name") final String name);
+  */
 
-  /** Remove the named property
+  /* * Remove the named property
    *
    * @param name
-   */
+   * /
   @MBeanInfo("Remove the named hibernate property")
   void removeHibernateProperty(@MBeanInfo("name") final String name);
+  */
 
-  /**
+  /* *
    * @param name
    * @param value
-   */
+   * /
   @MBeanInfo("Add a hibernate property")
   void addHibernateProperty(@MBeanInfo("name") final String name,
                               @MBeanInfo("value") final String value);
+  */
 
-  /**
+  /* *
    * @param name
    * @param value
-   */
+   * /
   @MBeanInfo("Set a hibernate property")
   void setHibernateProperty(@MBeanInfo("name") final String name,
                             @MBeanInfo("value") final String value);
+  */
 
   /** (Re)load the configuration
    *

@@ -8,8 +8,8 @@
   <display-name>@DISPLAY-NAME@</display-name>
 
   <context-param>
-    <param-name>debug</param-name>
-    <param-value>@RPI-DEBUG@</param-value>
+    <param-name>configDir</param-name>
+    <param-value>@DATA_DIR@/tzsvr/</param-value>
   </context-param>
 
   <!-- Do not alter or move  the following comment -->
@@ -18,7 +18,9 @@
   <listener>
     <listener-class>edu.rpi.sss.util.jsp.SessionListener</listener-class>
   </listener>
-
+  <listener>
+    <listener-class>org.bedework.timezones.server.TzServer</listener-class>
+  </listener>
   <!-- Do not alter or move  the following comment -->
   <!-- add listeners here -->
 

@@ -24,6 +24,11 @@ package org.bedework.timezones.common;
  */
 public interface TzConfigHolder {
   /**
+   * @return path of config directory.
+   */
+  String getConfigDir();
+
+  /**
    * @return the current state of the configuration.
    */
   TzConfig geTzConfig();

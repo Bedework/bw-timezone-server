@@ -19,7 +19,6 @@
 package org.bedework.timezones.common;
 
 import org.bedework.timezones.common.Differ.DiffListEntry;
-import org.bedework.timezones.common.db.DbCachedData;
 import org.bedework.timezones.common.leveldb.LdbCachedData;
 
 import edu.rpi.cmt.timezones.model.ObservanceType;
@@ -140,6 +139,17 @@ public class TzServerUtil {
    */
   public static void setTzConfigHolder(final TzConfigHolder val) {
     cfgHolder = val;
+  }
+
+  /**
+   * @return path of config directory.
+   */
+  public static String getConfigDir() {
+    if (cfgHolder == null) {
+      return null;
+    }
+
+    return cfgHolder.getConfigDir();
   }
 
   /**
@@ -702,11 +712,8 @@ public class TzServerUtil {
     }
 
     try {
-      if (cfg.getLeveldbPath() != null) {
-        cache = new LdbCachedData(getTzConfig());
-      } else {
-        cache = new DbCachedData(getTzConfig());
-      }
+      cache = new LdbCachedData(getTzConfig());
+      //cache = new DbCachedData(getTzConfig());
     } catch (TzException te) {
       error(te);
       cache = null;

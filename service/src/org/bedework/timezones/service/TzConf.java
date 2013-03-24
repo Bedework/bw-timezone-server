@@ -27,10 +27,6 @@ import edu.rpi.cmt.config.ConfigurationFileStore;
 import edu.rpi.cmt.config.ConfigurationStore;
 import edu.rpi.cmt.config.ConfigurationType;
 import edu.rpi.cmt.jmx.ConfBase;
-import edu.rpi.cmt.jmx.InfoLines;
-
-import org.hibernate.cfg.Configuration;
-import org.hibernate.tool.hbm2ddl.SchemaExport;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -50,10 +46,11 @@ public class TzConf extends ConfBase implements TzConfMBean, TzConfigHolder {
 
   private String serviceName = "org.bedework.timezones:service=Server";
 
-  private Configuration config;
+  // private Configuration config;
 
   private static TzConfig cfg;
 
+  /*
   private class SchemaThread extends Thread {
     InfoLines infoLines = new InfoLines();
 
@@ -110,6 +107,7 @@ public class TzConf extends ConfBase implements TzConfMBean, TzConfigHolder {
   }
 
   private SchemaThread buildSchema = new SchemaThread();
+  */
 
   /**
    * @param configDir
@@ -233,32 +231,6 @@ public class TzConf extends ConfBase implements TzConfMBean, TzConfigHolder {
   }
 
   @Override
-  public String recreateDb() {
-    try {
-      buildSchema.start();
-
-      return "OK";
-    } catch (Throwable t) {
-      error(t);
-
-      return "Exception: " + t.getLocalizedMessage();
-    }
-  }
-
-  @Override
-  public synchronized List<String> recreateStatus() {
-    if (buildSchema == null) {
-      InfoLines infoLines = new InfoLines();
-
-      infoLines.addLn("Schema build has not been started");
-
-      return infoLines;
-    }
-
-    return buildSchema.infoLines;
-  }
-
-  @Override
   public String compareData(final String tzdataUrl) {
     StringWriter sw = new StringWriter();
 
@@ -296,6 +268,33 @@ public class TzConf extends ConfBase implements TzConfMBean, TzConfigHolder {
     }
 
     return sw.toString();
+  }
+
+  /*
+  @Override
+  public String recreateDb() {
+    try {
+      buildSchema.start();
+
+      return "OK";
+    } catch (Throwable t) {
+      error(t);
+
+      return "Exception: " + t.getLocalizedMessage();
+    }
+  }
+
+  @Override
+  public synchronized List<String> recreateStatus() {
+    if (buildSchema == null) {
+      InfoLines infoLines = new InfoLines();
+
+      infoLines.addLn("Schema build has not been started");
+
+      return infoLines;
+    }
+
+    return buildSchema.infoLines;
   }
 
   @Override
@@ -340,6 +339,7 @@ public class TzConf extends ConfBase implements TzConfMBean, TzConfigHolder {
                                    final String value) {
     geTzConfig().setHibernateProperty(name, value);
   }
+  */
 
   @Override
   public String loadConfig() {
@@ -424,6 +424,7 @@ public class TzConf extends ConfBase implements TzConfMBean, TzConfigHolder {
     }
   }
 
+  /*
   private synchronized Configuration getConfiguration() {
     if (config == null) {
       config = new Configuration().configure();
@@ -431,6 +432,7 @@ public class TzConf extends ConfBase implements TzConfMBean, TzConfigHolder {
 
     return config;
   }
+  */
 
   /* ====================================================================
    *                   Non-mbean methods

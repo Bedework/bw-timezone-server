@@ -51,6 +51,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -95,6 +97,11 @@ public class LdbCachedData extends AbstractCachedData {
   private long primaryFetches;
   private long lastFetchCt;
   private String lastFetchStatus = "None";
+
+  private String lastConfigLevelDbPath;
+
+  /* Calculated from config level db path */
+  private String levelDbPath;
 
   private class UpdateThread extends Thread {
     boolean showedTrace;
@@ -948,9 +955,22 @@ public class LdbCachedData extends AbstractCachedData {
     }
 
     try {
+      if ((lastConfigLevelDbPath == null) ||
+          (!lastConfigLevelDbPath.equals(cfg.getLeveldbPath()))) {
+        lastConfigLevelDbPath = cfg.getLeveldbPath();
+
+        File f = new File(lastConfigLevelDbPath);
+
+        if (!f.isAbsolute()) {
+          Path path = FileSystems.getDefault().getPath(TzServerUtil.getConfigDir(),
+                                                       lastConfigLevelDbPath);
+          levelDbPath = path.toString();
+        }
+      }
+
       Options options = new Options();
       options.createIfMissing(true);
-      db = Iq80DBFactory.factory.open(new File(cfg.getLeveldbPath()), options);
+      db = Iq80DBFactory.factory.open(new File(levelDbPath), options);
     } catch (Throwable t) {
       // Always bad.
       error(t);
