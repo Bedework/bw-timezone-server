@@ -1019,8 +1019,6 @@ public class LdbCachedData extends AbstractCachedData {
     }
   }
 
-
-
   protected <T> T getJson(final byte[] value,
                           final Class<T> valueType) throws TzException {
     InputStream is = null;
