@@ -21,11 +21,6 @@
               name="bw-tzsvr" version="${org.bedework.bwtzsvr.version}"
               projecthome="${project.home}" />
 
-      <getJar lib="${org.bedework.temp.extrajars.dir}"
-              libcache="${org.bedework.libcache.dir}"
-              name="bw-tzsvr-svc" version="${org.bedework.bwtzsvr.version}"
-              projecthome="${project.home}" />
-
       <!-- ======================= Schema jars ============================= -->
 
       <getJar lib="${org.bedework.temp.extrajars.dir}"
