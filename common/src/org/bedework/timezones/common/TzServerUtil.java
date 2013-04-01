@@ -161,7 +161,7 @@ public class TzServerUtil {
       return null;
     }
 
-    return cfgHolder.geTzConfig();
+    return cfgHolder.getConfig();
   }
 
   /**
@@ -169,7 +169,7 @@ public class TzServerUtil {
    */
   public static void saveConfig() {
     if (cfgHolder != null) {
-      cfgHolder.saveTzConfig();
+      cfgHolder.putConfig();
     }
   }
 

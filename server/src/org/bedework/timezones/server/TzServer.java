@@ -28,10 +28,7 @@ import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.Enumeration;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 
-import javax.management.ObjectName;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -151,19 +148,11 @@ public class TzServer extends HttpServlet
     }
   }
 
-  private static Set<ObjectName> registeredMBeans = new CopyOnWriteArraySet<ObjectName>();
-
   class Configurator extends ConfBase {
     TzConf tzConf;
 
-    @Override
-    protected Set<ObjectName> getRegisteredMBeans() {
-      return registeredMBeans;
-    }
-
-    @Override
-    public String getServiceName() {
-      return "org.bedework.timezones:service=TzSvr";
+    public Configurator() {
+      super("org.bedework.timezones:service=TzSvr");
     }
 
     @Override

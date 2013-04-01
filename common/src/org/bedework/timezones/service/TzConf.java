@@ -32,22 +32,12 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
-
-import javax.management.ObjectName;
 
 /**
  * @author douglm
  *
  */
 public class TzConf extends ConfBase implements TzConfMBean, ConfigHolder<TzConfig> {
-  private static Set<ObjectName> registeredMBeans = new CopyOnWriteArraySet<ObjectName>();
-
-  private String serviceName = "org.bedework.timezones:service=Server";
-
-  // private Configuration config;
-
   private static TzConfig cfg;
 
   /*
@@ -113,19 +103,11 @@ public class TzConf extends ConfBase implements TzConfMBean, ConfigHolder<TzConf
    * @param configDir
    */
   public TzConf(final String configDir) {
+    super("org.bedework.timezones:service=Server");
+
     setConfigDir(configDir);
 
     TzServerUtil.setTzConfigHolder(this);
-  }
-
-  @Override
-  public String getServiceName() {
-    return serviceName;
-  }
-
-  @Override
-  protected Set<ObjectName> getRegisteredMBeans() {
-    return registeredMBeans;
   }
 
   @Override
@@ -143,52 +125,52 @@ public class TzConf extends ConfBase implements TzConfMBean, ConfigHolder<TzConf
    */
   @Override
   public void setTzdataUrl(final String val) {
-    geTzConfig().setTzdataUrl(val);
+    getConfig().setTzdataUrl(val);
   }
 
   @Override
   public String getTzdataUrl() {
-    return geTzConfig().getTzdataUrl();
+    return getConfig().getTzdataUrl();
   }
 
   @Override
   public void setLeveldbPath(final String val) {
-    geTzConfig().setLeveldbPath(val);
+    getConfig().setLeveldbPath(val);
   }
 
   @Override
   public String getLeveldbPath() {
-    return geTzConfig().getLeveldbPath();
+    return getConfig().getLeveldbPath();
   }
 
   @Override
   public void setPrimaryUrl(final String val) {
-    geTzConfig().setPrimaryUrl(val);
+    getConfig().setPrimaryUrl(val);
   }
 
   @Override
   public String getPrimaryUrl() {
-      return geTzConfig().getPrimaryUrl();
+    return getConfig().getPrimaryUrl();
   }
 
   @Override
   public void setPrimaryServer(final boolean val) {
-    geTzConfig().setPrimaryServer(val);
+    getConfig().setPrimaryServer(val);
   }
 
   @Override
   public boolean getPrimaryServer() {
-    return geTzConfig().getPrimaryServer();
+    return getConfig().getPrimaryServer();
   }
 
   @Override
   public void setRefreshInterval(final long val) {
-    geTzConfig().setRefreshDelay(val);
+    getConfig().setRefreshDelay(val);
   }
 
   @Override
   public long getRefreshInterval() {
-    return geTzConfig().getRefreshDelay();
+    return getConfig().getRefreshDelay();
   }
 
   /* ========================================================================
@@ -209,7 +191,7 @@ public class TzConf extends ConfBase implements TzConfMBean, ConfigHolder<TzConf
   @Override
   public String refreshData() {
     try {
-      geTzConfig().setDtstamp(null);
+      getConfig().setDtstamp(null);
       saveConfig();
       TzServerUtil.fireRefresh();
       return "Ok";
@@ -382,7 +364,7 @@ public class TzConf extends ConfBase implements TzConfMBean, ConfigHolder<TzConf
    * @return the current state of the configuration.
    */
   @Override
-  public TzConfig geTzConfig() {
+  public TzConfig getConfig() {
     return cfg;
   }
 
@@ -390,7 +372,7 @@ public class TzConf extends ConfBase implements TzConfMBean, ConfigHolder<TzConf
    *
    */
   @Override
-  public void saveTzConfig() {
+  public void putConfig() {
     saveConfig();
   }
 
