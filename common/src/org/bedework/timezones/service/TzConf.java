@@ -20,13 +20,13 @@ package org.bedework.timezones.service;
 
 import org.bedework.timezones.common.Stat;
 import org.bedework.timezones.common.TzConfig;
-import org.bedework.timezones.common.TzConfigHolder;
 import org.bedework.timezones.common.TzServerUtil;
 
 import edu.rpi.cmt.config.ConfigurationFileStore;
 import edu.rpi.cmt.config.ConfigurationStore;
 import edu.rpi.cmt.config.ConfigurationType;
 import edu.rpi.cmt.jmx.ConfBase;
+import edu.rpi.cmt.jmx.ConfigHolder;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -41,7 +41,7 @@ import javax.management.ObjectName;
  * @author douglm
  *
  */
-public class TzConf extends ConfBase implements TzConfMBean, TzConfigHolder {
+public class TzConf extends ConfBase implements TzConfMBean, ConfigHolder<TzConfig> {
   private static Set<ObjectName> registeredMBeans = new CopyOnWriteArraySet<ObjectName>();
 
   private String serviceName = "org.bedework.timezones:service=Server";

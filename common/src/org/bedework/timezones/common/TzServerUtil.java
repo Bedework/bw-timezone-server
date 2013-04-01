@@ -21,6 +21,7 @@ package org.bedework.timezones.common;
 import org.bedework.timezones.common.Differ.DiffListEntry;
 import org.bedework.timezones.common.leveldb.LdbCachedData;
 
+import edu.rpi.cmt.jmx.ConfigHolder;
 import edu.rpi.cmt.timezones.model.ObservanceType;
 import edu.rpi.cmt.timezones.model.TimezoneType;
 import edu.rpi.cmt.timezones.model.TimezonesType;
@@ -63,7 +64,7 @@ public class TzServerUtil {
 
   private static TzServerUtil instance;
 
-  static TzConfigHolder cfgHolder;
+  static ConfigHolder<TzConfig> cfgHolder;
 
   private static Object locker = new Object();
 
@@ -137,7 +138,7 @@ public class TzServerUtil {
   /**
    * @param val
    */
-  public static void setTzConfigHolder(final TzConfigHolder val) {
+  public static void setTzConfigHolder(final ConfigHolder<TzConfig> val) {
     cfgHolder = val;
   }
 
