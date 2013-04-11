@@ -57,7 +57,6 @@
 	<modules>
 		<module>bw-timezone-server-common</module>
 		<module>bw-timezone-server-war</module>
-		<module>bw-timezone-server-ear-properties</module>
 		<module>bw-timezone-server-ear</module>
 	</modules>
 

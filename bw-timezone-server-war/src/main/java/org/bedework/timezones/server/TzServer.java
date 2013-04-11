@@ -160,11 +160,11 @@ public class TzServer extends HttpServlet
       return tzConf.getConfigObject();
     }
 
-    void start(final String configDir) {
+    void start() {
       try {
         getManagementContext().start();
 
-        tzConf = new TzConf(configDir);
+        tzConf = new TzConf();
         register("tzConf", "tzConf", tzConf);
         tzConf.loadConfig();
       } catch (Throwable t){
@@ -185,7 +185,7 @@ public class TzServer extends HttpServlet
 
   @Override
   public void contextInitialized(final ServletContextEvent sce) {
-    conf.start(sce.getServletContext().getInitParameter("configDir"));
+    conf.start();
   }
 
   @Override

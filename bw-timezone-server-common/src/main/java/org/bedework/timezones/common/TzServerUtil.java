@@ -150,7 +150,7 @@ public class TzServerUtil {
       return null;
     }
 
-    return cfgHolder.getConfigDir();
+    return cfgHolder.getConfigUri();
   }
 
   /**

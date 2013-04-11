@@ -960,16 +960,11 @@ public class LdbCachedData extends AbstractCachedData {
         File f = new File(lastConfigLevelDbPath);
 
         if (!f.isAbsolute()) {
-          levelDbPath = TzServerUtil.getConfigDir();
-          if (!levelDbPath.endsWith(File.separator)) {
-            levelDbPath += File.separator;
-          }
-
-          levelDbPath += lastConfigLevelDbPath;
-// java 7          Path path = FileSystems.getDefault().getPath(TzServerUtil.getConfigDir(),
-// java 7                                                       lastConfigLevelDbPath);
-// java 7          levelDbPath = path.toString();
+          throw new TzException("levelDbPath must be absolute - found " +
+                                lastConfigLevelDbPath);
         }
+
+        levelDbPath = lastConfigLevelDbPath;
       }
 
       Options options = new Options();

@@ -37,75 +37,18 @@ import java.util.List;
  * @author douglm
  *
  */
-public class TzConf extends ConfBase implements TzConfMBean, ConfigHolder<TzConfig> {
+public class TzConf extends ConfBase<TzConfig> implements TzConfMBean, ConfigHolder<TzConfig> {
   private static TzConfig cfg;
 
-  /*
-  private class SchemaThread extends Thread {
-    InfoLines infoLines = new InfoLines();
-
-    SchemaThread() {
-      super("BuildSchema");
-    }
-
-    @Override
-    public void run() {
-      infoLines.addLn("Started drop of tables");
-
-      String res = schema(true);
-
-      if (res != null) {
-        infoLines.addLn("Failed: message was:");
-        infoLines.addLn(res);
-        return;
-      }
-
-      infoLines.addLn("Started export of schema");
-
-      res = schema(false);
-
-      if (res != null) {
-        infoLines.addLn("Failed: message was:");
-        infoLines.addLn(res);
-        return;
-      }
-
-      infoLines.addLn("Action complete: check logs");
-    }
-
-    private String schema(final boolean drop) {
-      String result = null;
-
-      try {
-        SchemaExport se = new SchemaExport(getConfiguration());
-
-        se.setDelimiter(";");
-
-        se.setHaltOnError(false);
-
-        se.execute(false, // script - causes write to System.out if true
-                   true,  // export
-                   drop, // justDrop
-                   !drop); // justCreate
-      } catch (Throwable t) {
-        error(t);
-        result = "Exception: " + t.getLocalizedMessage();
-      }
-
-      return result;
-    }
-  }
-
-  private SchemaThread buildSchema = new SchemaThread();
-  */
+  /* Name of the property holding the location of the config data */
+  private static final String datauriPname = "org.bedework.tzs.datauri";
 
   /**
-   * @param configDir
    */
-  public TzConf(final String configDir) {
+  public TzConf() {
     super("org.bedework.timezones:service=Server");
 
-    setConfigDir(configDir);
+    setConfigPname(datauriPname);
 
     TzServerUtil.setTzConfigHolder(this);
   }
@@ -252,85 +195,14 @@ public class TzConf extends ConfBase implements TzConfMBean, ConfigHolder<TzConf
     return sw.toString();
   }
 
-  /*
-  @Override
-  public String recreateDb() {
-    try {
-      buildSchema.start();
-
-      return "OK";
-    } catch (Throwable t) {
-      error(t);
-
-      return "Exception: " + t.getLocalizedMessage();
-    }
-  }
-
-  @Override
-  public synchronized List<String> recreateStatus() {
-    if (buildSchema == null) {
-      InfoLines infoLines = new InfoLines();
-
-      infoLines.addLn("Schema build has not been started");
-
-      return infoLines;
-    }
-
-    return buildSchema.infoLines;
-  }
-
-  @Override
-  public String listHibernateProperties() {
-    StringBuilder res = new StringBuilder();
-
-    @SuppressWarnings("unchecked")
-    List<String> ps = geTzConfig().getHibernateProperties();
-
-    for (String p: ps) {
-      res.append(p);
-      res.append("\n");
-    }
-
-    return res.toString();
-  }
-
-  @Override
-  public String displayHibernateProperty(final String name) {
-    String val = geTzConfig().getHibernateProperty(name);
-
-    if (val != null) {
-      return val;
-    }
-
-    return "Not found";
-  }
-
-  @Override
-  public void removeHibernateProperty(final String name) {
-    geTzConfig().removeHibernateProperty(name);
-  }
-
-  @Override
-  public void addHibernateProperty(final String name,
-                                   final String value) {
-    geTzConfig().addHibernateProperty(name, value);
-  }
-
-  @Override
-  public void setHibernateProperty(final String name,
-                                   final String value) {
-    geTzConfig().setHibernateProperty(name, value);
-  }
-  */
-
   @Override
   public String loadConfig() {
     try {
       /* Load up the config */
 
-      ConfigurationStore cfs = new ConfigurationFileStore(getConfigDir());
+      ConfigurationStore cs = getStore();
 
-      Collection<String> configNames = cfs.getConfigs();
+      Collection<String> configNames = cs.getConfigs();
 
       if (configNames.isEmpty()) {
         return "No configuration";
@@ -342,7 +214,7 @@ public class TzConf extends ConfBase implements TzConfMBean, ConfigHolder<TzConf
 
       String configName = configNames.iterator().next();
 
-      cfg = getConfigInfo(cfs, configName);
+      cfg = getConfigInfo(cs, configName, TzConfig.class);
 
       if (cfg == null) {
         return "Unable to read configuration";
@@ -379,42 +251,6 @@ public class TzConf extends ConfBase implements TzConfMBean, ConfigHolder<TzConf
   /* ====================================================================
    *                   Private methods
    * ==================================================================== */
-
-  /**
-   * @return current state of config
-   */
-  private synchronized TzConfig getConfigInfo(final ConfigurationStore cfs,
-                                              final String configName) {
-    try {
-      /* Try to load it */
-
-      ConfigurationType config = cfs.getConfig(configName);
-
-      if (config == null) {
-        return null;
-      }
-
-      TzConfig cfg =
-          (TzConfig)makeObject(TzConfig.class.getCanonicalName());
-
-      cfg.setConfig(config);
-
-      return cfg;
-    } catch (Throwable t) {
-      error(t);
-      return null;
-    }
-  }
-
-  /*
-  private synchronized Configuration getConfiguration() {
-    if (config == null) {
-      config = new Configuration().configure();
-    }
-
-    return config;
-  }
-  */
 
   /* ====================================================================
    *                   Non-mbean methods

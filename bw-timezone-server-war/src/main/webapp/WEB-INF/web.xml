@@ -5,12 +5,7 @@
          xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee
          http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
          version="2.4">
-  <display-name>@DISPLAY-NAME@</display-name>
-
-  <context-param>
-    <param-name>configDir</param-name>
-    <param-value>@DATA_DIR@/tzsvr/</param-value>
-  </context-param>
+  <display-name>Timezones server</display-name>
 
   <!-- Do not alter or move  the following comment -->
   <!-- add context params here -->
@@ -36,10 +31,6 @@
     <init-param>
       <param-name>dumpContent</param-name>
       <param-value>true</param-value>
-    </init-param>
-    <init-param>
-      <param-name>debug</param-name>
-      <param-value>1</param-value>
     </init-param>
 
     <load-on-startup>1</load-on-startup>
