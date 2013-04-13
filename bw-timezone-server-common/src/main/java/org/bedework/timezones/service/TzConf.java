@@ -22,7 +22,6 @@ import org.bedework.timezones.common.Stat;
 import org.bedework.timezones.common.TzConfig;
 import org.bedework.timezones.common.TzServerUtil;
 
-import edu.rpi.cmt.config.ConfigurationFileStore;
 import edu.rpi.cmt.config.ConfigurationStore;
 import edu.rpi.cmt.config.ConfigurationType;
 import edu.rpi.cmt.jmx.ConfBase;
@@ -214,7 +213,7 @@ public class TzConf extends ConfBase<TzConfig> implements TzConfMBean, ConfigHol
 
       String configName = configNames.iterator().next();
 
-      cfg = getConfigInfo(cs, configName, TzConfig.class);
+      cfg = getConfigInfo(configName, TzConfig.class);
 
       if (cfg == null) {
         return "Unable to read configuration";
