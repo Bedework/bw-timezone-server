@@ -18,70 +18,63 @@
 */
 package org.bedework.timezones.common;
 
+import edu.rpi.cmt.config.ConfInfo;
 import edu.rpi.cmt.config.ConfigBase;
 import edu.rpi.sss.util.ToString;
 import edu.rpi.sss.util.Util;
 
+import java.util.ArrayList;
 import java.util.List;
-
-import javax.xml.namespace.QName;
 
 /** This class defines the various properties we need for a carddav server
  *
  * @author Mike Douglass
  * @param <T>
  */
+@ConfInfo(elementName = "bwtz-confinfo")
 public class TzConfig<T extends TzConfig> extends ConfigBase<T> {
-  /** */
-  public final static QName confElement = new QName(ns, "bwtz-confinfo");
+  private String dtstamp;
 
-  private static final QName dtstampProperty = new QName(ns, "dtstamp");
+  private String version;
 
-  private static final QName versionProperty = new QName(ns, "version");
+  private String primaryUrl;
 
-  private static final QName primaryUrlProperty = new QName(ns, "primaryUrl");
+  private boolean primaryServer;
 
-  private static final QName primaryServerProperty = new QName(ns, "primaryServer");
+  private String tzdataUrl;
 
-  private static final QName tzdataUrlProperty = new QName(ns, "tzdataUrl");
+  private String leveldbPath;
 
-  private static final QName leveldbPathProperty = new QName(ns, "leveldbPath");
+  private long refreshDelay;
 
-  private static final QName refreshDelayProperty = new QName(ns, "refreshDelay");
-
-  private static final QName hibernateProperty = new QName(ns, "hibernateProperty");
-
-  @Override
-  public QName getConfElement() {
-    return confElement;
-  }
+  private List<String> hibernateProperties;
 
   /**
    * @param val
    */
   public void setDtstamp(final String val) {
-    setProperty(dtstampProperty, val);
+    dtstamp = val;
   }
 
   /**
    * @return String XML format dtstamp
    */
   public String getDtstamp() {
-    return getPropertyValue(dtstampProperty);
+    return dtstamp;
   }
 
   /**
    * @param val
    */
   public void setVersion(final String val) {
-    setProperty(versionProperty, val);
+    version = val;
   }
 
   /**
    * @return String version
    */
   public String getVersion() {
-    return getPropertyValue(versionProperty);
+    return version;
   }
 
   /** Url for the primary server.
@@ -89,7 +82,7 @@ public class TzConfig<T extends TzConfig> extends ConfigBase<T> {
    * @param val    String
    */
   public void setPrimaryUrl(final String val) {
-    setProperty(primaryUrlProperty, val);
+    primaryUrl = val;
   }
 
   /** Url for the primary server.
@@ -97,23 +90,23 @@ public class TzConfig<T extends TzConfig> extends ConfigBase<T> {
    * @return String, null for unset
    */
   public String getPrimaryUrl() {
-    return getPropertyValue(primaryUrlProperty);
+    return primaryUrl;
   }
 
   /** Are we a primary server?
    *
-   * @param val    Boolean
+   * @param val    boolean
    */
-  public void setPrimaryServer(final Boolean val) {
-    setBooleanProperty(primaryServerProperty, val);
+  public void setPrimaryServer(final boolean val) {
+    primaryServer = val;
   }
 
   /** Are we a primary server?
    *
-   * @return Boolean, null for unset
+   * @return boolean
    */
-  public Boolean getPrimaryServer() {
-    return getBooleanPropertyValue(primaryServerProperty);
+  public boolean getPrimaryServer() {
+    return primaryServer;
   }
 
   /** Location of the (backup) zip file.
@@ -121,7 +114,7 @@ public class TzConfig<T extends TzConfig> extends ConfigBase<T> {
    * @param val    String
    */
   public void setTzdataUrl(final String val) {
-    setProperty(tzdataUrlProperty, val);
+    tzdataUrl = val;
   }
 
   /** Location of the (backup) zip file.
@@ -129,7 +122,7 @@ public class TzConfig<T extends TzConfig> extends ConfigBase<T> {
    * @return String, null for unset
    */
   public String getTzdataUrl() {
-    return getPropertyValue(tzdataUrlProperty);
+    return tzdataUrl;
   }
 
   /** Location of the leveldb data.
@@ -137,7 +130,7 @@ public class TzConfig<T extends TzConfig> extends ConfigBase<T> {
    * @param val    String
    */
   public void setLeveldbPath(final String val) {
-    setProperty(leveldbPathProperty, val);
+    leveldbPath = val;
   }
 
   /** Location of the leveldb data.
@@ -145,7 +138,7 @@ public class TzConfig<T extends TzConfig> extends ConfigBase<T> {
    * @return String, null for unset
    */
   public String getLeveldbPath() {
-    return getPropertyValue(leveldbPathProperty);
+    return leveldbPath;
   }
 
   /** Refresh delay - seconds
@@ -153,15 +146,32 @@ public class TzConfig<T extends TzConfig> extends ConfigBase<T> {
    * @param val
    */
   public void setRefreshDelay(final Long val) {
-    setLongProperty(refreshDelayProperty, val);
+    refreshDelay = val;
   }
 
   /** Refresh delay - seconds
    *
-   * @return Long refreshDelay - null for unset
+   * @return long refreshDelay
    */
-  public Long getRefreshDelay() {
-    return getLongPropertyValue(refreshDelayProperty);
+  public long getRefreshDelay() {
+    return refreshDelay;
+  }
+
+  /**
+   *
+   * @param val
+   */
+  public void setHibernateProperties(final List<String> val) {
+    hibernateProperties = val;
+  }
+
+  /**
+   *
+   * @return String val
+   */
+  @ConfInfo(collectionElementName = "hibernateProperty")
+  public List<String> getHibernateProperties() {
+    return hibernateProperties;
   }
 
   /** Add a hibernate property
@@ -171,7 +181,12 @@ public class TzConfig<T extends TzConfig> extends ConfigBase<T> {
    */
   public void addHibernateProperty(final String name,
                                    final String val) {
-    addProperty(hibernateProperty, name + "=" + val);
+    List<String> p = getHibernateProperties();
+    if (p == null) {
+      p = new ArrayList<String>();
+      setHibernateProperties(p);
+    }
+    p.add(name + "=" + val);
   }
 
   /** Get a hibernate property
@@ -204,7 +219,7 @@ public class TzConfig<T extends TzConfig> extends ConfigBase<T> {
         return;
       }
 
-      getConfig().removeProperty(hibernateProperty, name + "=" + v);
+      getHibernateProperties().remove(name + "=" + v);
     } catch (Throwable t) {
       throw new RuntimeException(t);
     }
@@ -225,18 +240,6 @@ public class TzConfig<T extends TzConfig> extends ConfigBase<T> {
     }
   }
 
-  /**
-   *
-   * @return String val
-   */
-  public List<String> getHibernateProperties() {
-    try {
-      return getConfig().getAll(hibernateProperty);
-    } catch (Throwable t) {
-      throw new RuntimeException(t);
-    }
-  }
-
   /** Add our stuff to the StringBuilder
    *
    * @param ts    ToString for result
@@ -244,8 +247,6 @@ public class TzConfig<T extends TzConfig> extends ConfigBase<T> {
   @Override
   public void toStringSegment(final ToString ts) {
     super.toStringSegment(ts);
-
-    ts.append("appName", getAppName());
   }
 
   /** init copy of the config

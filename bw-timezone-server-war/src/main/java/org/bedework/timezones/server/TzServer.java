@@ -20,7 +20,6 @@ package org.bedework.timezones.server;
 
 import org.bedework.timezones.service.TzConf;
 
-import edu.rpi.cmt.config.ConfigurationType;
 import edu.rpi.cmt.jmx.ConfBase;
 import edu.rpi.sss.util.servlets.HttpServletUtils;
 
@@ -153,11 +152,6 @@ public class TzServer extends HttpServlet
 
     public Configurator() {
       super("org.bedework.timezones:service=TzSvr");
-    }
-
-    @Override
-    public ConfigurationType getConfigObject() {
-      return tzConf.getConfigObject();
     }
 
     void start() {

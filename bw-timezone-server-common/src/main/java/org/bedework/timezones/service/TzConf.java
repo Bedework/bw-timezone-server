@@ -23,7 +23,6 @@ import org.bedework.timezones.common.TzConfig;
 import org.bedework.timezones.common.TzServerUtil;
 
 import edu.rpi.cmt.config.ConfigurationStore;
-import edu.rpi.cmt.config.ConfigurationType;
 import edu.rpi.cmt.jmx.ConfBase;
 import edu.rpi.cmt.jmx.ConfigHolder;
 
@@ -37,8 +36,6 @@ import java.util.List;
  *
  */
 public class TzConf extends ConfBase<TzConfig> implements TzConfMBean, ConfigHolder<TzConfig> {
-  private static TzConfig cfg;
-
   /* Name of the property holding the location of the config data */
   private static final String datauriPname = "org.bedework.tzs.datauri";
 
@@ -50,11 +47,6 @@ public class TzConf extends ConfBase<TzConfig> implements TzConfMBean, ConfigHol
     setConfigPname(datauriPname);
 
     TzServerUtil.setTzConfigHolder(this);
-  }
-
-  @Override
-  public ConfigurationType getConfigObject() {
-    return getCfg().getConfig();
   }
 
   /* ========================================================================
