@@ -22,14 +22,12 @@ import org.bedework.timezones.common.Stat;
 import org.bedework.timezones.common.TzConfig;
 import org.bedework.timezones.common.TzServerUtil;
 
-import edu.rpi.cmt.config.ConfigurationStore;
-import edu.rpi.cmt.jmx.ConfBase;
-import edu.rpi.cmt.jmx.ConfigHolder;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Collection;
 import java.util.List;
+
+import edu.rpi.cmt.jmx.ConfBase;
+import edu.rpi.cmt.jmx.ConfigHolder;
 
 /**
  * @author douglm
@@ -37,14 +35,14 @@ import java.util.List;
  */
 public class TzConf extends ConfBase<TzConfig> implements TzConfMBean, ConfigHolder<TzConfig> {
   /* Name of the property holding the location of the config data */
-  private static final String datauriPname = "org.bedework.tzs.datauri";
+  private static final String confuriPname = "org.bedework.tzs.confuri";
 
   /**
    */
   public TzConf() {
     super("org.bedework.timezones:service=Server");
 
-    setConfigPname(datauriPname);
+    setConfigPname(confuriPname);
 
     TzServerUtil.setTzConfigHolder(this);
   }
@@ -188,47 +186,7 @@ public class TzConf extends ConfBase<TzConfig> implements TzConfMBean, ConfigHol
 
   @Override
   public String loadConfig() {
-    try {
-      /* Load up the config */
-
-      ConfigurationStore cs = getStore();
-
-      Collection<String> configNames = cs.getConfigs();
-
-      if (configNames.isEmpty()) {
-        return "No configuration";
-      }
-
-      if (configNames.size() != 1) {
-        return "1 and only 1 configuration allowed";
-      }
-
-      String configName = configNames.iterator().next();
-
-      cfg = getConfigInfo(configName, TzConfig.class);
-
-      if (cfg == null) {
-        return "Unable to read configuration";
-      }
-
-      setConfigName(configName);
-
-      saveConfig(); // Just to ensure we have it for next time
-
-      return "OK";
-    } catch (Throwable t) {
-      error("Failed to start management context");
-      error(t);
-      return "failed";
-    }
-  }
-
-  /**
-   * @return the current state of the configuration.
-   */
-  @Override
-  public TzConfig getConfig() {
-    return cfg;
+    return loadConfig(TzConfig.class);
   }
 
   /** Save the configuration.
@@ -242,17 +200,6 @@ public class TzConf extends ConfBase<TzConfig> implements TzConfMBean, ConfigHol
   /* ====================================================================
    *                   Private methods
    * ==================================================================== */
-
-  /* ====================================================================
-   *                   Non-mbean methods
-   * ==================================================================== */
-
-  /**
-   * @return current state of config
-   */
-  public TzConfig getCfg() {
-    return cfg;
-  }
 
   /* ========================================================================
    * Lifecycle
