@@ -186,7 +186,7 @@ public class TzConf extends ConfBase<TzConfig> implements TzConfMBean, ConfigHol
 
   @Override
   public String loadConfig() {
-    return loadConfig(TzConfig.class);
+    return loadOnlyConfig(TzConfig.class);
   }
 
   /** Save the configuration.
