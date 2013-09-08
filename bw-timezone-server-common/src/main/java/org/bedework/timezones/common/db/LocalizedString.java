@@ -18,9 +18,10 @@
 */
 package org.bedework.timezones.common.db;
 
+import org.bedework.util.misc.Util;
+
 import java.util.Collection;
 
-import edu.rpi.sss.util.Util;
 
 /**
  *.

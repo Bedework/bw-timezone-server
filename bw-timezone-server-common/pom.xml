@@ -11,11 +11,31 @@
 	<name>bw-timezone-server-common</name>
 
 	<dependencies>
-		<!-- Bedework: Util -->
-		<dependency>
-			<groupId>org.bedework</groupId>
-			<artifactId>bw-util</artifactId>
-		</dependency>
+    <!-- Bedework: Util -->
+    <dependency>
+      <groupId>org.bedework</groupId>
+      <artifactId>bw-util-args</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bedework</groupId>
+      <artifactId>bw-util-calendar</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bedework</groupId>
+      <artifactId>bw-util-config</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bedework</groupId>
+      <artifactId>bw-util-jmx</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bedework</groupId>
+      <artifactId>bw-util-misc</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bedework</groupId>
+      <artifactId>bw-util-timezones</artifactId>
+    </dependency>
 		<!-- Bedework: Web Services -->
 		<dependency>
 			<groupId>org.bedework</groupId>

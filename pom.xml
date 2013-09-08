@@ -64,11 +64,42 @@
 
 	<dependencyManagement>
 		<dependencies>
-			<dependency>
-				<groupId>org.bedework</groupId>
-				<artifactId>bw-util</artifactId>
-				<version>${bw-util.version}</version>
-			</dependency>
+      <!-- Bedework: Util -->
+      <dependency>
+        <groupId>org.bedework</groupId>
+        <artifactId>bw-util-args</artifactId>
+        <version>${bw-util.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bedework</groupId>
+        <artifactId>bw-util-calendar</artifactId>
+        <version>${bw-util.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bedework</groupId>
+        <artifactId>bw-util-config</artifactId>
+        <version>${bw-util.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bedework</groupId>
+        <artifactId>bw-util-jmx</artifactId>
+        <version>${bw-util.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bedework</groupId>
+        <artifactId>bw-util-misc</artifactId>
+        <version>${bw-util.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bedework</groupId>
+        <artifactId>bw-util-servlet</artifactId>
+        <version>${bw-util.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bedework</groupId>
+        <artifactId>bw-util-timezones</artifactId>
+        <version>${bw-util.version}</version>
+      </dependency>
 			<!-- Bedework: Web Services -->
 			<dependency>
 				<groupId>org.bedework</groupId>
@@ -200,7 +231,7 @@
 				<enabled>true</enabled>
 			</snapshots>
 		</repository>
-		<!-- Only needed for JBoss 5 dependencies. We should remove this when we 
+		<!-- Only needed for JBoss 5 dependencies. We should remove this when we
 			move Bedework off of JBoss 5. -->
 		<repository>
 			<id>jboss-deprecated</id>

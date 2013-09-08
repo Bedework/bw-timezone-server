@@ -20,13 +20,12 @@ package org.bedework.timezones.common;
 
 import org.bedework.timezones.common.Differ.DiffListEntry;
 import org.bedework.timezones.common.leveldb.LdbCachedData;
-
-import edu.rpi.cmt.jmx.ConfigHolder;
-import edu.rpi.cmt.timezones.model.ObservanceType;
-import edu.rpi.cmt.timezones.model.TimezoneType;
-import edu.rpi.cmt.timezones.model.TimezonesType;
-import edu.rpi.cmt.timezones.model.TzdataType;
-import edu.rpi.sss.util.DateTimeUtil;
+import org.bedework.util.jmx.ConfigHolder;
+import org.bedework.util.timezones.DateTimeUtil;
+import org.bedework.util.timezones.model.ObservanceType;
+import org.bedework.util.timezones.model.TimezoneType;
+import org.bedework.util.timezones.model.TimezonesType;
+import org.bedework.util.timezones.model.TzdataType;
 
 import net.fortuna.ical4j.model.ComponentList;
 import net.fortuna.ical4j.model.DateTime;
@@ -38,7 +37,6 @@ import net.fortuna.ical4j.model.UtcOffset;
 import net.fortuna.ical4j.model.component.Observance;
 import net.fortuna.ical4j.model.component.VTimeZone;
 import net.fortuna.ical4j.util.TimeZones;
-
 import org.apache.log4j.Logger;
 
 import java.text.DateFormat;

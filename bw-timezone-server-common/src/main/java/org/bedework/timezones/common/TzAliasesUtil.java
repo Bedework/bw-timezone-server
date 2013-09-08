@@ -18,10 +18,10 @@
 */
 package org.bedework.timezones.common;
 
-import edu.rpi.cmt.timezones.model.aliases.AliasInfoType;
-import edu.rpi.cmt.timezones.model.aliases.TimezoneAliasInfoType;
-import edu.rpi.cmt.timezones.model.aliases.TimezonesAliasInfoType;
-import edu.rpi.sss.util.Args;
+import org.bedework.util.args.Args;
+import org.bedework.util.timezones.model.aliases.AliasInfoType;
+import org.bedework.util.timezones.model.aliases.TimezoneAliasInfoType;
+import org.bedework.util.timezones.model.aliases.TimezonesAliasInfoType;
 
 import org.apache.log4j.Logger;
 

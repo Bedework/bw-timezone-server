@@ -19,9 +19,11 @@
 package org.bedework.timezones.server;
 
 import org.bedework.timezones.common.TzServerUtil;
+import org.bedework.util.timezones.model.ErrorResponseType;
 
-import edu.rpi.cmt.timezones.model.ErrorResponseType;
-
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.apache.log4j.Logger;
 
 import java.io.OutputStream;
@@ -34,10 +36,6 @@ import java.util.StringTokenizer;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 
 /**
  * @author douglm

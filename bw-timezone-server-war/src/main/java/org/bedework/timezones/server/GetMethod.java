@@ -21,13 +21,12 @@ package org.bedework.timezones.server;
 import org.bedework.timezones.common.ExpandedMapEntry;
 import org.bedework.timezones.common.Stat;
 import org.bedework.timezones.common.TzServerUtil;
-
-import edu.rpi.cmt.timezones.model.CapabilitiesAcceptParameterType;
-import edu.rpi.cmt.timezones.model.CapabilitiesActionType;
-import edu.rpi.cmt.timezones.model.CapabilitiesInfoType;
-import edu.rpi.cmt.timezones.model.CapabilitiesType;
-import edu.rpi.cmt.timezones.model.TimezoneListType;
-import edu.rpi.cmt.timezones.model.TimezoneType;
+import org.bedework.util.timezones.model.CapabilitiesAcceptParameterType;
+import org.bedework.util.timezones.model.CapabilitiesActionType;
+import org.bedework.util.timezones.model.CapabilitiesInfoType;
+import org.bedework.util.timezones.model.CapabilitiesType;
+import org.bedework.util.timezones.model.TimezoneListType;
+import org.bedework.util.timezones.model.TimezoneType;
 
 import org.apache.log4j.Logger;
 

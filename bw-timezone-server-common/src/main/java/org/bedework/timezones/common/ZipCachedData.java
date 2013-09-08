@@ -19,8 +19,7 @@
 package org.bedework.timezones.common;
 
 import org.bedework.timezones.common.Differ.DiffListEntry;
-
-import edu.rpi.cmt.calendar.XcalUtil;
+import org.bedework.util.calendar.XcalUtil;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;

@@ -18,7 +18,7 @@
 */
 package org.bedework.timezones.common.db;
 
-import edu.rpi.sss.util.Util;
+import org.bedework.util.misc.Util;
 
 /**
  *.

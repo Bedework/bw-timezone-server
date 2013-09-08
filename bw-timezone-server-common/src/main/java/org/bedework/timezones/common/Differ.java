@@ -18,7 +18,7 @@
 */
 package org.bedework.timezones.common;
 
-import edu.rpi.cmt.calendar.diff.XmlIcalCompare;
+import org.bedework.util.calendar.diff.XmlIcalCompare;
 
 import org.apache.log4j.Logger;
 import org.oasis_open.docs.ws_calendar.ns.soap.ComponentSelectionType;

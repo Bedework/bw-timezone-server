@@ -19,9 +19,8 @@
 package org.bedework.timezones.server;
 
 import org.bedework.timezones.service.TzConf;
-
-import edu.rpi.cmt.jmx.ConfBase;
-import edu.rpi.sss.util.servlets.HttpServletUtils;
+import org.bedework.util.jmx.ConfBase;
+import org.bedework.util.servlet.HttpServletUtils;
 
 import org.apache.log4j.Logger;
 

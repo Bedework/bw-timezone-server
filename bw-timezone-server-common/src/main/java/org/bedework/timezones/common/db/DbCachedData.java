@@ -26,17 +26,16 @@ import org.bedework.timezones.common.TzConfig;
 import org.bedework.timezones.common.TzException;
 import org.bedework.timezones.common.TzServerUtil;
 import org.bedework.timezones.common.ZipCachedData;
-
-import edu.rpi.cmt.calendar.XcalUtil;
-import edu.rpi.cmt.timezones.Timezones;
-import edu.rpi.cmt.timezones.Timezones.TaggedTimeZone;
-import edu.rpi.cmt.timezones.TimezonesImpl;
-import edu.rpi.cmt.timezones.TzUnknownHostException;
-import edu.rpi.cmt.timezones.model.LocalNameType;
-import edu.rpi.cmt.timezones.model.TimezoneListType;
-import edu.rpi.cmt.timezones.model.TimezoneType;
-import edu.rpi.sss.util.DateTimeUtil;
-import edu.rpi.sss.util.Util;
+import org.bedework.util.calendar.XcalUtil;
+import org.bedework.util.misc.Util;
+import org.bedework.util.timezones.DateTimeUtil;
+import org.bedework.util.timezones.Timezones;
+import org.bedework.util.timezones.Timezones.TaggedTimeZone;
+import org.bedework.util.timezones.TimezonesImpl;
+import org.bedework.util.timezones.TzUnknownHostException;
+import org.bedework.util.timezones.model.LocalNameType;
+import org.bedework.util.timezones.model.TimezoneListType;
+import org.bedework.util.timezones.model.TimezoneType;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
@@ -495,7 +494,6 @@ public class DbCachedData extends AbstractCachedData {
    * ==================================================================== */
 
   /**
-   * @param aliasesStr
    * @throws TzException
    */
   private synchronized void loadData() throws TzException {
@@ -641,7 +639,8 @@ public class DbCachedData extends AbstractCachedData {
 
         dbspec.setName(id);
         dbspec.setEtag(ttz.etag);
-        dbspec.setDtstamp(DateTimeUtil.rfcDateTimeUTC(sum.getLastModified()));
+        dbspec.setDtstamp(DateTimeUtil.rfcDateTimeUTC(
+                sum.getLastModified()));
         dbspec.setSource(cfg.getPrimaryUrl());
         dbspec.setActive(true);
         dbspec.setVtimezone(ttz.vtz);

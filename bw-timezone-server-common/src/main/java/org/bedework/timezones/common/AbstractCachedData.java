@@ -18,11 +18,12 @@
 */
 package org.bedework.timezones.common;
 
-import edu.rpi.cmt.calendar.IcalToXcal;
-import edu.rpi.cmt.timezones.model.TimezoneType;
-import edu.rpi.sss.util.DateTimeUtil;
-import edu.rpi.sss.util.FlushMap;
+import org.bedework.util.caching.FlushMap;
+import org.bedework.util.calendar.IcalToXcal;
+import org.bedework.util.timezones.DateTimeUtil;
+import org.bedework.util.timezones.model.TimezoneType;
 
+import ietf.params.xml.ns.icalendar_2.IcalendarType;
 import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.data.UnfoldingReader;
 import net.fortuna.ical4j.model.Component;
@@ -30,10 +31,7 @@ import net.fortuna.ical4j.model.TimeZone;
 import net.fortuna.ical4j.model.component.VTimeZone;
 import net.fortuna.ical4j.model.property.LastModified;
 import net.fortuna.ical4j.model.property.TzId;
-
 import org.apache.log4j.Logger;
-
-import ietf.params.xml.ns.icalendar_2.IcalendarType;
 
 import java.io.StringReader;
 import java.sql.Timestamp;

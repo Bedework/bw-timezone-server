@@ -19,12 +19,10 @@
 package org.bedework.timezones.common;
 
 import org.bedework.timezones.common.Differ.DiffListEntry;
-
-import edu.rpi.cmt.timezones.model.TimezoneType;
-
-import net.fortuna.ical4j.model.TimeZone;
+import org.bedework.util.timezones.model.TimezoneType;
 
 import ietf.params.xml.ns.icalendar_2.IcalendarType;
+import net.fortuna.ical4j.model.TimeZone;
 
 import java.io.Serializable;
 import java.util.Collection;

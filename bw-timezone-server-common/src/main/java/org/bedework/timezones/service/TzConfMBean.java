@@ -20,8 +20,8 @@ package org.bedework.timezones.service;
 
 import org.bedework.timezones.common.Stat;
 
-import edu.rpi.cmt.jmx.ConfBaseMBean;
-import edu.rpi.cmt.jmx.MBeanInfo;
+import org.bedework.util.jmx.ConfBaseMBean;
+import org.bedework.util.jmx.MBeanInfo;
 
 import java.util.List;
 
@@ -68,7 +68,7 @@ public interface TzConfMBean extends ConfBaseMBean {
   /**
    * @return String Primary url
    */
-  @edu.rpi.cmt.jmx.MBeanInfo("The URL of a primary server, e.g. www.bedework.org")
+  @MBeanInfo("The URL of a primary server, e.g. www.bedework.org")
   String getPrimaryUrl();
 
   /** Are we a primary server?
