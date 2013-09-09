@@ -18,8 +18,8 @@
 */
 package org.bedework.timezones.common;
 
-import edu.rpi.cmt.timezones.model.TimezonesType;
-import edu.rpi.sss.util.ToString;
+import org.bedework.util.misc.ToString;
+import org.bedework.util.timezones.model.TimezonesType;
 
 /** Allows us to cache expansions
  *
