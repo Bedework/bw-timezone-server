@@ -22,7 +22,7 @@ import org.bedework.timezones.common.TzException;
 
 /** Forbidden exception thrown by webdav classes
  *
- *   @author Mike Douglass   douglm  rpi.edu
+ *   @author Mike Douglass   douglm  bedework.edu
  */
 public class DbEmptyException extends TzException {
   /** Constructor
