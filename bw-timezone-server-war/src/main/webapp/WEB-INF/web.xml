@@ -11,7 +11,7 @@
   <!-- add context params here -->
 
   <listener>
-    <listener-class>org.bedework.util.struts.SessionListener</listener-class>
+    <listener-class>org.bedework.util.servlet.SessionListener</listener-class>
   </listener>
   <listener>
     <listener-class>org.bedework.timezones.server.TzServer</listener-class>
