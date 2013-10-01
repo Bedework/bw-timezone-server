@@ -153,6 +153,11 @@ public class TzServer extends HttpServlet
       super("org.bedework.timezones:service=TzSvr");
     }
 
+    @Override
+    public String loadConfig() {
+      return null;
+    }
+
     void start() {
       try {
         getManagementContext().start();
