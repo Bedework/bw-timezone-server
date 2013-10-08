@@ -55,9 +55,9 @@
     <orderEntry type="module" module-name="bw-util-calendar" scope="PROVIDED" />
     <orderEntry type="module" module-name="bw-ws-icalendar" scope="PROVIDED" />
     <orderEntry type="module" module-name="bw-util-misc" />
-    <orderEntry type="module" module-name="bw-util-xml" scope="PROVIDED" />
-    <orderEntry type="module" module-name="bw-util-config" scope="PROVIDED" />
-    <orderEntry type="module" module-name="bw-util-jmx" scope="PROVIDED" />
+    <orderEntry type="module" module-name="bw-util-xml" />
+    <orderEntry type="module" module-name="bw-util-config" />
+    <orderEntry type="module" module-name="bw-util-jmx" />
     <orderEntry type="module" module-name="bw-util-timezones" />
     <orderEntry type="module" module-name="bw-util-caching" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.iq80.leveldb:leveldb:min:0.5" level="project" />
