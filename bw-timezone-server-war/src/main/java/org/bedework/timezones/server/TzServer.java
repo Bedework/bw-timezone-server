@@ -158,7 +158,8 @@ public class TzServer extends HttpServlet
       return null;
     }
 
-    void start() {
+    @Override
+    public void start() {
       try {
         getManagementContext().start();
 
@@ -170,7 +171,8 @@ public class TzServer extends HttpServlet
       }
     }
 
-    void stop() {
+    @Override
+    public void stop() {
       try {
         getManagementContext().stop();
       } catch (Throwable t){
