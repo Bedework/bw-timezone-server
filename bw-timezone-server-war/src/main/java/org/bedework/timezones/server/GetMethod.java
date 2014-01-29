@@ -333,6 +333,13 @@ public class GetMethod extends MethodBase {
         ci.setSource(TzServerUtil.getTzConfig().getTzdataUrl());
       }
 
+      CapabilitiesTruncatedType ct = new CapabilitiesTruncatedType();
+
+      ct.setAny(false);
+      ct.setUntruncated(true);
+
+      ci.setTruncated(ct);
+
       //ci.getContacts().add(util.get)
       capabilities.setInfo(ci);
 
@@ -348,6 +355,18 @@ public class GetMethod extends MethodBase {
                       final HttpServletResponse resp) throws ServletException {
     try {
       String changedsince = req.getParameter("changedsince");
+
+      String[] tzids = req.getParameterValues("tzid");
+
+      if ((tzids != null) && (tzids.length > 0)) {
+        if (changedsince != null) {
+          resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+          return;
+        }
+
+        listResponse(resp, util.getTimezones(tzids));
+        return;
+      }
 
       listResponse(resp, util.getTimezones(changedsince));
 

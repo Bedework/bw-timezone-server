@@ -802,7 +802,7 @@ public class DbCachedData extends AbstractCachedData {
 
       TzServerUtil.saveConfig();
 
-      List<TimezoneType> tzs = z.getTimezones(null);
+      List<TimezoneType> tzs = z.getTimezones((String)null);
 
       if (debug) {
         trace("Initial load has " + tzs.size() + " timezones");

@@ -167,6 +167,13 @@ public interface CachedData extends Serializable {
   String getAliasedCachedVtz(final String name) throws TzException;
 
   /**
+   * @param tzids - to fetch
+   * @return list of summary info
+   * @throws TzException
+   */
+  List<TimezoneType> getTimezones(String[] tzids) throws TzException;
+
+  /**
    * @param changedSince - null or dtstamp value
    * @return list of summary info
    * @throws TzException

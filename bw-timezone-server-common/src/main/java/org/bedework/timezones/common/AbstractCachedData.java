@@ -61,22 +61,22 @@ public abstract class AbstractCachedData implements CachedData {
   /** XML formatted UTC dtstamp (i.e. separators) for the data */
   protected String dtstamp;
 
-  private Map<String, String> vtzs = new HashMap<String, String>();
+  private Map<String, String> vtzs = new HashMap<>();
 
-  private Map<String, TimeZone> timeZones = new FlushMap<String, TimeZone>();
+  private Map<String, TimeZone> timeZones = new FlushMap<>();
 
-  private Map<String, IcalendarType> xtzs = new HashMap<String, IcalendarType>();
+  private Map<String, IcalendarType> xtzs = new HashMap<>();
 
-  private Map<String, String> aliasedVtzs = new HashMap<String, String>();
+  private Map<String, String> aliasedVtzs = new HashMap<>();
 
 //  private Map<String, TimeZone> aliasedTzs = new HashMap<String, TimeZone>();
 
-  private Map<String, IcalendarType> aliasedXtzs = new HashMap<String, IcalendarType>();
+  private Map<String, IcalendarType> aliasedXtzs = new HashMap<>();
 
   private SortedSet<String> nameList;
 
   protected Map<ExpandedMapEntryKey, ExpandedMapEntry> expansions =
-    new HashMap<ExpandedMapEntryKey, ExpandedMapEntry>();
+    new HashMap<>();
 
   /** */
   public static class AliasMaps {
@@ -97,6 +97,8 @@ public abstract class AbstractCachedData implements CachedData {
   protected TzConfig cfg;
 
   private List<TimezoneType> timezones;
+
+  private Map<String, TimezoneType> timezonesMap;
 
   /**
    * @param cfg
@@ -251,24 +253,33 @@ public abstract class AbstractCachedData implements CachedData {
     return aliasedXtzs.get(tzid);
   }
 
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#getAliasedCachedVtz(java.lang.String)
-   */
   @Override
   public String getAliasedCachedVtz(final String name) throws TzException {
     return aliasedVtzs.get(name);
   }
 
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#getSummaries(java.lang.String)
-   */
+  @Override
+  public List<TimezoneType> getTimezones(final String[] tzids) throws TzException {
+    List<TimezoneType> ss = new ArrayList<>();
+
+    for (String tzid: tzids) {
+      TimezoneType t = timezonesMap.get(tzid);
+
+      if (t != null) {
+        ss.add(t);
+      }
+    }
+
+    return ss;
+  }
+
   @Override
   public List<TimezoneType> getTimezones(final String changedSince) throws TzException {
     if (changedSince == null) {
       return timezones;
     }
 
-    List<TimezoneType> ss = new ArrayList<TimezoneType>();
+    List<TimezoneType> ss = new ArrayList<>();
 
     for (TimezoneType tz: timezones) {
       if (tz.getLastModified() == null) {
@@ -372,6 +383,7 @@ public abstract class AbstractCachedData implements CachedData {
       }
 
       timezones.add(tz);
+      timezonesMap.put(tz.getTzid(), tz);
     } catch (TzException te) {
       throw te;
     } catch (Throwable t) {
@@ -401,8 +413,9 @@ public abstract class AbstractCachedData implements CachedData {
   }
 
   protected void resetTzs() {
-    nameList = new TreeSet<String>();
-    timezones = new ArrayList<TimezoneType>();
+    nameList = new TreeSet<>();
+    timezones = new ArrayList<>();
+    timezonesMap = new HashMap<>();
   }
 
   /* Construct a new vtimezone with the alias as id and then

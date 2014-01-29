@@ -490,6 +490,15 @@ public class TzServerUtil {
   }
 
   /**
+   * @param tzids - to fetch
+   * @return list of summary info
+   * @throws TzException
+   */
+  public List<TimezoneType> getTimezones(final String[] tzids) throws TzException {
+    return cache.getTimezones(tzids);
+  }
+
+  /**
    * @param changedSince - null or dtstamp value
    * @return list of summary info
    * @throws TzException
