@@ -18,6 +18,8 @@
 */
 package org.bedework.timezones.common.db;
 
+import org.bedework.util.misc.ToString;
+
 import java.util.Set;
 
 /** Type for db info.
@@ -144,31 +146,16 @@ public class TzDbSpec extends TzDbentity<TzDbSpec> {
    *                   Convenience methods
    * ==================================================================== */
 
-  /** Add our stuff to the StringBuilder
-   *
-   * @param sb    StringBuilder for result
-   */
   @Override
-  protected void toStringSegment(final StringBuilder sb) {
-    super.toStringSegment(sb);
+  protected void toStringSegment(final ToString ts) {
+    super.toStringSegment(ts);
 
-    sb.append("name=");
-    sb.append(getName());
-
-    sb.append("etag=");
-    sb.append(getEtag());
-
-    sb.append("dtstamp=");
-    sb.append(getDtstamp());
-
-    sb.append("source=");
-    sb.append(getSource());
-
-    sb.append("active=");
-    sb.append(getActive());
-
-    sb.append("\n   vtimezone=");
-    sb.append(getVtimezone());
+    ts.append("name", getName());
+    ts.append("etag", getEtag());
+    ts.append("dtstamp", getDtstamp());
+    ts.append("source", getSource());
+    ts.append("active", getActive());
+    ts.append("vtimezone", getVtimezone());
   }
 
   /* ====================================================================
@@ -190,14 +177,5 @@ public class TzDbSpec extends TzDbentity<TzDbSpec> {
   @Override
   public int hashCode() {
     return dtstamp.hashCode();
-  }
-
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder("BwUser{");
-
-    toStringSegment(sb);
-
-    return sb.toString();
   }
 }

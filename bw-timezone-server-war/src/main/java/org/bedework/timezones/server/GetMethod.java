@@ -21,20 +21,8 @@ package org.bedework.timezones.server;
 import org.bedework.timezones.common.ExpandedMapEntry;
 import org.bedework.timezones.common.Stat;
 import org.bedework.timezones.common.TzServerUtil;
-import org.bedework.util.timezones.model.CapabilitiesAcceptParameterType;
-import org.bedework.util.timezones.model.CapabilitiesActionType;
-import org.bedework.util.timezones.model.CapabilitiesInfoType;
-import org.bedework.util.timezones.model.CapabilitiesTruncatedType;
-import org.bedework.util.timezones.model.CapabilitiesType;
-import org.bedework.util.timezones.model.TimezoneListType;
-import org.bedework.util.timezones.model.TimezoneType;
-
-import org.apache.log4j.Logger;
 
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -45,206 +33,30 @@ import javax.servlet.http.HttpServletResponse;
  *   @author Mike Douglass
  */
 public class GetMethod extends MethodBase {
-  /* Define capabilities as static objects */
-  static final CapabilitiesType capabilities = new CapabilitiesType();
+  private static final CapabilitiesHandler capabilities;
+  private static final ListHandler lists;
+  private static final TzidHandler tzids;
 
   static {
-    capabilities.setVersion(1);
-
-    addAction(capabilities, "capabilities",
-              "This action returns the capabilities of the server, " +
-                "allowing clients to determine if a specific feature has been" +
-                " deployed and/or enabled.",
-              makePar("action",
-                      true,
-                      false,
-                      "capabilities",
-                      "Specify the action to be carried out."));
-
-    addAction(capabilities, "list",
-              "This action lists all timezone identifiers, in summary " +
-                "format, with optional localized data. In addition, it " +
-                "returns a timestamp which is the current server global " +
-                "last modification value. ",
-              makePar("action",
-                      true,
-                      false,
-                      "list",
-                      "Specify the action to be carried out."),
-              makePar("lang",
-                      false,
-                      true,
-                      null,
-                      "OPTIONAL, but MUST occur only once. If present, " +
-                        "indicates that timezone aliases should be returned " +
-                        "in the list. "),
-              makePar("returnall",
-                      false,
-                      false,
-                      null,
-                      "OPTIONAL, but MUST occur only once. If present, " +
-                        "indicates that all, including inactive, timezones " +
-                        "should be returned in the response. The " +
-                        "TZ:inactive XML element will flag those timezones " +
-                        "no longer in use. "),
-              makePar("changedsince",
-                      false,
-                      false,
-                      null,
-                      "OPTIONAL, but MUST occur only once. If present, " +
-                        "limits the response to timezones changed since " +
-                        "the given timestamp."));
-
-    addAction(capabilities, "get",
-              "This action returns a timezone. Clients must be " +
-                "prepared to accept a timezone with a different identifier " +
-                "if the requested identifier is an alias. ",
-              makePar("action",
-                      true,
-                      false,
-                      "get",
-                      "Specify the action to be carried out."),
-              makePar("format",
-                      false,
-                      false,
-                      null,
-                      "OPTIONAL, but MUST occur only once. Return " +
-                        "information using the specified media-type. In " +
-                        "the absence of this parameter, the value " +
-                        "\"text/calendar\" MUST be assumed."),
-              makePar("lang",
-                      false,
-                      true,
-                      null,
-                      "OPTIONAL, but MUST occur only once. If present, " +
-                        "indicates that timezone aliases should be returned " +
-                        "in the list. "),
-              makePar("tzid",
-                      true,
-                      true,
-                      null,
-                      "REQUIRED, and MUST occur only once. Identifies " +
-                        "the timezone for which information is returned. " +
-                        "The server MUST return an Etag header. " +
-                        "Alternatively, if a value of \"*\" is " +
-                        "given, returns information for all timezones. " +
-                        "The \"*\" option will typically be used by servers" +
-                        "that wish to retrieve the entire set of timezones " +
-                        "supported by another server to re-synchronize " +
-                        "their entire data cache. Clients will typically " +
-                        "only retrieve individual timezone data on a " +
-                        "case-by-case basis."));
-
-    addAction(capabilities, "expand",
-              "This action expands the specified timezone(s) into a " +
-                "list of onset start date/time and offset. ",
-              makePar("action",
-                      true,
-                      false,
-                      "expand",
-                      "Specify the action to be carried out."),
-              makePar("tzid",
-                      true,
-                      true,
-                      null,
-                      "REQUIRED, but MAY occur multiple times. Identifies " +
-                        "the timezones for which information is returned. " +
-                        "The value \"*\", which has a special meaning in " +
-                        "the \"get\" operation, is not supported by this " +
-                        "operation."),
-              makePar("lang",
-                      false,
-                      true,
-                      null,
-                      "OPTIONAL, but MUST occur only once. If present, " +
-                        "indicates that timezone aliases should be returned " +
-                        "in the list. "),
-              makePar("start",
-                      false,
-                      true,
-                      "date or date-time",
-                      "OPTIONAL, but MUST occur only once. If present, " +
-                        "specifies the start of the period of interest. " +
-                        "If omitted, the current year is assumed. "),
-              makePar("end",
-                      false,
-                      true,
-                      "date or date-time",
-                      "OPTIONAL, but MUST occur only once. If present, " +
-                        "specifies the end of the period of interest. " +
-                        "If omitted, the current year + 10 is assumed. "));
-
-    addAction(capabilities, "find",
-              "This action allows a client to query the timezone service " +
-                "for a matching identifier, alias or localized name.\n" +
-                "Response format is the same as for list with one result " +
-                "element per successful match. ",
-                makePar("action",
-                        true,
-                        false,
-                        "find",
-                        "Specify the action to be carried out."),
-                makePar("name",
-                        true,
-                        false,
-                        null,
-                        "REQUIRED, but MUST only occur once. Identifies the " +
-                        "name to search for. Only partial matching is " +
-                        "supported."),
-                makePar("lang",
-                        false,
-                        true,
-                        null,
-                        "OPTIONAL, but MUST occur only once. If present, " +
-                        "indicates that timezone aliases should be returned " +
-                        "in the list. "));
-  }
-
-  private static void addAction(final CapabilitiesType capabilities,
-                                final String action,
-                                final String description,
-                                final CapabilitiesAcceptParameterType... pars) {
-    CapabilitiesActionType cot = new CapabilitiesActionType();
-
-    cot.setName(action);
-
-    if (pars != null) {
-      for (CapabilitiesAcceptParameterType par: pars) {
-        cot.getParameters().add(par);
-      }
+    try {
+      capabilities = new CapabilitiesHandler();
+      lists = new ListHandler();
+      tzids = new TzidHandler();
+    } catch (ServletException e) {
+      e.printStackTrace();
+      throw new RuntimeException(e);
     }
-
-    capabilities.getActions().add(cot);
-  }
-
-  private static CapabilitiesAcceptParameterType makePar(final String name,
-                                                         final boolean required,
-                                                         final boolean multi,
-                                                         final String value,
-                                                         final String description) {
-    CapabilitiesAcceptParameterType capt = new CapabilitiesAcceptParameterType();
-
-    capt.setName(name);
-    capt.setRequired(required);
-    capt.setMulti(multi);
-    capt.setValue(value);
-
-    return capt;
   }
 
   /**
-   * @param debug
    * @throws ServletException
    */
-  public GetMethod(final boolean debug) throws ServletException {
-    super(debug);
+  public GetMethod() throws ServletException {
+    super();
   }
 
   private static final String tzspath = "/timezones";
 
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.server.MethodBase#doMethod(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
-   */
   @Override
   public void doMethod(final HttpServletRequest req,
                        final HttpServletResponse resp) throws ServletException {
@@ -261,12 +73,12 @@ public class GetMethod extends MethodBase {
     String action = req.getParameter("action");
 
     if ("capabilities".equals(action)) {
-      doCapabilities(resp);
+      capabilities.doMethod(req, resp);
       return;
     }
 
     if ("list".equals(action)) {
-      doList(req, resp);
+      lists.doMethod(req, resp);
       return;
     }
 
@@ -276,7 +88,7 @@ public class GetMethod extends MethodBase {
     }
 
     if ("get".equals(action)) {
-      doTzid(resp, req.getParameter("tzid"));
+      tzids.doMethod(req, resp);
       return;
     }
 
@@ -316,69 +128,9 @@ public class GetMethod extends MethodBase {
                path.equals(tzspath + "/")) {
       doNames(resp);
     } else if (path.startsWith(tzspath + "/")) {
-      doTzid(resp, path.substring(tzspath.length() + 1));
+      tzids.doTzid(resp, path.substring(tzspath.length() + 1));
     } else {
-      doTzid(resp, req.getParameter("tzid"));
-    }
-  }
-
-  private void doCapabilities(final HttpServletResponse resp) throws ServletException {
-    try {
-      resp.setContentType("application/json; charset=UTF-8");
-
-      CapabilitiesInfoType ci = new CapabilitiesInfoType();
-
-      if (!TzServerUtil.getTzConfig().getPrimaryServer()) {
-        ci.setPrimarySource(TzServerUtil.getTzConfig().getPrimaryUrl());
-      } else if (TzServerUtil.getTzConfig() != null) {
-        ci.setSource(TzServerUtil.getTzConfig().getTzdataUrl());
-      }
-
-      CapabilitiesTruncatedType ct = new CapabilitiesTruncatedType();
-
-      ct.setAny(false);
-      ct.setUntruncated(true);
-
-      ci.setTruncated(ct);
-
-      //ci.getContacts().add(util.get)
-      capabilities.setInfo(ci);
-
-      writeJson(resp.getOutputStream(), capabilities);
-    } catch (ServletException se) {
-      throw se;
-    } catch (Throwable t) {
-      throw new ServletException(t);
-    }
-  }
-
-  private void doList(final HttpServletRequest req,
-                      final HttpServletResponse resp) throws ServletException {
-    try {
-      String changedsince = req.getParameter("changedsince");
-
-      String[] tzids = req.getParameterValues("tzid");
-
-      if ((tzids != null) && (tzids.length > 0)) {
-        if (changedsince != null) {
-          resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-          return;
-        }
-
-        listResponse(resp, util.getTimezones(tzids));
-        return;
-      }
-
-      listResponse(resp, util.getTimezones(changedsince));
-
-      if (changedsince != null) {
-        Logger refreshLogger = Logger.getLogger("org.bedework.timezones.refresh.logger");
-        refreshLogger.info("Refresh call from " + req.getRemoteHost());
-      }
-    } catch (ServletException se) {
-      throw se;
-    } catch (Throwable t) {
-      throw new ServletException(t);
+      tzids.doTzid(resp, req.getParameter("tzid"));
     }
   }
 
@@ -393,28 +145,6 @@ public class GetMethod extends MethodBase {
       }
 
       listResponse(resp, util.findTimezones(name));
-    } catch (ServletException se) {
-      throw se;
-    } catch (Throwable t) {
-      throw new ServletException(t);
-    }
-  }
-
-  private void listResponse(final HttpServletResponse resp,
-                            final List<TimezoneType> tzs) throws ServletException {
-    try {
-      resp.setContentType("application/json; charset=UTF-8");
-
-      TimezoneListType tzl = new TimezoneListType();
-
-      tzl.setDtstamp(util.getDtstamp());
-
-      if (tzl.getTimezones() == null) {
-        tzl.setTimezones(new ArrayList<TimezoneType>());
-      }
-      tzl.getTimezones().addAll(tzs);
-
-      writeJson(resp.getOutputStream(), tzl);
     } catch (ServletException se) {
       throw se;
     } catch (Throwable t) {
@@ -453,14 +183,15 @@ public class GetMethod extends MethodBase {
       ExpandedMapEntry tzs = util.getExpanded(tzid, start, end);
 
       if (tzs == null) {
-        resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-        writeJson(resp.getOutputStream(), missingTzid);
+        errorResponse(resp,
+                      HttpServletResponse.SC_NOT_FOUND,
+                      missingTzid);
         return;
       }
 
       resp.setHeader("ETag", tzs.getEtag());
 
-      writeJson(resp.getOutputStream(), tzs.getTzs());
+      writeJson(resp, tzs.getTzs());
     } catch (ServletException se) {
       throw se;
     } catch (Throwable t) {
@@ -689,62 +420,6 @@ public class GetMethod extends MethodBase {
     } catch (Throwable t) {
       throw new ServletException(t);
     }
-  }
-
-  private void doTzid(final HttpServletResponse resp,
-                      final String tzid) throws ServletException {
-    if (tzid == null) {
-      return;
-    }
-
-    try {
-      resp.setContentType("text/calendar; charset=UTF-8");
-
-      Writer wtr = resp.getWriter();
-
-      if ("*".equals(tzid)) {
-        // Return all
-        Collection<String> vtzs = util.getAllTzs();
-
-        writeCalHdr(wtr);
-
-        for (String s: vtzs) {
-          wtr.write(s);
-        }
-
-        writeCalTlr(wtr);
-      }
-
-      String tz = util.getTz(tzid);
-
-      if (tz == null) {
-        tz = util.getAliasedTz(tzid);
-      }
-
-      if (tz == null) {
-        resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-      } else {
-        resp.setHeader("ETag", "\"" + util.getDtstamp() +
-                       "\"");
-        writeCalHdr(wtr);
-
-        wtr.write(tz);
-
-        writeCalTlr(wtr);
-      }
-    } catch (ServletException se) {
-      throw se;
-    } catch (Throwable t) {
-      throw new ServletException(t);
-    }
-  }
-
-  private void writeCalHdr(final Writer wtr) throws Throwable  {
-    wtr.write(TzServerUtil.getCalHdr());
-  }
-
-  private void writeCalTlr(final Writer wtr) throws Throwable  {
-    wtr.write(TzServerUtil.getCalTlr());
   }
 
   /* Return true if data unchanged - status is set */

@@ -32,11 +32,10 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class PostMethod extends MethodBase {
   /**
-   * @param debug
    * @throws ServletException
    */
-  public PostMethod(boolean debug) throws ServletException {
-    super(debug);
+  public PostMethod() throws ServletException {
+    super();
   }
 
   @Override

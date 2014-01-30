@@ -18,65 +18,69 @@
 */
 package org.bedework.timezones.common.db;
 
+import org.bedework.util.misc.ToString;
 import org.bedework.util.misc.Util;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *.
  *  @version 1.0
  */
 public class TzAlias extends TzDbentity<TzAlias> {
-  private String fromId;
+  private String aliasId;
 
-  private String toId;
+  private List<String> targetIds;
 
-  /** Constructor
+  /** Constructor for jackson
    */
   public TzAlias() {
     super();
   }
 
-  /** Create a string by specifying all its fields
-   *
-   * @param fromId     String alias
-   * @param toId       String id
+  /** Constructor
    */
-  public TzAlias(final String fromId,
-                 final String toId) {
+  public TzAlias(final String aliasId) {
     super();
-    this.fromId = fromId;
-    this.toId = toId;
+
+    this.aliasId = aliasId;
   }
 
-  /** Set the fromId
+  /** set the alias - this should be unique.
    *
-   * @param val    String fromId
+   * @param val   alias
    */
-  public void setFromId(final String val) {
-    fromId = val;
+  public void setAliasId(String val) {
+    aliasId = val;
   }
 
-  /** Get the fromId - this should be unique.
+  /** Get the alias - this should be unique.
    *
-   * @return String   fromId
+   * @return String   alias
    */
-  public String getFromId() {
-    return fromId;
+  public String getAliasId() {
+    return aliasId;
   }
 
-  /** Set the toId
+  /** Add a target id
    *
-   * @param val    String toId
+   * @param val    String targetId
    */
-  public void setToId(final String val) {
-    toId = val;
+  public void addTargetId(final String val) {
+    if (targetIds == null) {
+      targetIds = new ArrayList<>();
+    }
+
+    targetIds.add(val);
   }
 
-  /** Get the toId - this should be a valid tzid
+  /** Get the targetIds
    *
-   *  @return String   toId
+   *  @return list String
    */
-  public String getToId() {
-    return toId;
+  public List<String> getTargetIds() {
+    return targetIds;
   }
 
   /* ====================================================================
@@ -93,52 +97,43 @@ public class TzAlias extends TzDbentity<TzAlias> {
       return -1;
     }
 
-    int res = Util.cmpObjval(getFromId(), that.getFromId());
+    int res = Util.cmpObjval(getAliasId(), that.getAliasId());
 
     if (res != 0) {
       return res;
     }
 
-    return Util.cmpObjval(getToId(), that.getToId());
+    return Util.cmpObjval(getTargetIds(), that.getTargetIds());
   }
 
   @Override
   public int hashCode() {
-    int hc = 7;
+    int hc = 7 * getAliasId().hashCode();
 
-    if (getFromId() != null) {
-      hc *= getFromId().hashCode();
-    }
-
-    if (getToId() != null) {
-      hc *= getToId().hashCode();
+    if (getTargetIds() != null) {
+      hc *= getTargetIds().hashCode();
     }
 
     return hc;
   }
 
   @Override
-  protected void toStringSegment(final StringBuilder sb) {
-    super.toStringSegment(sb);
-    sb.append(", fromId=");
-    sb.append(getFromId());
-    sb.append(", toId=");
-    sb.append(getToId());
-  }
-
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder("TzAlias{");
-
-    toStringSegment(sb);
-    sb.append("}");
-
-    return sb.toString();
+  protected void toStringSegment(final ToString ts) {
+    super.toStringSegment(ts);
+    ts.append("aliasId", getAliasId());
+    ts.append("targetIds", getTargetIds());
   }
 
   @Override
   public Object clone() {
-    return new TzAlias(getFromId(),
-                       getToId());
+    TzAlias a = new TzAlias(getAliasId());
+
+    if (getTargetIds() != null) {
+      for (String s: getTargetIds()) {
+        a.addTargetId(s);
+      }
+    }
+
+    return a;
   }
 }

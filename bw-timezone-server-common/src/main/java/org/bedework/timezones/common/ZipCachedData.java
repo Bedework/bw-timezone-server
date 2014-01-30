@@ -19,6 +19,7 @@
 package org.bedework.timezones.common;
 
 import org.bedework.timezones.common.Differ.DiffListEntry;
+import org.bedework.timezones.common.db.TzAlias;
 import org.bedework.util.calendar.XcalUtil;
 
 import org.apache.http.HttpResponse;
@@ -147,6 +148,15 @@ public class ZipCachedData  extends AbstractCachedData {
     }
   }
 
+  /** We store the aliases as a bunch of properties of the form <br/>
+   * alias=val<br/>
+   * the alias is the name and val is a comma separated list of
+   * target ids.
+   *
+   * @param tzDefsZipFile
+   * @return mapped aliases
+   * @throws TzException
+   */
   private AliasMaps buildAliasMaps(final ZipFile tzDefsZipFile) throws TzException {
     try {
       ZipEntry ze = tzDefsZipFile.getEntry("aliases.txt");
@@ -154,8 +164,8 @@ public class ZipCachedData  extends AbstractCachedData {
       AliasMaps maps = new AliasMaps();
       maps.aliasesStr = entryToString(ze);
 
-      maps.byTzid = new HashMap<String, SortedSet<String>>();
-      maps.byAlias = new HashMap<String, String>();
+      maps.byTzid = new HashMap<>();
+      maps.byAlias = new HashMap<>();
       maps.aliases = new Properties();
 
       StringReader sr = new StringReader(maps.aliasesStr);
@@ -163,18 +173,30 @@ public class ZipCachedData  extends AbstractCachedData {
       maps.aliases.load(sr);
 
       for (String a: maps.aliases.stringPropertyNames()) {
-        String id = maps.aliases.getProperty(a);
+        String val = maps.aliases.getProperty(a);
 
-        maps.byAlias.put(a, id);
-
-        SortedSet<String> as = maps.byTzid.get(id);
-
-        if (as == null) {
-          as = new TreeSet<String>();
-          maps.byTzid.put(id, as);
+        if (val == null) {
+          continue;
         }
 
-        as.add(a);
+        String[] vals = val.split(",");
+
+        TzAlias ta = new TzAlias(a);
+
+        for (String id: vals) {
+          ta.addTargetId(id);
+
+          SortedSet<String> as = maps.byTzid.get(id);
+
+          if (as == null) {
+            as = new TreeSet<>();
+            maps.byTzid.put(id, as);
+          }
+
+          as.add(a);
+        }
+
+        maps.byAlias.put(a, ta);
       }
 
       return maps;

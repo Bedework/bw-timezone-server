@@ -125,7 +125,7 @@ public class TzConf extends ConfBase<TzConfig> implements TzConfMBean, ConfigHol
     try {
       getConfig().setDtstamp(null);
       saveConfig();
-      TzServerUtil.fireRefresh();
+      TzServerUtil.fireRefresh(true);
       return "Ok";
     } catch (Throwable t) {
       error(t);

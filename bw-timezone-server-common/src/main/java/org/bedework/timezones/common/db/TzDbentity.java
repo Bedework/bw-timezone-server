@@ -18,6 +18,8 @@
 */
 package org.bedework.timezones.common.db;
 
+import org.bedework.util.misc.ToString;
+
 import java.io.Serializable;
 
 /** Base type for a database entity. We require an id and the subclasses must
@@ -75,13 +77,12 @@ public class TzDbentity<T> implements Comparable<T>, Serializable {
    *                   Convenience methods
    * ==================================================================== */
 
-  /** Add our stuff to the StringBuilder
+  /** Add our stuff to the ToString builder
    *
-   * @param sb    StringBuilder for result
+   * @param ts    for result
    */
-  protected void toStringSegment(final StringBuilder sb) {
-    sb.append("id=");
-    sb.append(getId());
+  protected void toStringSegment(final ToString ts) {
+    ts.append("id", getId());
   }
 
   /* ====================================================================
@@ -119,5 +120,14 @@ public class TzDbentity<T> implements Comparable<T>, Serializable {
     }
 
     return compareTo((T)obj) == 0;
+  }
+
+  @Override
+  public String toString() {
+    ToString ts = new ToString(this);
+
+    toStringSegment(ts);
+
+    return ts.toString();
   }
 }

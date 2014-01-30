@@ -83,11 +83,11 @@ public class TzServer extends HttpServlet
       }
 
       if (methodName.equals("OPTIONS")) {
-        new OptionsMethod(debug).doMethod(req, resp);
+        new OptionsMethod().doMethod(req, resp);
       } else if (methodName.equals("GET")) {
-        new GetMethod(debug).doMethod(req, resp);
+        new GetMethod().doMethod(req, resp);
       } else if (methodName.equals("POST")) {
-        new PostMethod(debug).doMethod(req, resp);
+        new PostMethod().doMethod(req, resp);
       } else {
 
       }

@@ -18,10 +18,10 @@
 */
 package org.bedework.timezones.common.db;
 
+import org.bedework.util.misc.ToString;
 import org.bedework.util.misc.Util;
 
 import java.util.Collection;
-
 
 /**
  *.
@@ -192,22 +192,10 @@ public class LocalizedString extends TzDbentity<LocalizedString> {
   }
 
   @Override
-  protected void toStringSegment(final StringBuilder sb) {
-    super.toStringSegment(sb);
-    sb.append(", lang=");
-    sb.append(getLang());
-    sb.append(", value=");
-    sb.append(getValue());
-  }
-
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder("BwStringBase{");
-
-    toStringSegment(sb);
-    sb.append("}");
-
-    return sb.toString();
+  protected void toStringSegment(final ToString ts) {
+    super.toStringSegment(ts);
+    ts.append("lang", getLang());
+    ts.append("value", getValue());
   }
 
   @Override

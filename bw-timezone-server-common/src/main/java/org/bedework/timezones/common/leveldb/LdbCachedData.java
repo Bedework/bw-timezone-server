@@ -180,10 +180,12 @@ public class LdbCachedData extends AbstractCachedData {
   /** Start from database cache. Fall back is probably to use the
    * zipped data.
    *
-   * @param cfg
+   * @param cfg the configuration
+   * @param clear remove all data from leveldb first
    * @throws TzException
    */
-  public LdbCachedData(final TzConfig cfg) throws TzException {
+  public LdbCachedData(final TzConfig cfg,
+                       final boolean clear) throws TzException {
     super(cfg, "Db");
 
     try {
@@ -191,7 +193,8 @@ public class LdbCachedData extends AbstractCachedData {
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
       }
 
-      DateFormat df = new SimpleDateFormat("yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'");
+      final DateFormat df =
+              new SimpleDateFormat("yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'");
 
       mapper.setDateFormat(df);
 
@@ -200,7 +203,7 @@ public class LdbCachedData extends AbstractCachedData {
       throw new TzException(t);
     }
 
-    loadData();
+    loadData(clear);
 
     running = true;
 
@@ -231,7 +234,7 @@ public class LdbCachedData extends AbstractCachedData {
 
   @Override
   public List<Stat> getStats() throws TzException {
-    List<Stat> stats = new ArrayList<Stat>();
+    List<Stat> stats = new ArrayList<>();
 
     stats.addAll(super.getStats());
 
@@ -289,13 +292,13 @@ public class LdbCachedData extends AbstractCachedData {
     try {
       open();
 
-      List<String> ids = new ArrayList<String>();
+      List<String> ids = new ArrayList<>();
 
       ids.addAll(findTzs(val));
 
       List<TzAlias> as = findTzAliases(val);
       for (TzAlias a: as) {
-        ids.add(a.getToId());
+        ids.addAll(a.getTargetIds());
       }
 
       return ids;
@@ -318,8 +321,8 @@ public class LdbCachedData extends AbstractCachedData {
    * @param val
    * @throws TzException
    */
-  public void addTzAlias(final TzAlias val) throws TzException {
-    db.put(Iq80DBFactory.bytes(aliasPrefix + val.getFromId()),
+  public void putTzAlias(final TzAlias val) throws TzException {
+    db.put(Iq80DBFactory.bytes(aliasPrefix + val.getAliasId()),
            bytesJson(val));
   }
 
@@ -328,7 +331,7 @@ public class LdbCachedData extends AbstractCachedData {
    * @throws TzException
    */
   public void removeTzAlias(final TzAlias val) throws TzException {
-    db.delete(Iq80DBFactory.bytes(aliasPrefix + val.getFromId()));
+    db.delete(Iq80DBFactory.bytes(aliasPrefix + val.getAliasId()));
   }
 
   /**
@@ -427,16 +430,7 @@ public class LdbCachedData extends AbstractCachedData {
    * @param val
    * @throws TzException
    */
-  public void addTzSpec(final TzDbSpec val) throws TzException {
-    db.put(Iq80DBFactory.bytes(timezoneSpecPrefix + val.getName()),
-           bytesJson(val));
-  }
-
-  /**
-   * @param val
-   * @throws TzException
-   */
-  public void updateTzSpec(final TzDbSpec val) throws TzException {
+  public void putTzSpec(final TzDbSpec val) throws TzException {
     db.put(Iq80DBFactory.bytes(timezoneSpecPrefix + val.getName()),
            bytesJson(val));
   }
@@ -485,11 +479,22 @@ public class LdbCachedData extends AbstractCachedData {
   /**
    * @throws TzException
    */
-  private synchronized void loadData() throws TzException {
+  private synchronized void loadData(final boolean clear) throws TzException {
     reloads++;
 
     try {
       open();
+
+      if (clear) {
+        DBIterator iterator = getDb().iterator();
+        try {
+          for(iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
+            getDb().delete(iterator.peekNext().getKey());
+          }
+        } finally {
+          iterator.close();
+        }
+      }
 
       if (!cfg.getPrimaryServer()) {
         updateFromPrimary();
@@ -652,29 +657,24 @@ public class LdbCachedData extends AbstractCachedData {
           }
         }
 
-        if (add) {
-          addTzSpec(dbspec);
-        } else {
-          updateTzSpec(dbspec);
-        }
+        putTzSpec(dbspec);
 
+        /* Get all aliases for this id */
         SortedSet<String> aliases = amaps.byTzid.get(id);
 
         if (!Util.isEmpty(sum.getAliases())) {
           for (String a: sum.getAliases()) {
-            String alias = amaps.byAlias.get(a);
+            TzAlias tza = amaps.byAlias.get(a);
 
-            if (alias == null) {
-              TzAlias tza = new TzAlias();
-
-              tza.setFromId(a);
-              tza.setToId(id);
-
-              addTzAlias(tza);
-
-              continue;
+            if (tza == null) {
+              tza = new TzAlias(a);
             }
 
+            tza.addTargetId(id);
+
+            putTzAlias(tza);
+
+            /* We've seen this alias. Remove from the list */
             if (aliases != null) {
               aliases.remove(a);
             }
@@ -732,11 +732,7 @@ public class LdbCachedData extends AbstractCachedData {
 
         // XXX Localized names?
 
-        if (dle.add) {
-          addTzSpec(dbspec);
-        } else {
-          updateTzSpec(dbspec);
-        }
+        putTzSpec(dbspec);
       }
 
       if (Util.isEmpty(dle.aliases)) {
@@ -749,15 +745,12 @@ public class LdbCachedData extends AbstractCachedData {
         TzAlias alias = getTzAlias(a);
 
         if (alias == null) {
-          alias = new TzAlias();
-
-          alias.setFromId(a);
-          alias.setToId(id);
-
-          addTzAlias(alias);
-
-          continue;
+          alias = new TzAlias(a);
         }
+
+        alias.addTargetId(id);
+
+        putTzAlias(alias);
 
         aliases.remove(a);
       }
@@ -802,12 +795,15 @@ public class LdbCachedData extends AbstractCachedData {
       for (TimezoneType tz: tzs) {
         if (tz.getAliases() != null) {
           for (String a: tz.getAliases()) {
-            TzAlias alias = new TzAlias();
+            TzAlias alias = getTzAlias(a);
 
-            alias.setFromId(a);
-            alias.setToId(tz.getTzid());
+            if (alias == null) {
+              alias = new TzAlias(a);
+            }
 
-            addTzAlias(alias);
+            alias.addTargetId(tz.getTzid());
+
+            putTzAlias(alias);
           }
         }
 
@@ -825,7 +821,7 @@ public class LdbCachedData extends AbstractCachedData {
         spec.setDtstamp(z.getDtstamp());
         spec.setActive(true);
 
-        addTzSpec(spec);
+        putTzSpec(spec);
 
         ct++;
         if (debug && ((ct%25) == 0)) {
@@ -858,8 +854,8 @@ public class LdbCachedData extends AbstractCachedData {
     try {
       AliasMaps maps = new AliasMaps();
 
-      maps.byTzid = new HashMap<String, SortedSet<String>>();
-      maps.byAlias = new HashMap<String, String>();
+      maps.byTzid = new HashMap<>();
+      maps.byAlias = new HashMap<>();
       maps.aliases = new Properties();
 
       StringBuilder aliasStr = new StringBuilder();
@@ -877,25 +873,35 @@ public class LdbCachedData extends AbstractCachedData {
           TzAlias alias = getJson(it.peekNext().getValue(),
                                   TzAlias.class);
 
-          String from = alias.getFromId();
-          String id = alias.getToId();
+          String aliasId = alias.getAliasId();
+          StringBuilder ids = new StringBuilder();
+          String delim = "";
 
-          aliasStr.append(escape(from));
-          aliasStr.append('=');
-          aliasStr.append(escape(id));
+          for (String s: alias.getTargetIds()) {
+            ids.append(delim);
 
-          maps.aliases.setProperty(from, id);
+            String id = escape(s);
+            ids.append(id);
+            delim=",";
 
-          maps.byAlias.put(from, id);
+            SortedSet<String> as = maps.byTzid.get(id);
 
-          SortedSet<String> as = maps.byTzid.get(id);
+            if (as == null) {
+              as = new TreeSet<>();
+              maps.byTzid.put(id, as);
+            }
 
-          if (as == null) {
-            as = new TreeSet<String>();
-            maps.byTzid.put(id, as);
+            as.add(aliasId);
           }
 
-          as.add(from);
+          aliasStr.append(escape(aliasId));
+          aliasStr.append('=');
+          aliasStr.append(ids.toString());
+          aliasStr.append('\n');
+
+          maps.aliases.setProperty(aliasId, ids.toString());
+
+          maps.byAlias.put(aliasId, alias);
         }
       } finally {
         it.close();

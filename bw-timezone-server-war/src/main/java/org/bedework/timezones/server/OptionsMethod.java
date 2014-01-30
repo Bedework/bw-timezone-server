@@ -30,11 +30,10 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class OptionsMethod extends MethodBase {
   /**
-   * @param debug
    * @throws ServletException
    */
-  public OptionsMethod(boolean debug) throws ServletException {
-    super(debug);
+  public OptionsMethod() throws ServletException {
+    super();
   }
 
   @Override

@@ -37,6 +37,7 @@ import net.fortuna.ical4j.model.UtcOffset;
 import net.fortuna.ical4j.model.component.Observance;
 import net.fortuna.ical4j.model.component.VTimeZone;
 import net.fortuna.ical4j.util.TimeZones;
+
 import org.apache.log4j.Logger;
 
 import java.text.DateFormat;
@@ -99,7 +100,6 @@ public class TzServerUtil {
    * @throws TzException
    */
   private TzServerUtil() throws TzException {
-    getcache();
   }
 
   /* ====================================================================
@@ -175,18 +175,20 @@ public class TzServerUtil {
    *
    * @throws TzException
    */
-  public static void fireRefresh() throws TzException {
-    if (getInstance().cache != null) {
+  public static void fireRefresh(final boolean clear) throws TzException {
+    TzServerUtil tzutil = getInstance();
+
+    if (tzutil.cache != null) {
       try {
-        getInstance().cache.stop();
+        tzutil.cache.stop();
       } catch (Throwable t) {
         error(t);
         error("Error stopping cache");
       }
 
-      getInstance().cache = null;
+      tzutil.cache = null;
     }
-    getInstance().getcache();
+    tzutil.getcache(clear);
   }
 
   /** Cause data to be checked against primary
@@ -194,7 +196,7 @@ public class TzServerUtil {
    * @throws TzException
    */
   public static void fireCheck() throws TzException {
-    getInstance().cache.checkData();
+    getInstance().getcache().checkData();
   }
 
   /** Compare data pointed to by tzdataUrl with the given data then update.
@@ -214,7 +216,7 @@ public class TzServerUtil {
 
     CachedData cd = new ZipCachedData(newConfig);
 
-    List<DiffListEntry> dles = diff.compare(cd, util.cache);
+    List<DiffListEntry> dles = diff.compare(cd, util.getcache());
 
     List<String> out = new ArrayList<String>();
 
@@ -238,11 +240,11 @@ public class TzServerUtil {
       xgc.setFractionalSecond(null);
       String dtstamp = xgc.normalize().toXMLFormat();
 
-      util.cache.updateData(dtstamp, dles);
+      util.getcache().updateData(dtstamp, dles);
 
       /* Now do a reload to ensure we have the new data in the cache */
 
-      fireRefresh();
+      fireRefresh(false);
 
       return out;
     } catch (TzException te) {
@@ -269,7 +271,7 @@ public class TzServerUtil {
 
     CachedData cd = new ZipCachedData(newConfig);
 
-    List<DiffListEntry> dles = diff.compare(cd, util.cache);
+    List<DiffListEntry> dles = diff.compare(cd, util.getcache());
 
     List<String> out = new ArrayList<String>();
 
@@ -290,7 +292,7 @@ public class TzServerUtil {
    * @throws TzException
    */
   public static List<Stat> getStats() throws TzException {
-    List<Stat> stats = new ArrayList<Stat>();
+    List<Stat> stats = new ArrayList<>();
 
     stats.add(new Stat("Gets", String.valueOf(gets)));
     stats.add(new Stat("Hits", String.valueOf(cacheHits)));
@@ -307,8 +309,8 @@ public class TzServerUtil {
                        String.valueOf(expands),
                        String.valueOf(expandsMillis)));
 
-    if (getInstance().cache != null) {
-      stats.addAll(getInstance().cache.getStats());
+    if (getInstance().getcache() != null) {
+      stats.addAll(getInstance().getcache().getStats());
     }
 
     return stats;
@@ -333,7 +335,7 @@ public class TzServerUtil {
    * @throws TzException
    */
   public String getDtstamp() throws TzException {
-    String dtst = cache.getDtstamp();
+    String dtst = getcache().getDtstamp();
     if (dtst != null) {
       return dtst;
     }
@@ -348,7 +350,7 @@ public class TzServerUtil {
   public SortedSet<String> getNames() throws TzException {
     nameLists++;
 
-    return cache.getNameList();
+    return getcache().getNameList();
   }
 
   /**
@@ -357,7 +359,7 @@ public class TzServerUtil {
    * @throws TzException
    */
   public String getTz(final String name) throws TzException {
-    return cache.getCachedVtz(name);
+    return getcache().getCachedVtz(name);
   }
 
   /**
@@ -365,7 +367,7 @@ public class TzServerUtil {
    * @throws TzException
    */
   public Collection<String> getAllTzs() throws TzException {
-    return cache.getAllCachedVtzs();
+    return getcache().getAllCachedVtzs();
   }
 
   /**
@@ -374,7 +376,7 @@ public class TzServerUtil {
    * @throws TzException
    */
   public String getAliasedTz(final String name) throws TzException {
-    return cache.getAliasedCachedVtz(name);
+    return getcache().getAliasedCachedVtz(name);
   }
 
   /**
@@ -382,7 +384,7 @@ public class TzServerUtil {
    * @throws TzException
    */
   public String getAliasesStr() throws TzException {
-    return cache.getAliasesStr();
+    return getcache().getAliasesStr();
   }
 
   /**
@@ -391,7 +393,7 @@ public class TzServerUtil {
    * @throws TzException
    */
   public SortedSet<String> findAliases(final String tzid) throws TzException {
-    return cache.findAliases(tzid);
+    return getcache().findAliases(tzid);
   }
 
   /**
@@ -495,7 +497,7 @@ public class TzServerUtil {
    * @throws TzException
    */
   public List<TimezoneType> getTimezones(final String[] tzids) throws TzException {
-    return cache.getTimezones(tzids);
+    return getcache().getTimezones(tzids);
   }
 
   /**
@@ -504,7 +506,7 @@ public class TzServerUtil {
    * @throws TzException
    */
   public List<TimezoneType> getTimezones(final String changedSince) throws TzException {
-    return cache.getTimezones(changedSince);
+    return getcache().getTimezones(changedSince);
   }
 
   /**
@@ -513,7 +515,7 @@ public class TzServerUtil {
    * @throws TzException
    */
   public List<TimezoneType> findTimezones(final String name) throws TzException {
-    return cache.findTimezones(name);
+    return getcache().findTimezones(name);
   }
 
   private static class ObservanceWrapper implements Comparable<ObservanceWrapper> {
@@ -543,7 +545,7 @@ public class TzServerUtil {
 
     ExpandedMapEntryKey emek = makeExpandedKey(tzid, start, end);
 
-    ExpandedMapEntry tzs = cache.getExpanded(emek);
+    ExpandedMapEntry tzs = getcache().getExpanded(emek);
     if (tzs != null) {
       expandHits++;
       return tzs;
@@ -605,7 +607,7 @@ public class TzServerUtil {
 
     tzs = new ExpandedMapEntry(String.valueOf(smillis), tzt);
 
-    cache.setExpanded(emek, tzs);
+    getcache().setExpanded(emek, tzs);
 
     expandsMillis += System.currentTimeMillis() - smillis;
     expands++;
@@ -647,7 +649,7 @@ public class TzServerUtil {
   public TimeZone fetchTimeZone(final String tzid) throws TzException {
     tzfetches++;
 
-    return cache.getTimeZone(tzid);
+    return getcache().getTimeZone(tzid);
   }
 
   /* ====================================================================
@@ -711,7 +713,15 @@ public class TzServerUtil {
     return new ExpandedMapEntryKey(tzid, st, e);
   }
 
-  private void getcache() throws TzException {
+  private CachedData getcache() throws TzException {
+    if (cache == null) {
+      getcache(false);
+    }
+
+    return cache;
+  }
+
+  private void getcache(final boolean clear) throws TzException {
     TzConfig cfg = getTzConfig();
 
     if (cfg == null) {
@@ -720,8 +730,7 @@ public class TzServerUtil {
     }
 
     try {
-      cache = new LdbCachedData(getTzConfig());
-      //cache = new DbCachedData(getTzConfig());
+      cache = new LdbCachedData(getTzConfig(), clear);
     } catch (TzException te) {
       error(te);
       cache = null;

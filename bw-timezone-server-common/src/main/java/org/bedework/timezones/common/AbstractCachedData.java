@@ -18,6 +18,7 @@
 */
 package org.bedework.timezones.common;
 
+import org.bedework.timezones.common.db.TzAlias;
 import org.bedework.util.caching.FlushMap;
 import org.bedework.util.calendar.IcalToXcal;
 import org.bedework.util.timezones.DateTimeUtil;
@@ -26,9 +27,11 @@ import org.bedework.util.timezones.model.TimezoneType;
 import ietf.params.xml.ns.icalendar_2.IcalendarType;
 import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.data.UnfoldingReader;
+import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.Component;
 import net.fortuna.ical4j.model.TimeZone;
 import net.fortuna.ical4j.model.component.VTimeZone;
+import net.fortuna.ical4j.model.property.EquivalentTzId;
 import net.fortuna.ical4j.model.property.LastModified;
 import net.fortuna.ical4j.model.property.TzId;
 import org.apache.log4j.Logger;
@@ -89,7 +92,7 @@ public abstract class AbstractCachedData implements CachedData {
     /** */
     public Map<String, SortedSet<String>> byTzid;
     /** */
-    public Map<String, String> byAlias;
+    public Map<String, TzAlias> byAlias;
   }
 
   protected AliasMaps aliasMaps;
@@ -145,41 +148,26 @@ public abstract class AbstractCachedData implements CachedData {
    *                   CachedData methods
    * ==================================================================== */
 
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#getDtstamp()
-   */
   @Override
   public String getDtstamp() throws TzException {
     return dtstamp;
   }
 
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#fromAlias(java.lang.String)
-   */
   @Override
-  public String fromAlias(final String val) throws TzException {
+  public TzAlias fromAlias(final String val) throws TzException {
     return aliasMaps.byAlias.get(val);
   }
 
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#getAliasesStr()
-   */
   @Override
   public String getAliasesStr() throws TzException {
     return aliasMaps.aliasesStr;
   }
 
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#findAliases(java.lang.String)
-   */
   @Override
   public SortedSet<String> findAliases(final String tzid) throws TzException {
     return aliasMaps.byTzid.get(tzid);
   }
 
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#getNameList()
-   */
   @Override
   public SortedSet<String> getNameList() throws TzException {
     return nameList;
@@ -196,17 +184,11 @@ public abstract class AbstractCachedData implements CachedData {
     return expansions.get(key);
   }
 
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#getCachedVtz(java.lang.String)
-   */
   @Override
   public String getCachedVtz(final String name) throws TzException {
     return vtzs.get(name);
   }
 
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#getAllCachedVtzs()
-   */
   @Override
   public Collection<String> getAllCachedVtzs() throws TzException {
     return vtzs.values();
@@ -223,9 +205,9 @@ public abstract class AbstractCachedData implements CachedData {
       return tz;
     }
 
-    net.fortuna.ical4j.model.Calendar cal = parseDef(TzServerUtil.getCalHdr() +
-                                                     getCachedVtz(tzid) +
-                                                     TzServerUtil.getCalTlr());
+    Calendar cal = parseDef(TzServerUtil.getCalHdr() +
+                                    getCachedVtz(tzid) +
+                                    TzServerUtil.getCalTlr());
 
     tz = new TimeZone(vtzFromCal(cal));
 
@@ -332,7 +314,7 @@ public abstract class AbstractCachedData implements CachedData {
                              final String caldef,
                              final String storedDtstamp) throws TzException {
     try {
-      net.fortuna.ical4j.model.Calendar cal = parseDef(caldef);
+      Calendar cal = parseDef(caldef);
 
       nameList.add(id);
 
@@ -371,7 +353,16 @@ public abstract class AbstractCachedData implements CachedData {
           }
           tz.getAliases().add(a);
 
-          VTimeZone avtz = addAlias(a, vtz);
+          List<String> aliasedIds = null;
+
+          if (aliasMaps != null) {
+            TzAlias alias = aliasMaps.byAlias.get(a);
+            if (alias != null) {
+              aliasedIds = alias.getTargetIds();
+            }
+          }
+
+          VTimeZone avtz = addAlias(a, vtz, aliasedIds);
 
           cal.getComponents().clear();
           cal.getComponents().add(avtz);
@@ -391,7 +382,7 @@ public abstract class AbstractCachedData implements CachedData {
     }
   }
 
-  protected net.fortuna.ical4j.model.Calendar parseDef(final String caldef) throws TzException {
+  protected Calendar parseDef(final String caldef) throws TzException {
     try {
       CalendarBuilder cb = new CalendarBuilder();
 
@@ -403,7 +394,7 @@ public abstract class AbstractCachedData implements CachedData {
     }
   }
 
-  protected VTimeZone vtzFromCal(final net.fortuna.ical4j.model.Calendar cal) throws TzException {
+  protected VTimeZone vtzFromCal(final Calendar cal) throws TzException {
     VTimeZone vtz = (VTimeZone)cal.getComponents().getComponent(Component.VTIMEZONE);
     if (vtz == null) {
       throw new TzException("Incorrectly stored timezone");
@@ -422,12 +413,19 @@ public abstract class AbstractCachedData implements CachedData {
    * add it and the string version to the alias table.
    */
   protected VTimeZone addAlias(final String alias,
-                          final VTimeZone vtz) throws TzException {
+                               final VTimeZone vtz,
+                               final List<String> tzids) throws TzException {
     try {
       VTimeZone avtz = (VTimeZone)vtz.copy();
 
-      TzId tzid = avtz.getTimeZoneId();
-      tzid.setValue(alias);
+      TzId tzidProp = avtz.getTimeZoneId();
+      tzidProp.setValue(alias);
+
+      if (tzids != null) {
+        for (String tzid: tzids) {
+          avtz.getProperties().add(new EquivalentTzId(tzid));
+        }
+      }
 
 //      aliasedTzs.put(alias, new TimeZone(avtz));
       aliasedVtzs.put(alias, avtz.toString());

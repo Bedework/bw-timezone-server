@@ -20,17 +20,19 @@ package org.bedework.timezones.server;
 
 import org.bedework.timezones.common.TzServerUtil;
 import org.bedework.util.timezones.model.ErrorResponseType;
+import org.bedework.util.timezones.model.TimezoneListType;
+import org.bedework.util.timezones.model.TimezoneType;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import org.apache.log4j.Logger;
 
-import java.io.OutputStream;
 import java.net.URLDecoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import javax.servlet.ServletException;
@@ -69,6 +71,11 @@ public abstract class MethodBase {
                             "The \"changedsince\" query parameter has an " +
                             "incorrect value, or appears more than once.");
 
+  protected static final ErrorResponseType invalidListTzid =
+          new ErrorResponseType("invalid-tzid",
+                                "The \"tzid\" query parameter is present along with the " +
+                                        "\"changedsince\", or has an incorrect value.");
+
   protected boolean debug;
 
   protected transient Logger log;
@@ -78,11 +85,10 @@ public abstract class MethodBase {
   protected TzServerUtil util;
 
   /**
-   * @param debug
    * @throws ServletException
    */
-  public MethodBase(final boolean debug) throws ServletException {
-    this.debug = debug;
+  public MethodBase() throws ServletException {
+    this.debug = getLogger().isDebugEnabled();
 
     try {
       if (debug) {
@@ -220,13 +226,50 @@ public abstract class MethodBase {
   }
 
   /** ===================================================================
-   *                   Json methods
+   *                   Output methods
    *  =================================================================== */
 
-  protected void writeJson(final OutputStream out,
+  protected void listResponse(final HttpServletResponse resp,
+                              final List<TimezoneType> tzs) throws ServletException {
+    try {
+      resp.setContentType("application/json; charset=UTF-8");
+
+      TimezoneListType tzl = new TimezoneListType();
+
+      tzl.setDtstamp(util.getDtstamp());
+
+      if (tzl.getTimezones() == null) {
+        tzl.setTimezones(new ArrayList<TimezoneType>());
+      }
+      tzl.getTimezones().addAll(tzs);
+
+      writeJson(resp, tzl);
+    } catch (ServletException se) {
+      throw se;
+    } catch (Throwable t) {
+      throw new ServletException(t);
+    }
+  }
+
+  protected void errorResponse(final HttpServletResponse resp,
+                               final int servletError,
+                               final String errorCode,
+                               final String description) throws ServletException {
+    errorResponse(resp, servletError,
+                  new ErrorResponseType(errorCode, description));
+  }
+
+  protected void errorResponse(final HttpServletResponse resp,
+                               final int servletError,
+                               final ErrorResponseType error) throws ServletException {
+    resp.setStatus(servletError);
+    writeJson(resp, error);
+  }
+
+  protected void writeJson(final HttpServletResponse resp,
                            final Object val) throws ServletException {
     try {
-      mapper.writeValue(out, val);
+      mapper.writeValue(resp.getOutputStream(), val);
     } catch (Throwable t) {
       throw new ServletException(t);
     }
