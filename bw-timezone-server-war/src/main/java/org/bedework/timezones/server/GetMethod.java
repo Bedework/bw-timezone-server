@@ -24,6 +24,7 @@ import org.bedework.timezones.common.TzServerUtil;
 import org.bedework.util.timezones.model.CapabilitiesAcceptParameterType;
 import org.bedework.util.timezones.model.CapabilitiesActionType;
 import org.bedework.util.timezones.model.CapabilitiesInfoType;
+import org.bedework.util.timezones.model.CapabilitiesTruncatedType;
 import org.bedework.util.timezones.model.CapabilitiesType;
 import org.bedework.util.timezones.model.TimezoneListType;
 import org.bedework.util.timezones.model.TimezoneType;
