@@ -15,8 +15,8 @@
 		<!-- Bedework Versions -->
 		<bedework.releases.repo.url>scp://dev.bedework.org/data/repository/maven/maven2</bedework.releases.repo.url>
 		<bedework.snapshots.repo.url>scp://dev.bedework.org/data/repository/maven/maven2</bedework.snapshots.repo.url>
-		<bw-ws.version>4.0.0-SNAPSHOT</bw-ws.version>
-		<bw-util.version>4.0.0-SNAPSHOT</bw-util.version>
+		<bw-ws.version>4.0.1-SNAPSHOT</bw-ws.version>
+		<bw-util.version>4.0.1-SNAPSHOT</bw-util.version>
 		<!-- Third Party Library Versions -->
 		<ehcache.version>1.6.2</ehcache.version>
 		<jackson.version>2.3.1</jackson.version>
@@ -25,7 +25,7 @@
 		<hibernate-validator.version>3.1.0.GA</hibernate-validator.version>
 		<servlet-api.version>2.5</servlet-api.version>
 		<junit.version>4.8.2</junit.version>
-		<ical4j.version>1.0-BW-SNAPSHOT</ical4j.version>
+		<ical4j.version>1.1-BW-SNAPSHOT</ical4j.version>
 		<log4j.version>1.2.15</log4j.version>
 		<asm.version>3.2</asm.version>
 		<asm-attrs.version>2.2.3</asm-attrs.version>
