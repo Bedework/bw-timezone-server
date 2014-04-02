@@ -305,20 +305,20 @@ public abstract class AbstractCachedData implements CachedData {
    * ==================================================================== */
 
   /**
-   * @param id
+   * @param id of tz
    * @param caldef a tz spec in the form of a CALENDAR component
-   * @param storedDtstamp
+   * @param storedDtstamp to set last mod
    * @throws TzException
    */
   protected void processSpec(final String id,
                              final String caldef,
                              final String storedDtstamp) throws TzException {
     try {
-      Calendar cal = parseDef(caldef);
+      final Calendar cal = parseDef(caldef);
 
       nameList.add(id);
 
-      VTimeZone vtz = vtzFromCal(cal);
+      final VTimeZone vtz = vtzFromCal(cal);
 
       vtzs.put(id, vtz.toString());
 
@@ -329,11 +329,11 @@ public abstract class AbstractCachedData implements CachedData {
       xtzs.put(id, xcal);
 
       /* ================== Build summary info ======================== */
-      TimezoneType tz = new TimezoneType();
+      final TimezoneType tz = new TimezoneType();
 
       tz.setTzid(id);
 
-      LastModified lm = vtz.getLastModified();
+      final LastModified lm = vtz.getLastModified();
       if (lm!= null) {
         tz.setLastModified(DateTimeUtil.fromRfcDateTimeUTC(lm.getValue()));
       } else if (storedDtstamp != null) {
@@ -342,7 +342,7 @@ public abstract class AbstractCachedData implements CachedData {
         tz.setLastModified(DateTimeUtil.fromRfcDateTimeUTC(dtstamp));
       }
 
-      SortedSet<String> aliases = findAliases(id);
+      final SortedSet<String> aliases = findAliases(id);
 
       // XXX Need to have list of local names per timezone
       //String ln = vtz.
@@ -356,13 +356,13 @@ public abstract class AbstractCachedData implements CachedData {
           List<String> aliasedIds = null;
 
           if (aliasMaps != null) {
-            TzAlias alias = aliasMaps.byAlias.get(a);
+            final TzAlias alias = aliasMaps.byAlias.get(a);
             if (alias != null) {
               aliasedIds = alias.getTargetIds();
             }
           }
 
-          VTimeZone avtz = addAlias(a, vtz, aliasedIds);
+          final VTimeZone avtz = addAlias(a, vtz, aliasedIds);
 
           cal.getComponents().clear();
           cal.getComponents().add(avtz);
@@ -375,9 +375,9 @@ public abstract class AbstractCachedData implements CachedData {
 
       timezones.add(tz);
       timezonesMap.put(tz.getTzid(), tz);
-    } catch (TzException te) {
+    } catch (final TzException te) {
       throw te;
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new TzException(t);
     }
   }

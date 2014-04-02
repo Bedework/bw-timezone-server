@@ -722,7 +722,7 @@ public class TzServerUtil {
   }
 
   private void getcache(final boolean clear) throws TzException {
-    TzConfig cfg = getTzConfig();
+    final TzConfig cfg = getTzConfig();
 
     if (cfg == null) {
       error("No config data");
@@ -730,8 +730,8 @@ public class TzServerUtil {
     }
 
     try {
-      cache = new LdbCachedData(getTzConfig(), clear);
-    } catch (TzException te) {
+      cache = new LdbCachedData(cfg, clear);
+    } catch (final TzException te) {
       error(te);
       cache = null;
     }
@@ -746,13 +746,13 @@ public class TzServerUtil {
     }
   }
 
-  private static Calendar cal = Calendar.getInstance();
-  private static java.util.TimeZone utctz;
+  private static final Calendar cal = Calendar.getInstance();
+  private static final java.util.TimeZone utctz;
 
   static {
     try {
       utctz = TimeZone.getTimeZone(TimeZones.UTC_ID);
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new RuntimeException("Unable to initialise UTC timezone");
     }
     cal.setTimeZone(utctz);

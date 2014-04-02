@@ -199,15 +199,17 @@ public class LdbCachedData extends AbstractCachedData {
       mapper.setDateFormat(df);
 
       mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new TzException(t);
     }
 
+    info("Load leveldb timezone data");
     loadData(clear);
 
     running = true;
 
     if (!cfg.getPrimaryServer()) {
+      info("start timezone data update thread");
       updater = new UpdateThread("DbdataUpdater");
       updater.start();
     }
@@ -486,19 +488,16 @@ public class LdbCachedData extends AbstractCachedData {
       open();
 
       if (clear) {
-        DBIterator iterator = getDb().iterator();
-        try {
+        try (DBIterator iterator = getDb().iterator()) {
           for(iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
             getDb().delete(iterator.peekNext().getKey());
           }
-        } finally {
-          iterator.close();
         }
       }
 
       if (!cfg.getPrimaryServer()) {
         updateFromPrimary();
-      } else {
+      } else if (clear) {
         loadInitialData();
       }
 
@@ -515,10 +514,10 @@ public class LdbCachedData extends AbstractCachedData {
       processSpecs(dtstamp);
 
       expansions.clear();
-    } catch (TzException te) {
+    } catch (final TzException te) {
       fail();
       throw te;
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       fail();
       throw new TzException(t);
     } finally {
@@ -860,9 +859,7 @@ public class LdbCachedData extends AbstractCachedData {
 
       StringBuilder aliasStr = new StringBuilder();
 
-      DBIterator it = db.iterator();
-
-      try {
+      try (DBIterator it = db.iterator()) {
         for(it.seekToFirst(); it.hasNext(); it.next()) {
           String key = Iq80DBFactory.asString(it.peekNext().getKey());
 
@@ -903,14 +900,12 @@ public class LdbCachedData extends AbstractCachedData {
 
           maps.byAlias.put(aliasId, alias);
         }
-      } finally {
-        it.close();
       }
 
       maps.aliasesStr = aliasStr.toString();
 
       return maps;
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new TzException(t);
     }
   }
@@ -919,18 +914,16 @@ public class LdbCachedData extends AbstractCachedData {
     try {
       resetTzs();
 
-      DBIterator it = db.iterator();
-
-      try {
+      try (DBIterator it = db.iterator()) {
         for(it.seekToFirst(); it.hasNext(); it.next()) {
-          String key = Iq80DBFactory.asString(it.peekNext().getKey());
+          final String key = Iq80DBFactory.asString(it.peekNext().getKey());
 
           if (!key.startsWith(timezoneSpecPrefix)) {
             continue;
           }
 
-          TzDbSpec spec = getJson(it.peekNext().getValue(),
-                                  TzDbSpec.class);
+          final TzDbSpec spec = getJson(it.peekNext().getValue(),
+                                        TzDbSpec.class);
 
           String dt = spec.getDtstamp();
           if (!dt.endsWith("Z")) {
@@ -941,12 +934,10 @@ public class LdbCachedData extends AbstractCachedData {
           processSpec(spec.getName(), spec.getVtimezone(),
                       XcalUtil.getXmlFormatDateTime(dt));
         }
-      } finally {
-        it.close();
       }
-    } catch (TzException te) {
+    } catch (final TzException te) {
       throw te;
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new TzException(t);
     }
   }
@@ -961,7 +952,11 @@ public class LdbCachedData extends AbstractCachedData {
           (!lastConfigLevelDbPath.equals(cfg.getLeveldbPath()))) {
         lastConfigLevelDbPath = cfg.getLeveldbPath();
 
-        File f = new File(lastConfigLevelDbPath);
+        if (debug) {
+          trace("Try to open leveldb at " + lastConfigLevelDbPath);
+        }
+
+        final File f = new File(lastConfigLevelDbPath);
 
         if (!f.isAbsolute()) {
           throw new TzException("levelDbPath must be absolute - found " +
@@ -971,10 +966,10 @@ public class LdbCachedData extends AbstractCachedData {
         levelDbPath = lastConfigLevelDbPath;
       }
 
-      Options options = new Options();
+      final Options options = new Options();
       options.createIfMissing(true);
       db = Iq80DBFactory.factory.open(new File(levelDbPath), options);
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       // Always bad.
       error(t);
       throw new TzException(t);
