@@ -122,7 +122,7 @@ public abstract class AbstractCachedData implements CachedData {
 
   @Override
   public List<Stat> getStats() throws TzException {
-    List<Stat> stats = new ArrayList<Stat>();
+    final List<Stat> stats = new ArrayList<>();
 
     if (vtzs == null) {
       stats.add(new Stat(msgPrefix, " #tzs  Unavailable"));
@@ -194,9 +194,6 @@ public abstract class AbstractCachedData implements CachedData {
     return vtzs.values();
   }
 
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#getTimeZone(java.lang.String)
-   */
   @Override
   public TimeZone getTimeZone(final String tzid) throws TzException {
     TimeZone tz = timeZones.get(tzid);

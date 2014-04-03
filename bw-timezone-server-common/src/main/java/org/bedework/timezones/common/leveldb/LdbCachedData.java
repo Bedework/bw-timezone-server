@@ -557,18 +557,22 @@ public class LdbCachedData extends AbstractCachedData {
       Timezones tzs = new TimezonesImpl();
       tzs.init(cfg.getPrimaryUrl());
 
-      String changedSince = cfg.getDtstamp();
+      final String changedSince = cfg.getDtstamp();
 
-      TimezoneListType tzl;
+      final TimezoneListType tzl;
 
       try {
         tzl = tzs.getList(changedSince);
-      } catch (TzUnknownHostException tuhe) {
+      } catch (final TzUnknownHostException tuhe) {
         error("Unknown host exception contacting " + cfg.getPrimaryUrl());
+        return false;
+      } catch (final Throwable t) {
+        error("Exception contacting " + cfg.getPrimaryUrl());
+        error(t);
         return false;
       }
 
-      String svrCs = tzl.getDtstamp();
+      final String svrCs = tzl.getDtstamp();
 
       if ((changedSince == null) ||
                  !svrCs.equals(changedSince)) {
@@ -659,10 +663,10 @@ public class LdbCachedData extends AbstractCachedData {
         putTzSpec(dbspec);
 
         /* Get all aliases for this id */
-        SortedSet<String> aliases = amaps.byTzid.get(id);
+        final SortedSet<String> aliases = amaps.byTzid.get(id);
 
         if (!Util.isEmpty(sum.getAliases())) {
-          for (String a: sum.getAliases()) {
+          for (final String a: sum.getAliases()) {
             TzAlias tza = amaps.byAlias.get(a);
 
             if (tza == null) {
@@ -738,7 +742,7 @@ public class LdbCachedData extends AbstractCachedData {
         return;
       }
 
-      SortedSet<String> aliases = amaps.byTzid.get(id);
+      final SortedSet<String> aliases = amaps.byTzid.get(id);
 
       for (String a: dle.aliases) {
         TzAlias alias = getTzAlias(a);

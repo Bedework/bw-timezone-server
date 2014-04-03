@@ -181,7 +181,7 @@ public class TzServerUtil {
     if (tzutil.cache != null) {
       try {
         tzutil.cache.stop();
-      } catch (Throwable t) {
+      } catch (final Throwable t) {
         error(t);
         error("Error stopping cache");
       }
