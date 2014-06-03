@@ -57,6 +57,7 @@
 	</issueManagement>
 
 	<modules>
+    <module>bw-timezone-server-tzconvert</module>
 		<module>bw-timezone-server-common</module>
 		<module>bw-timezone-server-war</module>
 		<module>bw-timezone-server-ear</module>

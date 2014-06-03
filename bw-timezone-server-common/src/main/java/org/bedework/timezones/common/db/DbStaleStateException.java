@@ -23,7 +23,7 @@ import org.bedework.timezones.common.TzException;
 
 /** Base exception thrown by tz classes
  *
- *   @author Mike Douglass   douglm bedework.edu
+ *   @author Mike Douglass   douglm rpi.edu
  */
 public class DbStaleStateException extends TzException {
   /** Constructor

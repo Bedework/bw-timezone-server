@@ -42,6 +42,12 @@ public interface CachedData extends Serializable {
   void stop() throws TzException;
 
   /**
+   * @return String source information for data.
+   * @throws TzException
+   */
+  String getSource() throws TzException;
+
+  /**
    * @return stats for the module
    * @throws TzException
    */
@@ -56,8 +62,8 @@ public interface CachedData extends Serializable {
   /** Update the stored data using the given update list. Note that the update
    * may be transient if the data cache has no or an unchangable backing.
    *
-   * @param dtstamp
-   * @param dles
+   * @param dtstamp lastmod for change
+   * @param dles diff list
    * @throws TzException
    */
   void updateData(String dtstamp,
@@ -71,10 +77,11 @@ public interface CachedData extends Serializable {
 
   /** Given an alias return the tzid for that alias
    *
-   * @param val
+   * @param val alias
    * @return aliased name(s) or null
    * @throws TzException
    */
+  @SuppressWarnings("UnusedDeclaration")
   TzAlias fromAlias(String val) throws TzException;
 
   /**
@@ -84,7 +91,7 @@ public interface CachedData extends Serializable {
   String getAliasesStr() throws TzException;
 
   /**
-   * @param tzid
+   * @param tzid for which we want aliases
    * @return list of aliases or null
    * @throws TzException
    */
@@ -97,15 +104,15 @@ public interface CachedData extends Serializable {
   SortedSet<String> getNameList() throws TzException;
 
   /**
-   * @param key
-   * @param tzs
+   * @param key to expanded map
+   * @param tzs entries from map
    * @throws TzException
    */
   void setExpanded(ExpandedMapEntryKey key,
                    ExpandedMapEntry tzs) throws TzException;
 
   /**
-   * @param key
+   * @param key to expanded map
    * @return expanded or null
    * @throws TzException
    */
@@ -113,7 +120,7 @@ public interface CachedData extends Serializable {
 
   /** Get cached VTIMEZONE specifications
    *
-   * @param name
+   * @param name tzid
    * @return cached spec or null.
    * @throws TzException
    */
@@ -128,7 +135,7 @@ public interface CachedData extends Serializable {
 
   /** Get a timezone object from the server given the id.
    *
-   * @param tzid
+   * @param tzid the id
    * @return TimeZone with id or null
    * @throws TzException
    */
@@ -145,7 +152,7 @@ public interface CachedData extends Serializable {
 
   /** Get a timezone object from the server given the id.
    *
-   * @param tzid
+   * @param tzid the id
    * @return IcalendarType with id or null
    * @throws TzException
    */
@@ -153,15 +160,16 @@ public interface CachedData extends Serializable {
 
   /** Get an aliased timezone object from the server given the id.
    *
-   * @param tzid
+   * @param tzid the id
    * @return IcalendarType with id or null
    * @throws TzException
    */
+  @SuppressWarnings("UnusedDeclaration")
   IcalendarType getAliasedXTimeZone(final String tzid) throws TzException;
 
   /** Get an aliased cached VTIMEZONE specifications
    *
-   * @param name
+   * @param name tzid
    * @return cached spec or null.
    * @throws TzException
    */

@@ -67,6 +67,11 @@ public class ZipCachedData  extends AbstractCachedData {
   }
 
   @Override
+  public String getSource() throws TzException {
+    return null;
+  }
+
+  @Override
   public void checkData() throws TzException {
     loadData();
   }

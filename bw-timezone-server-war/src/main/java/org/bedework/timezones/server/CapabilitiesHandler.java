@@ -18,6 +18,7 @@
 */
 package org.bedework.timezones.server;
 
+import org.bedework.timezones.common.TzConfig;
 import org.bedework.timezones.common.TzServerUtil;
 import org.bedework.util.timezones.model.CapabilitiesAcceptParameterType;
 import org.bedework.util.timezones.model.CapabilitiesActionType;
@@ -181,12 +182,12 @@ public class CapabilitiesHandler extends MethodBase {
                                 final String action,
                                 final String description,
                                 final CapabilitiesAcceptParameterType... pars) {
-    CapabilitiesActionType cot = new CapabilitiesActionType();
+    final CapabilitiesActionType cot = new CapabilitiesActionType();
 
     cot.setName(action);
 
     if (pars != null) {
-      for (CapabilitiesAcceptParameterType par: pars) {
+      for (final CapabilitiesAcceptParameterType par: pars) {
         cot.getParameters().add(par);
       }
     }
@@ -199,7 +200,7 @@ public class CapabilitiesHandler extends MethodBase {
                                                          final boolean multi,
                                                          final String value,
                                                          final String description) {
-    CapabilitiesAcceptParameterType capt = new CapabilitiesAcceptParameterType();
+    final CapabilitiesAcceptParameterType capt = new CapabilitiesAcceptParameterType();
 
     capt.setName(name);
     capt.setRequired(required);
@@ -226,15 +227,17 @@ public class CapabilitiesHandler extends MethodBase {
     try {
       resp.setContentType("application/json; charset=UTF-8");
 
-      CapabilitiesInfoType ci = new CapabilitiesInfoType();
+      final CapabilitiesInfoType ci = new CapabilitiesInfoType();
 
-      if (!TzServerUtil.getTzConfig().getPrimaryServer()) {
+      final TzConfig cfg = TzServerUtil.getTzConfig();
+
+      if (!cfg.getPrimaryServer()) {
         ci.setPrimarySource(TzServerUtil.getTzConfig().getPrimaryUrl());
-      } else if (TzServerUtil.getTzConfig() != null) {
-        ci.setSource(TzServerUtil.getTzConfig().getTzdataUrl());
+      } else {
+        ci.setSource(cfg.getSource());
       }
 
-      CapabilitiesTruncatedType ct = new CapabilitiesTruncatedType();
+      final CapabilitiesTruncatedType ct = new CapabilitiesTruncatedType();
 
       ct.setAny(false);
       ct.setUntruncated(true);

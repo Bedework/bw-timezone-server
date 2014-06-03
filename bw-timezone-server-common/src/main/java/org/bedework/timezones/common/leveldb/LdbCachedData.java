@@ -235,6 +235,11 @@ public class LdbCachedData extends AbstractCachedData {
   }
 
   @Override
+  public String getSource() throws TzException {
+    return cfg.getSource();
+  }
+
+  @Override
   public List<Stat> getStats() throws TzException {
     List<Stat> stats = new ArrayList<>();
 
@@ -600,10 +605,10 @@ public class LdbCachedData extends AbstractCachedData {
        * If we don't have the timezone do an unconditional fetch.
        */
 
-      AliasMaps amaps = buildAliasMaps();
+      final AliasMaps amaps = buildAliasMaps();
 
-      for (TimezoneType sum: tzl.getTimezones()) {
-        String id = sum.getTzid();
+      for (final TimezoneType sum: tzl.getTimezones()) {
+        final String id = sum.getTzid();
         if (debug) {
           trace("Updating timezone " + id);
         }
@@ -615,7 +620,7 @@ public class LdbCachedData extends AbstractCachedData {
           etag = dbspec.getEtag();
         }
 
-        TaggedTimeZone ttz = tzs.getTimeZone(id, etag);
+        final TaggedTimeZone ttz = tzs.getTimeZone(id, etag);
 
         if ((ttz != null) && (ttz.vtz == null)) {
           // No change
@@ -627,7 +632,7 @@ public class LdbCachedData extends AbstractCachedData {
           continue;
         }
 
-        boolean add = dbspec == null;
+        final boolean add = dbspec == null;
 
         if (add) {
           // Create a new one
@@ -653,8 +658,9 @@ public class LdbCachedData extends AbstractCachedData {
             dns.clear(); // XXX not good - forces delete and recreate
           }
 
-          for (LocalNameType ln: sum.getLocalNames()) {
-            LocalizedString ls = new LocalizedString(ln.getLang(), ln.getValue());
+          for (final LocalNameType ln: sum.getLocalNames()) {
+            final LocalizedString ls =
+                    new LocalizedString(ln.getLang(), ln.getValue());
 
             dns.add(ls);
           }
@@ -686,18 +692,18 @@ public class LdbCachedData extends AbstractCachedData {
 
         if (aliases != null) {
           /* remaining aliases should be deleted */
-          for (String alias: aliases) {
-            TzAlias tza = getTzAlias(alias);
+          for (final String alias: aliases) {
+            final TzAlias tza = getTzAlias(alias);
             removeTzAlias(tza);
           }
         }
       }
 
       lastFetchStatus = "Success";
-    } catch (TzException tze) {
+    } catch (final TzException tze) {
       lastFetchStatus = "Failed";
       throw tze;
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       lastFetchStatus = "Failed";
       throw new TzException(t);
     }
@@ -709,7 +715,7 @@ public class LdbCachedData extends AbstractCachedData {
                                    final AliasMaps amaps,
                                    final DiffListEntry dle) throws TzException {
     try {
-      String id = dle.tzid;
+      final String id = dle.tzid;
 
       if (!dle.aliasChangeOnly) {
         TzDbSpec dbspec = getSpec(id);
@@ -759,35 +765,31 @@ public class LdbCachedData extends AbstractCachedData {
       }
 
       /* remaining aliases should be deleted */
-      for (String alias: aliases) {
-        TzAlias tza = getTzAlias(alias);
+      for (final String alias: aliases) {
+        final TzAlias tza = getTzAlias(alias);
         removeTzAlias(tza);
       }
-    } catch (TzException tze) {
+    } catch (final TzException tze) {
       throw tze;
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new TzException(t);
     }
   }
 
   private boolean loadInitialData() throws TzException {
     try {
-      if (cfg.getTzdataUrl() == null) {
-        error("No config data or no data url");
-        return false;
-      }
-
       if (debug) {
         trace("Loading initial data from " + cfg.getTzdataUrl());
       }
 
-      CachedData z = new ZipCachedData(cfg);
+      final CachedData cachedData = TzServerUtil.getDataSource(cfg);
 
-      cfg.setDtstamp(z.getDtstamp());
+      cfg.setDtstamp(cachedData.getDtstamp());
+      cfg.setSource(cachedData.getSource());
 
       TzServerUtil.saveConfig();
 
-      List<TimezoneType> tzs = z.getTimezones((String)null);
+      final List<TimezoneType> tzs = cachedData.getTimezones((String)null);
 
       if (debug) {
         trace("Initial load has " + tzs.size() + " timezones");
@@ -795,9 +797,9 @@ public class LdbCachedData extends AbstractCachedData {
 
       int ct = 0;
 
-      for (TimezoneType tz: tzs) {
+      for (final TimezoneType tz: tzs) {
         if (tz.getAliases() != null) {
-          for (String a: tz.getAliases()) {
+          for (final String a: tz.getAliases()) {
             TzAlias alias = getTzAlias(a);
 
             if (alias == null) {
@@ -810,18 +812,18 @@ public class LdbCachedData extends AbstractCachedData {
           }
         }
 
-        TzDbSpec spec = new TzDbSpec();
+        final TzDbSpec spec = new TzDbSpec();
 
         spec.setName(tz.getTzid());
 
         spec.setVtimezone(TzServerUtil.getCalHdr() +
-                          z.getCachedVtz(tz.getTzid()) +
+                          cachedData.getCachedVtz(tz.getTzid()) +
                           TzServerUtil.getCalTlr());
         if (spec.getVtimezone() == null) {
           error("No timezone spec for " + tz.getTzid());
         }
 
-        spec.setDtstamp(z.getDtstamp());
+        spec.setDtstamp(cachedData.getDtstamp());
         spec.setActive(true);
 
         putTzSpec(spec);
@@ -837,7 +839,7 @@ public class LdbCachedData extends AbstractCachedData {
       }
 
       return true;
-    } catch (TzException te) {
+    } catch (final TzException te) {
       getLogger().error("Unable to add tz data to db", te);
       throw te;
     }
@@ -878,10 +880,10 @@ public class LdbCachedData extends AbstractCachedData {
           StringBuilder ids = new StringBuilder();
           String delim = "";
 
-          for (String s: alias.getTargetIds()) {
+          for (final String s: alias.getTargetIds()) {
             ids.append(delim);
 
-            String id = escape(s);
+            final String id = escape(s);
             ids.append(id);
             delim=",";
 

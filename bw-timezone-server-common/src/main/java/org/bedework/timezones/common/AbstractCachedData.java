@@ -303,16 +303,27 @@ public abstract class AbstractCachedData implements CachedData {
 
   /**
    * @param id of tz
-   * @param caldef a tz spec in the form of a CALENDAR component
+   * @param caldef a tz spec in the form of a String VCALENDAR representation
    * @param storedDtstamp to set last mod
    * @throws TzException
    */
   protected void processSpec(final String id,
                              final String caldef,
                              final String storedDtstamp) throws TzException {
-    try {
-      final Calendar cal = parseDef(caldef);
+    processSpec(id, parseDef(caldef), storedDtstamp);
+  }
 
+
+  /**
+   * @param id of tz
+   * @param cal a tz spec in the form of a CALENDAR component
+   * @param storedDtstamp to set last mod
+   * @throws TzException
+   */
+  protected void processSpec(final String id,
+                             final Calendar cal,
+                             final String storedDtstamp) throws TzException {
+    try {
       nameList.add(id);
 
       final VTimeZone vtz = vtzFromCal(cal);

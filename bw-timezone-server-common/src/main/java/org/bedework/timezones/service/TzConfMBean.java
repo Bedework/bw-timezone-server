@@ -36,14 +36,14 @@ public interface TzConfMBean extends ConfBaseMBean {
 
   /** Tzdata url
    *
-   * @param val
+   * @param val Location of the primary data
    */
   void setTzdataUrl(String val);
 
   /**
    * @return String tzdata url
    */
-  @MBeanInfo("Location of the (backup) zip file.")
+  @MBeanInfo("Location of the primary data.")
   String getTzdataUrl();
 
   /** Location of the leveldb data.
@@ -61,7 +61,7 @@ public interface TzConfMBean extends ConfBaseMBean {
 
   /** Primary url
    *
-   * @param val
+   * @param val The URL of a primary server, e.g. www.bedework.org
    */
   void setPrimaryUrl(String val);
 
@@ -83,9 +83,20 @@ public interface TzConfMBean extends ConfBaseMBean {
   @MBeanInfo("Is this a primary server?")
   boolean getPrimaryServer();
 
+  /**
+   * @param val source of the data
+   */
+  void setSource(final String val);
+
+  /**
+   * @return source of the data
+   */
+  @MBeanInfo("Source of the data - usually derived from data")
+  String getSource();
+
   /** Refresh interval - seconds
    *
-   * @param val
+   * @param val interval
    */
   void setRefreshInterval(long val);
 
@@ -108,7 +119,7 @@ public interface TzConfMBean extends ConfBaseMBean {
 
   /** Compare data pointed to by tzdataUrl with the current data.
    *
-   * @param tzdataUrl
+   * @param tzdataUrl to compare with
    * @return completion code.
    */
   @MBeanInfo("Compare data pointed to by tzdataUrl with the current data.")
@@ -122,13 +133,13 @@ public interface TzConfMBean extends ConfBaseMBean {
              "May take a while if it updates from a primary.")
   String refreshData();
 
-  /** Update the data from the zipped data at the given url
+  /** Update the data from the data at the given url
    *
-   * @param tzdataUrl
+   * @param tzdataUrl reference to data
    * @return completion code.
    */
-  @MBeanInfo("Update the data from the zipped data at the given url.")
-  String updateData(@MBeanInfo("Url of the zipped data for update") String tzdataUrl);
+  @MBeanInfo("Update the data from the data at the given url.")
+  String updateData(@MBeanInfo("Url of the data for update") String tzdataUrl);
 
   /** Check with primary source
    *

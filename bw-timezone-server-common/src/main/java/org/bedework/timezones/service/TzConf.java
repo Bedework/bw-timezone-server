@@ -96,6 +96,16 @@ public class TzConf extends ConfBase<TzConfig> implements TzConfMBean, ConfigHol
   }
 
   @Override
+  public void setSource(final String val) {
+    getConfig().setSource(val);
+  }
+
+  @Override
+  public String getSource() {
+    return getConfig().getSource();
+  }
+
+  @Override
   public void setRefreshInterval(final long val) {
     getConfig().setRefreshDelay(val);
   }

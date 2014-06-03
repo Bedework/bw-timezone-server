@@ -67,6 +67,8 @@ public class TzServerUtil {
 
   private static Object locker = new Object();
 
+  private static String prodid = "/bedework.org//NONSGML Bedework//EN";
+
   /* ======================= Stats ======================= */
 
   static long gets;
@@ -176,7 +178,7 @@ public class TzServerUtil {
    * @throws TzException
    */
   public static void fireRefresh(final boolean clear) throws TzException {
-    TzServerUtil tzutil = getInstance();
+    final TzServerUtil tzutil = getInstance();
 
     if (tzutil.cache != null) {
       try {
@@ -191,6 +193,13 @@ public class TzServerUtil {
     tzutil.getcache(clear);
   }
 
+  /**
+   * @param val prodid for generated calendar data
+   */
+  public static void setProdid(final String val) {
+    prodid = val;
+  }
+
   /** Cause data to be checked against primary
    *
    * @throws TzException
@@ -201,7 +210,7 @@ public class TzServerUtil {
 
   /** Compare data pointed to by tzdataUrl with the given data then update.
    *
-   * @param tzdataUrl
+   * @param tzdataUrl - references source
    * @return info lines.
    * @throws TzException
    */
@@ -210,22 +219,22 @@ public class TzServerUtil {
 
     Differ diff = new Differ();
 
-    TzConfig newConfig = new TzConfig();
+    final TzConfig newConfig = new TzConfig();
     getTzConfig().copyTo(newConfig);
     newConfig.setTzdataUrl(tzdataUrl);
 
-    CachedData cd = new ZipCachedData(newConfig);
+    final CachedData cd = getDataSource(newConfig);
 
-    List<DiffListEntry> dles = diff.compare(cd, util.getcache());
+    final List<DiffListEntry> dles = diff.compare(cd, util.getcache());
 
-    List<String> out = new ArrayList<String>();
+    final List<String> out = new ArrayList<>();
 
     if (dles == null) {
       out.add("No data returned");
       return out;
     }
 
-    for (DiffListEntry dle: dles) {
+    for (final DiffListEntry dle: dles) {
       out.add(dle.toShortString());
     }
 
@@ -234,11 +243,11 @@ public class TzServerUtil {
     }
 
     try {
-      DatatypeFactory dtf = DatatypeFactory.newInstance();
+      final DatatypeFactory dtf = DatatypeFactory.newInstance();
 
-      XMLGregorianCalendar xgc = dtf.newXMLGregorianCalendar(new GregorianCalendar());
+      final XMLGregorianCalendar xgc = dtf.newXMLGregorianCalendar(new GregorianCalendar());
       xgc.setFractionalSecond(null);
-      String dtstamp = xgc.normalize().toXMLFormat();
+      final String dtstamp = xgc.normalize().toXMLFormat();
 
       util.getcache().updateData(dtstamp, dles);
 
@@ -247,44 +256,59 @@ public class TzServerUtil {
       fireRefresh(false);
 
       return out;
-    } catch (TzException te) {
+    } catch (final TzException te) {
       throw te;
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new TzException(t);
     }
   }
 
   /** Compare data pointed to by tzdataUrl with the given data.
    *
-   * @param tzdataUrl
+   * @param tzdataUrl - reference to data
    * @return info lines.
    * @throws TzException
    */
   public static List<String> compareData(final String tzdataUrl) throws TzException {
-    TzServerUtil util = getInstance();
+    final TzServerUtil util = getInstance();
 
-    Differ diff = new Differ();
+    final Differ diff = new Differ();
 
-    TzConfig newConfig = new TzConfig();
+    final TzConfig newConfig = new TzConfig();
     getTzConfig().copyTo(newConfig);
     newConfig.setTzdataUrl(tzdataUrl);
 
-    CachedData cd = new ZipCachedData(newConfig);
+    final CachedData cd = getDataSource(newConfig);
 
-    List<DiffListEntry> dles = diff.compare(cd, util.getcache());
+    final List<DiffListEntry> dles = diff.compare(cd, util.getcache());
 
-    List<String> out = new ArrayList<String>();
+    final List<String> out = new ArrayList<String>();
 
     if (dles == null) {
       out.add("No data returned");
       return out;
     }
 
-    for (DiffListEntry dle: dles) {
+    for (final DiffListEntry dle: dles) {
       out.add(dle.toShortString());
     }
 
     return out;
+  }
+
+  public static CachedData getDataSource(final TzConfig config) throws TzException {
+    final String tzdataUrl = config.getTzdataUrl();
+
+    if (tzdataUrl == null) {
+      error("No tz data url");
+      return null;
+    }
+
+    if (tzdataUrl.endsWith(".zip")) {
+      return new ZipCachedData(config);
+    }
+
+    return new FileCachedData(config);
   }
 
   /**
@@ -663,7 +687,7 @@ public class TzServerUtil {
     return "BEGIN:VCALENDAR\n" +
            "VERSION:2.0\n" +
            "CALSCALE:GREGORIAN\n" +
-           "PRODID:/bedework.org//NONSGML Bedework//EN\n";
+           "PRODID:" + prodid + "\n";
   }
 
   /**
@@ -737,12 +761,7 @@ public class TzServerUtil {
     }
 
     if (cache == null) {
-      if (cfg.getTzdataUrl() == null) {
-        error("No data url");
-        return;
-      }
-
-      cache = new ZipCachedData(cfg);
+      cache = getDataSource(cfg);
     }
   }
 

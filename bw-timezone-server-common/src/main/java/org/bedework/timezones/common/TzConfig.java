@@ -41,6 +41,8 @@ public class TzConfig<T extends TzConfig> extends ConfigBase<T> {
 
   private boolean primaryServer;
 
+  private String source;
+
   private String tzdataUrl;
 
   private String leveldbPath;
@@ -50,7 +52,7 @@ public class TzConfig<T extends TzConfig> extends ConfigBase<T> {
   private List<String> hibernateProperties;
 
   /**
-   * @param val
+   * @param val the dtstamp
    */
   public void setDtstamp(final String val) {
     dtstamp = val;
@@ -64,7 +66,7 @@ public class TzConfig<T extends TzConfig> extends ConfigBase<T> {
   }
 
   /**
-   * @param val
+   * @param val version
    */
   public void setVersion(final String val) {
     version = val;
@@ -109,6 +111,20 @@ public class TzConfig<T extends TzConfig> extends ConfigBase<T> {
     return primaryServer;
   }
 
+  /**
+   * @param val source of the data
+   */
+  public void setSource(final String val) {
+    source = val;
+  }
+
+  /**
+   * @return source of the data
+   */
+  public String getSource() {
+    return source;
+  }
+
   /** Location of the (backup) zip file.
    *
    * @param val    String
@@ -143,7 +159,7 @@ public class TzConfig<T extends TzConfig> extends ConfigBase<T> {
 
   /** Refresh delay - seconds
    *
-   * @param val
+   * @param val delay
    */
   public void setRefreshDelay(final Long val) {
     refreshDelay = val;
@@ -159,7 +175,7 @@ public class TzConfig<T extends TzConfig> extends ConfigBase<T> {
 
   /**
    *
-   * @param val
+   * @param val properties
    */
   public void setHibernateProperties(final List<String> val) {
     hibernateProperties = val;
@@ -176,14 +192,14 @@ public class TzConfig<T extends TzConfig> extends ConfigBase<T> {
 
   /** Add a hibernate property
    *
-   * @param name
-   * @param val
+   * @param name of hibernate property
+   * @param val its value
    */
   public void addHibernateProperty(final String name,
                                    final String val) {
     List<String> p = getHibernateProperties();
     if (p == null) {
-      p = new ArrayList<String>();
+      p = new ArrayList<>();
       setHibernateProperties(p);
     }
     p.add(name + "=" + val);
@@ -191,14 +207,14 @@ public class TzConfig<T extends TzConfig> extends ConfigBase<T> {
 
   /** Get a hibernate property
    *
-   * @param val
+   * @param val name of property
    * @return value or null
    */
   public String getHibernateProperty(final String val) {
-    List<String> ps = getHibernateProperties();
+    final List<String> ps = getHibernateProperties();
 
-    String key = val + "=";
-    for (String p: ps) {
+    final String key = val + "=";
+    for (final String p: ps) {
       if (p.startsWith(key)) {
         return p.substring(key.length());
       }
@@ -209,33 +225,34 @@ public class TzConfig<T extends TzConfig> extends ConfigBase<T> {
 
   /** Remove a hibernate property
    *
-   * @param name
+   * @param name of property
    */
   public void removeHibernateProperty(final String name) {
     try {
-      String v = getHibernateProperty(name);
+      final String v = getHibernateProperty(name);
 
       if (v == null) {
         return;
       }
 
       getHibernateProperties().remove(name + "=" + v);
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new RuntimeException(t);
     }
   }
 
   /** Set a hibernate property
    *
-   * @param name
-   * @param val
+   * @param name of property
+   * @param val its value
    */
+  @SuppressWarnings("UnusedDeclaration")
   public void setHibernateProperty(final String name,
                                    final String val) {
     try {
       removeHibernateProperty(name);
       addHibernateProperty(name, val);
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new RuntimeException(t);
     }
   }
@@ -251,7 +268,7 @@ public class TzConfig<T extends TzConfig> extends ConfigBase<T> {
 
   /** init copy of the config
    *
-   * @param newConf
+   * @param newConf other config
    */
   public void copyTo(final TzConfig newConf) {
     newConf.setDtstamp(getDtstamp());
@@ -262,8 +279,8 @@ public class TzConfig<T extends TzConfig> extends ConfigBase<T> {
     newConf.setRefreshDelay(getRefreshDelay());
 
     if (!Util.isEmpty(getHibernateProperties())) {
-      for (String hp: getHibernateProperties()) {
-        String[] hpels = hp.split("=");
+      for (final String hp: getHibernateProperties()) {
+        final String[] hpels = hp.split("=");
         newConf.addHibernateProperty(hpels[0], hpels[1]);
       }
     }
