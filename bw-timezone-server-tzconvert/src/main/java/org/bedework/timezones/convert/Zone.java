@@ -29,8 +29,7 @@ import utils
 
 import org.bedework.timezones.convert.LineReader.LineReaderIterator;
 import org.bedework.timezones.convert.Utils.DateTimeWrapper;
-
-import edu.rpi.sss.util.ToString;
+import org.bedework.util.misc.ToString;
 
 import net.fortuna.ical4j.model.Component;
 import net.fortuna.ical4j.model.Property;

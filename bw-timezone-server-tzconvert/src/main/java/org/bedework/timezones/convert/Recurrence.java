@@ -27,7 +27,7 @@ from pycalendar.utils import daysInMonth
 import utils
 */
 
-import edu.rpi.sss.util.Util;
+import org.bedework.util.misc.Util;
 
 import net.fortuna.ical4j.model.Recur;
 

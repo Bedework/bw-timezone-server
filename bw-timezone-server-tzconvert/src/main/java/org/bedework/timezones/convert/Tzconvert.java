@@ -28,9 +28,9 @@ import sys
 import zone
 */
 
-import edu.rpi.cmt.jmx.InfoLines;
-import edu.rpi.sss.util.Args;
-import edu.rpi.sss.util.Util;
+import org.bedework.util.args.Args;
+import org.bedework.util.jmx.InfoLines;
+import org.bedework.util.misc.Util;
 
 /**
  *

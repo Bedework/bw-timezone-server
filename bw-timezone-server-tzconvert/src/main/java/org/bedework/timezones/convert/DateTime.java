@@ -27,7 +27,7 @@ from pycalendar.utils import daysInMonth
 import utils
 */
 
-import edu.rpi.sss.util.ToString;
+import org.bedework.util.misc.ToString;
 
 /**
   Extracted from pycalendar.datetime
