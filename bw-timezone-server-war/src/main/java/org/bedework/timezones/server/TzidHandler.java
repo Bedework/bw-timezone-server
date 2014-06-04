@@ -41,14 +41,8 @@ public class TzidHandler extends MethodBase {
   @Override
   public void doMethod(final HttpServletRequest req,
                        final HttpServletResponse resp) throws ServletException {
-    String path = getResourceUri(req);
-
     if (debug) {
       trace("TzidHandler: doMethod");
-    }
-
-    if (path == null) {
-      path = "";
     }
 
     doTzid(resp, req.getParameter("tzid"));
@@ -66,7 +60,7 @@ public class TzidHandler extends MethodBase {
     try {
       resp.setContentType("text/calendar; charset=UTF-8");
 
-      Writer wtr = resp.getWriter();
+      final Writer wtr = resp.getWriter();
 
       String tz = util.getTz(tzid);
 
@@ -85,9 +79,9 @@ public class TzidHandler extends MethodBase {
 
         writeCalTlr(wtr);
       }
-    } catch (ServletException se) {
+    } catch (final ServletException se) {
       throw se;
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new ServletException(t);
     }
   }

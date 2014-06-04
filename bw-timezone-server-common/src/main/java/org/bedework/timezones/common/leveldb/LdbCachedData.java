@@ -274,19 +274,19 @@ public class LdbCachedData extends AbstractCachedData {
     try {
       open();
 
-      AliasMaps amaps = buildAliasMaps();
+      final AliasMaps amaps = buildAliasMaps();
 
-      for (DiffListEntry dle: dles) {
+      for (final DiffListEntry dle: dles) {
         updateFromDiffEntry(dtstamp, amaps, dle);
       }
 
       cfg.setDtstamp(dtstamp);
 
       TzServerUtil.saveConfig();
-    } catch (TzException te) {
+    } catch (final TzException te) {
       fail();
       throw te;
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       fail();
       throw new TzException(t);
     } finally {
@@ -299,20 +299,20 @@ public class LdbCachedData extends AbstractCachedData {
     try {
       open();
 
-      List<String> ids = new ArrayList<>();
+      final List<String> ids = new ArrayList<>();
 
       ids.addAll(findTzs(val));
 
-      List<TzAlias> as = findTzAliases(val);
-      for (TzAlias a: as) {
+      final List<TzAlias> as = findTzAliases(val);
+      for (final TzAlias a: as) {
         ids.addAll(a.getTargetIds());
       }
 
       return ids;
-    } catch (TzException te) {
+    } catch (final TzException te) {
       fail();
       throw te;
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       fail();
       throw new TzException(t);
     } finally {
@@ -325,7 +325,7 @@ public class LdbCachedData extends AbstractCachedData {
    * ==================================================================== */
 
   /**
-   * @param val
+   * @param val the alias
    * @throws TzException
    */
   public void putTzAlias(final TzAlias val) throws TzException {
@@ -334,7 +334,7 @@ public class LdbCachedData extends AbstractCachedData {
   }
 
   /**
-   * @param val
+   * @param val the alias
    * @throws TzException
    */
   public void removeTzAlias(final TzAlias val) throws TzException {
@@ -342,12 +342,12 @@ public class LdbCachedData extends AbstractCachedData {
   }
 
   /**
-   * @param val
+   * @param val the alias
    * @return alias entry
    * @throws TzException
    */
   public TzAlias getTzAlias(final String val) throws TzException {
-    byte[] aliasBytes = db.get(Iq80DBFactory.bytes(aliasPrefix + val));
+    final byte[] aliasBytes = db.get(Iq80DBFactory.bytes(aliasPrefix + val));
 
     if (aliasBytes == null) {
       return null;
@@ -357,65 +357,59 @@ public class LdbCachedData extends AbstractCachedData {
   }
 
   /**
-   * @param val
+   * @param val the alias
    * @return matching alias entries
    * @throws TzException
    */
   public List<TzAlias> findTzAliases(final String val) throws TzException {
     try {
-      List<TzAlias> aliases = new ArrayList<TzAlias>();
+      final List<TzAlias> aliases = new ArrayList<>();
 
-      DBIterator it = db.iterator();
-
-      try {
-        for(it.seekToFirst(); it.hasNext(); it.next()) {
-          String key = Iq80DBFactory.asString(it.peekNext().getKey());
+      try (DBIterator it = db.iterator()) {
+        for (it.seekToFirst(); it.hasNext(); it.next()) {
+          final String key = Iq80DBFactory.asString(it.peekNext().getKey());
 
           if (!key.startsWith(timezoneSpecPrefix)) {
             continue;
           }
 
-          String id = key.substring(aliasPrefix.length());
+          final String id = key.substring(aliasPrefix.length());
 
           if (!id.contains(val)) {
             continue;
           }
 
-          TzAlias alias = getJson(it.peekNext().getValue(),
-                                  TzAlias.class);
+          final TzAlias alias = getJson(it.peekNext().getValue(),
+                                        TzAlias.class);
 
           aliases.add(alias);
         }
-      } finally {
-        it.close();
       }
 
       return aliases;
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new TzException(t);
     }
   }
 
   /**
-   * @param val
+   * @param val to match
    * @return matching tz entry names
    * @throws TzException
    */
   public List<String> findTzs(final String val) throws TzException {
     try {
-      List<String> ids = new ArrayList<String>();
+      final List<String> ids = new ArrayList<>();
 
-      DBIterator it = db.iterator();
-
-      try {
-        for(it.seekToFirst(); it.hasNext(); it.next()) {
-          String key = Iq80DBFactory.asString(it.peekNext().getKey());
+      try (DBIterator it = db.iterator()) {
+        for (it.seekToFirst(); it.hasNext(); it.next()) {
+          final String key = Iq80DBFactory.asString(it.peekNext().getKey());
 
           if (!key.startsWith(timezoneSpecPrefix)) {
             continue;
           }
 
-          String tzid = key.substring(timezoneSpecPrefix.length());
+          final String tzid = key.substring(timezoneSpecPrefix.length());
 
           if (!tzid.contains(val)) {
             continue;
@@ -423,18 +417,16 @@ public class LdbCachedData extends AbstractCachedData {
 
           ids.add(tzid);
         }
-      } finally {
-        it.close();
       }
 
       return ids;
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new TzException(t);
     }
   }
 
   /**
-   * @param val
+   * @param val the spec
    * @throws TzException
    */
   public void putTzSpec(final TzDbSpec val) throws TzException {
@@ -559,7 +551,7 @@ public class LdbCachedData extends AbstractCachedData {
         return true; // good enough
       }
 
-      Timezones tzs = new TimezonesImpl();
+      final Timezones tzs = new TimezonesImpl();
       tzs.init(cfg.getPrimaryUrl());
 
       final String changedSince = cfg.getDtstamp();
@@ -648,7 +640,7 @@ public class LdbCachedData extends AbstractCachedData {
         dbspec.setVtimezone(ttz.vtz);
 
         if (!Util.isEmpty(sum.getLocalNames())) {
-          Set<LocalizedString> dns = new TreeSet<LocalizedString>();
+          Set<LocalizedString> dns = new TreeSet<>();
 
           if (add) {
             dns = new TreeSet<LocalizedString>();
@@ -750,7 +742,7 @@ public class LdbCachedData extends AbstractCachedData {
 
       final SortedSet<String> aliases = amaps.byTzid.get(id);
 
-      for (String a: dle.aliases) {
+      for (final String a: dle.aliases) {
         TzAlias alias = getTzAlias(a);
 
         if (alias == null) {
@@ -846,7 +838,7 @@ public class LdbCachedData extends AbstractCachedData {
   }
 
   private TzDbSpec getSpec(final String id) throws TzException {
-    byte[] specBytes = db.get(Iq80DBFactory.bytes(timezoneSpecPrefix + id));
+    final byte[] specBytes = db.get(Iq80DBFactory.bytes(timezoneSpecPrefix + id));
 
     if (specBytes == null) {
       return null;
@@ -857,27 +849,27 @@ public class LdbCachedData extends AbstractCachedData {
 
   private AliasMaps buildAliasMaps() throws TzException {
     try {
-      AliasMaps maps = new AliasMaps();
+      final AliasMaps maps = new AliasMaps();
 
       maps.byTzid = new HashMap<>();
       maps.byAlias = new HashMap<>();
       maps.aliases = new Properties();
 
-      StringBuilder aliasStr = new StringBuilder();
+      final StringBuilder aliasStr = new StringBuilder();
 
       try (DBIterator it = db.iterator()) {
         for(it.seekToFirst(); it.hasNext(); it.next()) {
-          String key = Iq80DBFactory.asString(it.peekNext().getKey());
+          final String key = Iq80DBFactory.asString(it.peekNext().getKey());
 
           if (!key.startsWith(aliasPrefix)) {
             continue;
           }
 
-          TzAlias alias = getJson(it.peekNext().getValue(),
+          final TzAlias alias = getJson(it.peekNext().getValue(),
                                   TzAlias.class);
 
-          String aliasId = alias.getAliasId();
-          StringBuilder ids = new StringBuilder();
+          final String aliasId = alias.getAliasId();
+          final StringBuilder ids = new StringBuilder();
           String delim = "";
 
           for (final String s: alias.getTargetIds()) {
@@ -1006,19 +998,19 @@ public class LdbCachedData extends AbstractCachedData {
                            final Object val) throws TzException {
     try {
       mapper.writeValue(out, val);
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new TzException(t);
     }
   }
 
   protected byte[] bytesJson(final Object val) throws TzException {
     try {
-      ByteArrayOutputStream os = new ByteArrayOutputStream();
+      final ByteArrayOutputStream os = new ByteArrayOutputStream();
 
       mapper.writeValue(os, val);
 
       return os.toByteArray();
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new TzException(t);
     }
   }
@@ -1030,13 +1022,13 @@ public class LdbCachedData extends AbstractCachedData {
       is = new ByteArrayInputStream(value);
 
       return mapper.readValue(is, valueType);
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new TzException(t);
     } finally {
       if (is != null) {
         try {
           is.close();
-        } catch (Throwable t) {}
+        } catch (final Throwable ignored) {}
       }
     }
   }

@@ -15,24 +15,20 @@
 */
 package org.bedework.timezones.convert;
 
-/*
-from __future__ import with_statement
-
-from difflib import unified_diff
-from pycalendar.icalendar.calendar import Calendar
-import cStringIO as StringIO
-import getopt
-import os
-import rule
-import sys
-import zone
-*/
-
 import org.bedework.util.args.Args;
 import org.bedework.util.jmx.InfoLines;
 import org.bedework.util.misc.Util;
 
-/**
+/** Converts the data obtainable from IANA into VTIMEZONE format.
+ * Data is available from IANA via the FTP server. Latest data at
+ * <code>ftp://ftp.iana.org/tz/tzdata-latest.tar.gz</code>
+ *
+ * <p></p>For a specific version replace 'latest' with the version, e.g.
+ * <code>ftp://ftp.iana.org/tz/releases/tzcode2012e.tar.gz</code>
+ *
+ * <p>This code is a rewrite of that written by Cyrus Daboo and
+ * available from http://calendarserver.org as part of their open source
+ * calendar server.</p>
  *
  */
 class Tzconvert {
@@ -47,10 +43,16 @@ class Tzconvert {
                         "    --prodid      PROD-ID string to use\n" +
                         "    --start       Start year\n" +
                         "    --end         End year\n" +
-                        "\n" +
-                        "Arguments:\n" +
-                        "    DIR      Directory containing an Olson tzdata directory to read, also\n" +
+                        "    --root        Directory containing an " +
+                        "Olson tzdata directory to read, also\n" +
                         "             where zoneinfo data will be written\n" +
+                        "    --generate    true/false\n" +
+                        "    --comparewith Directory containing an \" +\n" +
+                        " Olson tzdata directory to  compare with\n" +
+                        "    --tzserver    Server providing tz data to compare with\" +\n" +
+                        "    --aliases     Path to property file defining extra aliases\n" +
+                        "    --source      Value to be supplied in info.properties " +
+                        "e.g. IANA 2014d\n" +
                         "\n" +
                         "Description:\n" +
                         "    This utility convert Olson-style timezone data in iCalendar.\n" +
@@ -88,10 +90,10 @@ class Tzconvert {
         proc.setGenerate(Boolean.valueOf(args.next()));
       } else if (args.ifMatch("--tzserver")) {
         proc.setTzServerUri(args.next());
+        proc.setCompare(true);
       } else if (args.ifMatch("--comparewith")) {
         proc.setCompareWithPath(args.next());
-      } else if (args.ifMatch("--compare")) {
-        proc.setCompare(Boolean.valueOf(args.next()));
+        proc.setCompare(true);
       } else if (args.ifMatch("--aliases")) {
         proc.setAliasesPath(args.next());
       } else if (args.ifMatch("--source")) {
