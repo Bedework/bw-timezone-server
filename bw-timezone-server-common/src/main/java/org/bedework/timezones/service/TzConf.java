@@ -51,10 +51,6 @@ public class TzConf extends ConfBase<TzConfig> implements TzConfMBean, ConfigHol
    * Attributes
    * ======================================================================== */
 
-  /** Tzdata url
-   *
-   * @param val
-   */
   @Override
   public void setTzdataUrl(final String val) {
     getConfig().setTzdataUrl(val);
@@ -123,7 +119,7 @@ public class TzConf extends ConfBase<TzConfig> implements TzConfMBean, ConfigHol
   public List<Stat> getStats() {
     try {
       return TzServerUtil.getStats();
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       error("Error getting stats");
       error(t);
       return null;
@@ -137,7 +133,7 @@ public class TzConf extends ConfBase<TzConfig> implements TzConfMBean, ConfigHol
       saveConfig();
       TzServerUtil.fireRefresh(true);
       return "Ok";
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       error(t);
       return "Refresh error: " + t.getLocalizedMessage();
     }
@@ -148,7 +144,7 @@ public class TzConf extends ConfBase<TzConfig> implements TzConfMBean, ConfigHol
     try {
       TzServerUtil.fireCheck();
       return "Ok";
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       error(t);
       return "Update error: " + t.getLocalizedMessage();
     }
@@ -156,18 +152,18 @@ public class TzConf extends ConfBase<TzConfig> implements TzConfMBean, ConfigHol
 
   @Override
   public String compareData(final String tzdataUrl) {
-    StringWriter sw = new StringWriter();
+    final StringWriter sw = new StringWriter();
 
     try {
-      PrintWriter pw = new PrintWriter(sw);
+      final PrintWriter pw = new PrintWriter(sw);
 
-      List<String> chgs = TzServerUtil.compareData(tzdataUrl);
+      final List<String> chgs = TzServerUtil.compareData(tzdataUrl);
 
-      for (String s: chgs) {
+      for (final String s: chgs) {
         pw.println(s);
       }
 
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       t.printStackTrace(new PrintWriter(sw));
     }
 
@@ -176,18 +172,18 @@ public class TzConf extends ConfBase<TzConfig> implements TzConfMBean, ConfigHol
 
   @Override
   public String updateData(final String tzdataUrl) {
-    StringWriter sw = new StringWriter();
+    final StringWriter sw = new StringWriter();
 
     try {
-      PrintWriter pw = new PrintWriter(sw);
+      final PrintWriter pw = new PrintWriter(sw);
 
-      List<String> chgs = TzServerUtil.updateData(tzdataUrl);
+      final List<String> chgs = TzServerUtil.updateData(tzdataUrl);
 
-      for (String s: chgs) {
+      for (final String s: chgs) {
         pw.println(s);
       }
 
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       t.printStackTrace(new PrintWriter(sw));
     }
 
