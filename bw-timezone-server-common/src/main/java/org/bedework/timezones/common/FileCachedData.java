@@ -20,10 +20,9 @@ package org.bedework.timezones.common;
 
 import org.bedework.timezones.common.Differ.DiffListEntry;
 import org.bedework.timezones.common.db.TzAlias;
-
-import edu.rpi.cmt.calendar.XcalUtil;
-import edu.rpi.cmt.timezones.FileTzFetcher;
-import edu.rpi.cmt.timezones.TzFetcher;
+import org.bedework.util.calendar.XcalUtil;
+import org.bedework.util.timezones.FileTzFetcher;
+import org.bedework.util.timezones.TzFetcher;
 
 import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.property.Version;
@@ -96,7 +95,8 @@ public class FileCachedData extends AbstractCachedData {
 
       info.load(getFileRdr(f, "info.properties"));
 
-      dtstamp = XcalUtil.getXmlFormatDateTime(info.getProperty("buildTime"));
+      dtstamp = XcalUtil.getXmlFormatDateTime(info.getProperty(
+              "buildTime"));
       if (info.getProperty("prodid") != null) {
         TzServerUtil.setProdid(info.getProperty("prodid"));
       }
