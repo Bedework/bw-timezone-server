@@ -18,6 +18,7 @@
 */
 package org.bedework.timezones.server;
 
+import org.bedework.timezones.convert.TzCnvSvc;
 import org.bedework.timezones.service.TzConf;
 import org.bedework.util.jmx.ConfBase;
 import org.bedework.util.servlet.HttpServletUtils;
@@ -64,9 +65,9 @@ public class TzServer extends HttpServlet
       debug = getLogger().isDebugEnabled();
 
       dumpContent = "true".equals(config.getInitParameter("dumpContent"));
-    } catch (ServletException se) {
+    } catch (final ServletException se) {
       throw se;
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new ServletException(t);
     }
   }
@@ -75,51 +76,51 @@ public class TzServer extends HttpServlet
   protected void service(final HttpServletRequest req,
                          final HttpServletResponse resp) throws ServletException, IOException {
     try {
-      String methodName = req.getMethod();
+      final String methodName = req.getMethod();
 
       if (debug) {
         debugMsg("entry: " + methodName);
         dumpRequest(req);
       }
 
-      if (methodName.equals("OPTIONS")) {
-        new OptionsMethod().doMethod(req, resp);
-      } else if (methodName.equals("GET")) {
-        new GetMethod().doMethod(req, resp);
-      } else if (methodName.equals("POST")) {
-        new PostMethod().doMethod(req, resp);
-      } else {
-
+      switch (methodName) {
+        case "OPTIONS":
+          new OptionsMethod().doMethod(req, resp);
+          break;
+        case "GET":
+          new GetMethod().doMethod(req, resp);
+          break;
+        case "POST":
+          new PostMethod().doMethod(req, resp);
+          break;
       }
     } finally {
       /* We're stateless - toss away any session */
       try {
-        HttpSession sess = req.getSession(false);
+        final HttpSession sess = req.getSession(false);
         if (sess != null) {
           sess.invalidate();
         }
-      } catch (Throwable t) {}
+      } catch (final Throwable ignored) {}
     }
   }
 
   /** Debug
    *
-   * @param req
+   * @param req http request
    */
   @SuppressWarnings("unchecked")
   public void dumpRequest(final HttpServletRequest req) {
-    Logger log = getLogger();
+    final Logger log = getLogger();
 
     try {
-      Enumeration<String> names = req.getHeaderNames();
-
       String title = "Request headers";
 
       log.debug(title);
 
       HttpServletUtils.dumpHeaders(req, log);
 
-      names = req.getParameterNames();
+      final Enumeration<String> names = req.getParameterNames();
 
       title = "Request parameters";
 
@@ -138,16 +139,18 @@ public class TzServer extends HttpServlet
       log.debug(title);
 
       while (names.hasMoreElements()) {
-        String key = names.nextElement();
-        String val = req.getParameter(key);
+        final String key = names.nextElement();
+        final String val = req.getParameter(key);
         log.debug("  " + key + " = \"" + val + "\"");
       }
-    } catch (Throwable t) {
+    } catch (final Throwable ignored) {
     }
   }
 
   class Configurator extends ConfBase {
     TzConf tzConf;
+
+    TzCnvSvc cnv;
 
     public Configurator() {
       super("org.bedework.timezones:service=TzSvr");
@@ -166,7 +169,11 @@ public class TzServer extends HttpServlet
         tzConf = new TzConf();
         register("tzConf", "tzConf", tzConf);
         tzConf.loadConfig();
-      } catch (Throwable t){
+
+        cnv = new TzCnvSvc();
+        register("tzCnvSvc", "tzCnvSvc", cnv);
+        cnv.loadConfig();
+      } catch (final Throwable t){
         t.printStackTrace();
       }
     }
@@ -175,13 +182,13 @@ public class TzServer extends HttpServlet
     public void stop() {
       try {
         getManagementContext().stop();
-      } catch (Throwable t){
+      } catch (final Throwable t){
         t.printStackTrace();
       }
     }
   }
 
-  private Configurator conf = new Configurator();
+  private final Configurator conf = new Configurator();
 
   @Override
   public void contextInitialized(final ServletContextEvent sce) {
@@ -206,7 +213,7 @@ public class TzServer extends HttpServlet
 
   /** Debug
    *
-   * @param msg
+   * @param msg the message
    */
   public void debugMsg(final String msg) {
     getLogger().debug(msg);
@@ -214,8 +221,9 @@ public class TzServer extends HttpServlet
 
   /** Info messages
    *
-   * @param msg
+   * @param msg the message text
    */
+  @SuppressWarnings("UnusedDeclaration")
   public void logIt(final String msg) {
     getLogger().info(msg);
   }
@@ -228,9 +236,6 @@ public class TzServer extends HttpServlet
     getLogger().error(this, t);
   }
 
-  /* (non-Javadoc)
-   * @see javax.servlet.http.HttpSessionListener#sessionCreated(javax.servlet.http.HttpSessionEvent)
-   */
   @Override
   public void sessionCreated(final HttpSessionEvent se) {
   }

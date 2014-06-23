@@ -66,7 +66,7 @@ class Tzconvert {
   }
 
   static boolean processArgs(final Args args,
-                             final Processor proc) throws Throwable {
+                             final TzConvertParamsI params) throws Throwable {
     if (args == null) {
       return true;
     }
@@ -79,25 +79,25 @@ class Tzconvert {
       if (args.ifMatch("-h")) {
         usage(null);
       } else if (args.ifMatch("--prodid")) {
-        proc.setProdid(args.next());
+        params.setProdid(args.next());
       } else if (args.ifMatch("--root")) {
-        proc.setRootdir(args.next());
+        params.setRootdir(args.next());
       } else if (args.ifMatch("--start")) {
-        proc.setStartYear(Integer.valueOf(args.next()));
+        params.setStartYear(Integer.valueOf(args.next()));
       } else if (args.ifMatch("--end")) {
-        proc.setEndYear(Integer.valueOf(args.next()));
+        params.setEndYear(Integer.valueOf(args.next()));
       } else if (args.ifMatch("--generate")) {
-        proc.setGenerate(Boolean.valueOf(args.next()));
+        params.setGenerate(Boolean.valueOf(args.next()));
       } else if (args.ifMatch("--tzserver")) {
-        proc.setTzServerUri(args.next());
-        proc.setCompare(true);
+        params.setTzServerUri(args.next());
+        params.setCompare(true);
       } else if (args.ifMatch("--comparewith")) {
-        proc.setCompareWithPath(args.next());
-        proc.setCompare(true);
+        params.setCompareWithPath(args.next());
+        params.setCompare(true);
       } else if (args.ifMatch("--aliases")) {
-        proc.setAliasesPath(args.next());
+        params.setAliasesPath(args.next());
       } else if (args.ifMatch("--source")) {
-        proc.setSource(args.next());
+        params.setSource(args.next());
       } else {
         usage("Unrecognized option: " + args.current());
         return false;
@@ -108,27 +108,27 @@ class Tzconvert {
   }
 
   public static void main(final String[] args) {
-    final Processor proc = new Processor();
+    final TzConvertParams params = new TzConvertParams();
 
     try {
-      if (!processArgs(new Args(args), proc)) {
+      if (!processArgs(new Args(args), params)) {
         return;
       }
 
-      //Calendar.sProdID = prodid
+      final Processor proc = new Processor(params);
 
       proc.parse();
 
-      if (proc.getGenerate()) {
+      if (params.getGenerate()) {
         proc.generateZoneinfoFiles(Util.buildPath(true,
-                                                  proc.getRootdir(),
+                                                  params.getRootdir(),
                                                   "/", "zoneinfo"),
                                    true);  // doLinks
       }
 
       final InfoLines msgs = new InfoLines();
 
-      if (proc.getCompare()) {
+      if (params.getCompare()) {
         proc.compare(msgs);
       }
 

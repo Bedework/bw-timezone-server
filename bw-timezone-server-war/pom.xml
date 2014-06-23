@@ -21,6 +21,13 @@
 		</dependency>
     <dependency>
       <groupId>org.bedework</groupId>
+      <artifactId>bw-timezone-server-tzconvert</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.bedework</groupId>
       <artifactId>bw-util-servlet</artifactId>
     </dependency>
     <dependency>

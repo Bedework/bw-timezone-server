@@ -28,7 +28,6 @@ import sys
 import zone
 */
 
-import org.bedework.timezones.common.TzException;
 import org.bedework.timezones.convert.LineReader.LineReaderIterator;
 import org.bedework.util.jmx.InfoLines;
 import org.bedework.util.misc.Util;
@@ -104,32 +103,18 @@ import java.util.Set;
  * </pre>
  */
 class Processor {
+  private final TzConvertParamsI params;
+
   private final Map<String, RuleSet> rules = new HashMap<>();
   private final Map<String, Zone> zones = new HashMap<>();
 
   /* key:to value:from */
   private final Map<String, String> links = new HashMap<>();
 
-  // Set the PRODID value used in generated iCalendar data
-  private String prodid = "-//bedework.org//tzsvr//EN";
-  private String rootdir = "../../stuff/temp";
-  private int startYear = 1800;
-  private int endYear = 2040;
-
   private final Map<String, VTimeZone> vtzs = new HashMap<>();
   private boolean vtzsBuilt;
-  private boolean compare;
-
-  private String tzServerUri; // = //"www.bedework.org";
-//          "https://demo.calendarserver.org:8443/stdtimezones";
-  private String compareWithPath;
-
-  private String aliasesPath;
-
-  private String source;
 
   private boolean verbose;
-  private boolean generate = true;
 
   /* null for no filtering - otherwise only these */
   private List<String> filterzones;
@@ -146,6 +131,10 @@ class Processor {
           "backward",
   };
 
+  public Processor(final TzConvertParamsI params) {
+    this.params = params;
+  }
+
   Set<String> getZoneNames() {
     return zones.keySet();
   }
@@ -154,7 +143,8 @@ class Processor {
    *
    */
   public void parse() {
-    final String zonedir = Util.buildPath(true, getRootdir(),
+    final String zonedir = Util.buildPath(true,
+                                          params.getRootdir(),
                                           "/", "tzdata");
 
     for (final String file: zonefiles) {
@@ -212,7 +202,7 @@ class Processor {
       final PropertyList pl = cal.getProperties();
 
       pl.add(new Version());
-      pl.add(new ProdId(getProdid()));
+      pl.add(new ProdId(params.getProdid()));
 
       cl.add(vtzs.get(zoneName));
 
@@ -248,17 +238,18 @@ class Processor {
    */
   public void compare(final InfoLines msgs) {
     try {
-      if (getTzServerUri() != null) {
-        final ServerTzFetcher tzFetcher = new ServerTzFetcher(getTzServerUri());
+      if (params.getTzServerUri() != null) {
+        final ServerTzFetcher tzFetcher =
+                new ServerTzFetcher(params.getTzServerUri());
 
         compare(tzFetcher, msgs);
 
         return;
       }
 
-      if (getCompareWithPath() != null) {
+      if (params.getCompareWithPath() != null) {
         final FileTzFetcher tzFetcher =
-                new FileTzFetcher(getCompareWithPath());
+                new FileTzFetcher(params.getCompareWithPath());
 
         compare(tzFetcher, msgs);
 
@@ -283,86 +274,6 @@ class Processor {
     new Compare().compare(vtzs, tzFetcher, msgs);
   }
 
-  public String getTzServerUri() {
-    return tzServerUri;
-  }
-
-  public void setTzServerUri(final String tzServerUri) {
-    this.tzServerUri = tzServerUri;
-  }
-
-  public boolean getCompare() {
-    return compare;
-  }
-
-  public void setCompare(final boolean compare) {
-    this.compare = compare;
-  }
-
-  public int getEndYear() {
-    return endYear;
-  }
-
-  public void setEndYear(final int endYear) {
-    this.endYear = endYear;
-  }
-
-  public int getStartYear() {
-    return startYear;
-  }
-
-  public void setStartYear(final int val) {
-    startYear = val;
-  }
-
-  public String getRootdir() {
-    return rootdir;
-  }
-
-  public void setRootdir(final String val) {
-    rootdir = val;
-  }
-
-  public String getProdid() {
-    return prodid;
-  }
-
-  public void setProdid(final String val) {
-    prodid = val;
-  }
-
-  public String getSource() {
-    return source;
-  }
-
-  public void setSource(final String val) {
-    source = val;
-  }
-
-  public boolean getGenerate() {
-    return generate;
-  }
-
-  public void setGenerate(final boolean val) {
-    generate = val;
-  }
-
-  public String getCompareWithPath() {
-    return compareWithPath;
-  }
-
-  public void setCompareWithPath(final String val) {
-    compareWithPath = val;
-  }
-
-  public String getAliasesPath() {
-    return aliasesPath;
-  }
-
-  public void setAliasesPath(final String val) {
-    aliasesPath = val;
-  }
-
   private void buildVtzs() {
     if (vtzsBuilt) {
       return;
@@ -374,8 +285,8 @@ class Processor {
       }
 
       final VTimeZone vtz = zone.vtimezone(rules,
-                                           getStartYear(),
-                                           getEndYear());
+                                           params.getStartYear(),
+                                           params.getEndYear());
 
       vtzs.put(zone.name, vtz);
     }
@@ -457,7 +368,7 @@ class Processor {
     /* First add links from the aliases file */
 
     final Properties aliases = new Properties();
-    aliases.load(getFileRdr(getAliasesPath()));
+    aliases.load(getFileRdr(params.getAliasesPath()));
 
     for (final Object pname: aliases.keySet()) {
       links.put((String)pname, aliases.getProperty((String)pname));
@@ -534,8 +445,8 @@ class Processor {
     final DtStamp dtStamp = new DtStamp();
 
     info.setProperty("buildTime", dtStamp.getValue());
-    info.setProperty("prodid", getProdid());
-    info.setProperty("source", getSource());
+    info.setProperty("prodid", params.getProdid());
+    info.setProperty("source", params.getSource());
 
     final String toPath = Util.buildPath(false, outputdir, "/",
                                          "info.properties");
@@ -547,19 +458,13 @@ class Processor {
     os.close();
   }
 
-  private FileReader getFileRdr(final String path) throws TzException {
-    try {
-      final File theFile = new File(path);
+  private FileReader getFileRdr(final String path) throws Throwable {
+    final File theFile = new File(path);
 
-      if (!theFile.exists() || !theFile.isFile()) {
-        throw new TzException(path + " does not exist or is not a file");
-      }
-
-      return new FileReader(theFile);
-    } catch (final TzException tze) {
-      throw tze;
-    } catch (final Throwable t) {
-      throw new TzException(t);
+    if (!theFile.exists() || !theFile.isFile()) {
+      throw new Exception(path + " does not exist or is not a file");
     }
+
+    return new FileReader(theFile);
   }
 }
