@@ -112,6 +112,11 @@ public class FileCachedData extends AbstractCachedData {
       fetchTzs(dtstamp);
       expansions.clear();
 
+      cfg.setDtstamp(dtstamp);
+      cfg.setSource(source);
+
+      TzServerUtil.saveConfig();
+
       TzServerUtil.reloadsMillis += System.currentTimeMillis() - smillis;
       TzServerUtil.reloads++;
     } catch (final Throwable t) {

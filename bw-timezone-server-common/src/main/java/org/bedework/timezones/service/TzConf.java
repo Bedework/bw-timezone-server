@@ -52,6 +52,16 @@ public class TzConf extends ConfBase<TzConfig> implements TzConfMBean, ConfigHol
    * ======================================================================== */
 
   @Override
+  public void setDtstamp(final String val) {
+    getConfig().setDtstamp(val);
+  }
+
+  @Override
+  public String getDtstamp() {
+    return getConfig().getDtstamp();
+  }
+
+  @Override
   public void setTzdataUrl(final String val) {
     getConfig().setTzdataUrl(val);
   }

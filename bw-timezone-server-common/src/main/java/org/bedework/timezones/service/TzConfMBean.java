@@ -34,6 +34,17 @@ public interface TzConfMBean extends ConfBaseMBean {
    * Attributes
    * ======================================================================== */
 
+  /**
+   * @param val the dtstamp
+   */
+  void setDtstamp(final String val);
+
+  /**
+   * @return String XML format dtstamp
+   */
+  @MBeanInfo("Timestamp from last data load.")
+  String getDtstamp();
+
   /** Tzdata url
    *
    * @param val Location of the primary data
