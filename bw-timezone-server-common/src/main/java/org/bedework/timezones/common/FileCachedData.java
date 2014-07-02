@@ -255,7 +255,8 @@ public class FileCachedData extends AbstractCachedData {
       final File theFile = new File(parent.getAbsolutePath(), name);
 
       if (!theFile.exists() || !theFile.isFile()) {
-        throw new TzException(name + " does not exist or is not a file");
+        throw new TzException(name + " does not exist or is not a file. Path: " +
+                                      theFile.getAbsolutePath());
       }
 
       return new FileReader(theFile);
