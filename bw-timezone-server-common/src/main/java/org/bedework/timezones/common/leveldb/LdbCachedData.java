@@ -25,7 +25,6 @@ import org.bedework.timezones.common.Stat;
 import org.bedework.timezones.common.TzConfig;
 import org.bedework.timezones.common.TzException;
 import org.bedework.timezones.common.TzServerUtil;
-import org.bedework.timezones.common.ZipCachedData;
 import org.bedework.timezones.common.db.LocalizedString;
 import org.bedework.timezones.common.db.TzAlias;
 import org.bedework.timezones.common.db.TzDbSpec;
@@ -556,6 +555,10 @@ public class LdbCachedData extends AbstractCachedData {
 
       final String changedSince = cfg.getDtstamp();
 
+      final long startTime = System.currentTimeMillis();
+      long fetchTime = 0;
+
+
       final TimezoneListType tzl;
 
       try {
@@ -612,7 +615,10 @@ public class LdbCachedData extends AbstractCachedData {
           etag = dbspec.getEtag();
         }
 
+        final long startFetch = System.currentTimeMillis();
         final TaggedTimeZone ttz = tzs.getTimeZone(id, etag);
+
+        fetchTime += System.currentTimeMillis() - startFetch;
 
         if ((ttz != null) && (ttz.vtz == null)) {
           // No change
@@ -640,10 +646,10 @@ public class LdbCachedData extends AbstractCachedData {
         dbspec.setVtimezone(ttz.vtz);
 
         if (!Util.isEmpty(sum.getLocalNames())) {
-          Set<LocalizedString> dns = new TreeSet<>();
+          final Set<LocalizedString> dns;
 
           if (add) {
-            dns = new TreeSet<LocalizedString>();
+            dns = new TreeSet<>();
             dbspec.setDisplayNames(dns);
           } else {
             dns = dbspec.getDisplayNames();
@@ -691,6 +697,10 @@ public class LdbCachedData extends AbstractCachedData {
         }
       }
 
+      info("Total time: " +
+                   TzServerUtil.printableTime(
+                           System.currentTimeMillis() - startTime));
+      info("Fetch time: " + TzServerUtil.printableTime(fetchTime));
       lastFetchStatus = "Success";
     } catch (final TzException tze) {
       lastFetchStatus = "Failed";

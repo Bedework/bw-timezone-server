@@ -173,6 +173,17 @@ public class TzServerUtil {
     }
   }
 
+  /**
+   * @param millis long
+   * @return String minutes:seconds
+   */
+  public static String printableTime(final long millis) {
+    final long seconds = millis / 1000;
+    final long minutes = seconds / 60;
+
+    return String.valueOf(minutes) + ":" + (seconds - minutes * 60);
+  }
+
   /** Cause a refresh of the data
    *
    * @throws TzException

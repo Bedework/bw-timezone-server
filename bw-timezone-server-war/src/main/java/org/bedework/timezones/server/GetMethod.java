@@ -61,76 +61,84 @@ public class GetMethod extends MethodBase {
   public void doMethod(final HttpServletRequest req,
                        final HttpServletResponse resp) throws ServletException {
     String path = getResourceUri(req);
+    final long start = System.currentTimeMillis();
 
     if (debug) {
       trace("GetMethod: doMethod  path=" + path);
     }
 
-    if (path == null) {
-      path = "";
-    }
+    try {
+      if (path == null) {
+        path = "";
+      }
 
-    String action = req.getParameter("action");
+      String action = req.getParameter("action");
 
-    if ("capabilities".equals(action)) {
-      capabilities.doMethod(req, resp);
-      return;
-    }
-
-    if ("list".equals(action)) {
-      lists.doMethod(req, resp);
-      return;
-    }
-
-    if ("expand".equals(action)) {
-      doExpand(req,resp);
-      return;
-    }
-
-    if ("get".equals(action)) {
-      tzids.doMethod(req, resp);
-      return;
-    }
-
-    if ("find".equals(action)) {
-      doFind(req, resp);
-      return;
-    }
-
-    /* Follow all old and non-standard actions */
-
-    if (req.getParameter("names") != null) {
-      if (ifNoneMatchTest(req, resp)) {
+      if ("capabilities".equals(action)) {
+        capabilities.doMethod(req, resp);
         return;
       }
 
-      doNames(resp);
-    } else if (req.getParameter("stats") != null) {
-      doStats(resp);
-    } else if (req.getParameter("info") != null) {
-      doInfo(resp);
-    } else if (req.getParameter("aliases") != null) {
-      if (ifNoneMatchTest(req, resp)) {
+      if ("list".equals(action)) {
+        lists.doMethod(req, resp);
         return;
       }
 
-      doAliases(resp);
-    //} else if (req.getParameter("unalias") != null) {
-    //  doUnalias(resp, req.getParameter("id"));
-    } else if (req.getParameter("convert") != null) {
-      doConvert(resp, req.getParameter("dt"),
-                req.getParameter("fromtzid"),
-                req.getParameter("totzid"));
-    } else if (req.getParameter("utc") != null) {
-      doToUtc(resp, req.getParameter("dt"),
+      if ("expand".equals(action)) {
+        doExpand(req,resp);
+        return;
+      }
+
+      if ("get".equals(action)) {
+        tzids.doMethod(req, resp);
+        return;
+      }
+
+      if ("find".equals(action)) {
+        doFind(req, resp);
+        return;
+      }
+
+      /* Follow all old and non-standard actions */
+
+      if (req.getParameter("names") != null) {
+        if (ifNoneMatchTest(req, resp)) {
+          return;
+        }
+
+        doNames(resp);
+      } else if (req.getParameter("stats") != null) {
+        doStats(resp);
+      } else if (req.getParameter("info") != null) {
+        doInfo(resp);
+      } else if (req.getParameter("aliases") != null) {
+        if (ifNoneMatchTest(req, resp)) {
+          return;
+        }
+
+        doAliases(resp);
+        //} else if (req.getParameter("unalias") != null) {
+        //  doUnalias(resp, req.getParameter("id"));
+      } else if (req.getParameter("convert") != null) {
+        doConvert(resp, req.getParameter("dt"),
+                  req.getParameter("fromtzid"),
+                  req.getParameter("totzid"));
+      } else if (req.getParameter("utc") != null) {
+        doToUtc(resp, req.getParameter("dt"),
                 req.getParameter("fromtzid"));
-    } else if (path.equals(tzspath) ||
-               path.equals(tzspath + "/")) {
-      doNames(resp);
-    } else if (path.startsWith(tzspath + "/")) {
-      tzids.doTzid(resp, path.substring(tzspath.length() + 1));
-    } else {
-      tzids.doTzid(resp, req.getParameter("tzid"));
+      } else if (path.equals(tzspath) ||
+              path.equals(tzspath + "/")) {
+        doNames(resp);
+      } else if (path.startsWith(tzspath + "/")) {
+        tzids.doTzid(resp, path.substring(tzspath.length() + 1));
+      } else {
+        tzids.doTzid(resp, req.getParameter("tzid"));
+      }
+    } finally {
+      if (debug) {
+        trace("GET exit. Took " + TzServerUtil.printableTime(
+                System.currentTimeMillis() - start));
+      }
     }
   }
 
