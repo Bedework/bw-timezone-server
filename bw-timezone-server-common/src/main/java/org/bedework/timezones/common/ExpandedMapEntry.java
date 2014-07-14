@@ -19,7 +19,7 @@
 package org.bedework.timezones.common;
 
 import org.bedework.util.misc.ToString;
-import org.bedework.util.timezones.model.TimezonesType;
+import org.bedework.util.timezones.model.ExpandedTimezoneType;
 
 /** Allows us to cache expansions
  *
@@ -27,14 +27,14 @@ import org.bedework.util.timezones.model.TimezonesType;
  */
 public class ExpandedMapEntry {
   private String etag;
-  private TimezonesType tzs;
+  private ExpandedTimezoneType tzs;
 
   /**
    * @param etag
    * @param tzs
    */
   public ExpandedMapEntry(final String etag,
-                          final TimezonesType tzs) {
+                          final ExpandedTimezoneType tzs) {
     this.etag = etag;
     this.tzs = tzs;
   }
@@ -49,7 +49,7 @@ public class ExpandedMapEntry {
   /**
    * @return tzs
    */
-  public TimezonesType getTzs() {
+  public ExpandedTimezoneType getTzs() {
     return tzs;
   }
 

@@ -22,9 +22,9 @@ import org.bedework.timezones.common.Differ.DiffListEntry;
 import org.bedework.timezones.common.leveldb.LdbCachedData;
 import org.bedework.util.jmx.ConfigHolder;
 import org.bedework.util.timezones.DateTimeUtil;
+import org.bedework.util.timezones.model.ExpandedTimezoneType;
 import org.bedework.util.timezones.model.ObservanceType;
 import org.bedework.util.timezones.model.TimezoneType;
-import org.bedework.util.timezones.model.TimezonesType;
 import org.bedework.util.timezones.model.TzdataType;
 
 import net.fortuna.ical4j.model.ComponentList;
@@ -586,36 +586,36 @@ public class TzServerUtil {
       return tzs;
     }
 
-    long smillis = System.currentTimeMillis();
+    final long smillis = System.currentTimeMillis();
 
-    TimeZone tz = fetchTimeZone(tzid);
+    final TimeZone tz = fetchTimeZone(tzid);
     if (tz == null) {
       return null;
     }
 
-    VTimeZone vtz = tz.getVTimeZone();
+    final VTimeZone vtz = tz.getVTimeZone();
 
-    DateTime dtstart = new DateTime(emek.getStart());
-    DateTime dtend = new DateTime(emek.getEnd());
+    final DateTime dtstart = new DateTime(emek.getStart());
+    final DateTime dtend = new DateTime(emek.getEnd());
 
     dtstart.setTimeZone(tz);
     dtend.setTimeZone(tz);
 
-    Period p = new Period(dtstart, dtend);
+    final Period p = new Period(dtstart, dtend);
 
-    ComponentList cl = vtz.getObservances();
+    final ComponentList cl = vtz.getObservances();
 
-    TreeSet<ObservanceWrapper> obws = new TreeSet<ObservanceWrapper>();
+    final TreeSet<ObservanceWrapper> obws = new TreeSet<>();
 
-    for (Object o: cl) {
-      Observance ob = (Observance)o;
+    for (final Object o: cl) {
+      final Observance ob = (Observance)o;
 
-      PeriodList pl = ob.calculateRecurrenceSet(p);
+      final PeriodList pl = ob.calculateRecurrenceSet(p);
 
-      for (Object po: pl) {
-        Period onsetPer = (Period)po;
+      for (final Object po: pl) {
+        final Period onsetPer = (Period)po;
 
-        ObservanceType ot = new ObservanceType();
+        final ObservanceType ot = new ObservanceType();
 
         ot.setName(ob.getName());
         ot.setOnset(onsetPer.getStart().toString());
@@ -628,19 +628,19 @@ public class TzServerUtil {
       }
     }
 
-    TzdataType tzd = new TzdataType();
+    final ExpandedTimezoneType etzt = new ExpandedTimezoneType();
 
-    tzd.setTzid(tzid);
-    for (ObservanceWrapper ow: obws) {
-      tzd.getObservances().add(ow.ot);
+    etzt.setDtstamp(getDtstamp());
+
+    //etzt.setTzid(tzid);
+    for (final ObservanceWrapper ow: obws) {
+      if (etzt.getObservances() == null) {
+        etzt.setObservances(new ArrayList<ObservanceType>());
+      }
+      etzt.getObservances().add(ow.ot);
     }
 
-    TimezonesType tzt = new TimezonesType();
-
-    tzt.setDtstamp(getDtstamp());
-    tzt.getTzdata().add(tzd);
-
-    tzs = new ExpandedMapEntry(String.valueOf(smillis), tzt);
+    tzs = new ExpandedMapEntry(String.valueOf(smillis), etzt);
 
     getcache().setExpanded(emek, tzs);
 
