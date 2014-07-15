@@ -185,10 +185,18 @@ public class GetMethod extends MethodBase {
     try {
       resp.setContentType("application/json; charset=UTF-8");
 
-      String tzid = req.getParameter("tzid");
-      String start = req.getParameter("start");
-      String end = req.getParameter("end");
-      ExpandedMapEntry tzs = util.getExpanded(tzid, start, end);
+      final String tzid = req.getParameter("tzid");
+
+      if (tzid == null) {
+        errorResponse(resp,
+                      HttpServletResponse.SC_BAD_REQUEST,
+                      missingTzid);
+        return;
+      }
+
+      final String start = req.getParameter("start");
+      final String end = req.getParameter("end");
+      final ExpandedMapEntry tzs = util.getExpanded(tzid, start, end);
 
       if (tzs == null) {
         errorResponse(resp,
@@ -200,9 +208,9 @@ public class GetMethod extends MethodBase {
       resp.setHeader("ETag", tzs.getEtag());
 
       writeJson(resp, tzs.getTzs());
-    } catch (ServletException se) {
+    } catch (final ServletException se) {
       throw se;
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new ServletException(t);
     }
   }

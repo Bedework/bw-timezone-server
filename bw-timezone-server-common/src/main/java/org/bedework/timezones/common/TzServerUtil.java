@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -578,7 +579,7 @@ public class TzServerUtil {
                                       final String end) throws Throwable {
     expandFetches++;
 
-    ExpandedMapEntryKey emek = makeExpandedKey(tzid, start, end);
+    final ExpandedMapEntryKey emek = makeExpandedKey(tzid, start, end);
 
     ExpandedMapEntry tzs = getcache().getExpanded(emek);
     if (tzs != null) {
@@ -618,7 +619,8 @@ public class TzServerUtil {
         final ObservanceType ot = new ObservanceType();
 
         ot.setName(ob.getName());
-        ot.setOnset(onsetPer.getStart().toString());
+        ot.setOnset(XcalUtil.getXmlFormatDateTime(
+                onsetPer.getStart().toString()));
 
         ot.setUtcOffsetFrom(delimited(ob.getOffsetFrom().getOffset()));
 
@@ -729,23 +731,56 @@ public class TzServerUtil {
   private ExpandedMapEntryKey makeExpandedKey(final String tzid,
                                               final String start,
                                               final String end) throws TzException {
-    String st = start;
+    /* Start and end may be null or intergers represeting start/end year
+     */
 
-    if (st == null) {
-      String date = new net.fortuna.ical4j.model.Date().toString();
+    final net.fortuna.ical4j.model.Date startDate =
+        makeStartDateFromYear(start);
+    final String st = startDate + "T000000Z";
 
-      st = date + "T000000Z";
-    }
+    final String e = makeEndDateFromYear(startDate, end) + "T000000Z";
 
-    String e = end;
-    if (e == null) {
-      Dur dur = new Dur("P520W");
-
-      String date = new net.fortuna.ical4j.model.Date(dur.getTime(new Date())).toString();
-      e = date + "T000000Z";
+    if (st.compareTo(e) >= 0) {
+      throw new TzException(HttpServletResponse.SC_BAD_REQUEST,
+                            "badly formed date range");
     }
 
     return new ExpandedMapEntryKey(tzid, st, e);
+  }
+
+  private net.fortuna.ical4j.model.Date makeStartDateFromYear(
+          final String val) throws TzException {
+    if (val == null) {
+      return new net.fortuna.ical4j.model.Date();
+    }
+
+    try {
+      return new net.fortuna.ical4j.model.Date(
+              val + "0101");
+    } catch (final Throwable t) {
+      throw new TzException(HttpServletResponse.SC_BAD_REQUEST,
+                            "badly formed date " + val);
+    }
+  }
+
+  private net.fortuna.ical4j.model.Date makeEndDateFromYear(
+          final net.fortuna.ical4j.model.Date start,
+          final String val) throws TzException {
+    if (val == null) {
+      final Dur dur = new Dur("P520W");
+
+      return new net.fortuna.ical4j.model.Date(dur.getTime(
+              new Date(start.getTime())
+      ));
+    }
+
+    try {
+      return new net.fortuna.ical4j.model.Date(
+              val + "0101");
+    } catch (final Throwable t) {
+      throw new TzException(HttpServletResponse.SC_BAD_REQUEST,
+                            "badly formed date " + val);
+    }
   }
 
   private CachedData getcache() throws TzException {
