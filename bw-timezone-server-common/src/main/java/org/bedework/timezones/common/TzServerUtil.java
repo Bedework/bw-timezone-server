@@ -622,9 +622,11 @@ public class TzServerUtil {
         ot.setOnset(XcalUtil.getXmlFormatDateTime(
                 onsetPer.getStart().toString()));
 
-        ot.setUtcOffsetFrom(delimited(ob.getOffsetFrom().getOffset()));
+        ot.setUtcOffsetFrom(
+                (int)(ob.getOffsetFrom().getOffset().getOffset() / 1000));
 
-        ot.setUtcOffsetTo(delimited(ob.getOffsetTo().getOffset()));
+        ot.setUtcOffsetTo(
+                (int)(ob.getOffsetTo().getOffset().getOffset() / 1000));
 
         obws.add(new ObservanceWrapper(ot));
       }
