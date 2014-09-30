@@ -558,7 +558,6 @@ public class LdbCachedData extends AbstractCachedData {
       final long startTime = System.currentTimeMillis();
       long fetchTime = 0;
 
-
       final TimezoneListType tzl;
 
       try {
