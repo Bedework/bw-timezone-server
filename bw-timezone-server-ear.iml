@@ -40,6 +40,7 @@
     <orderEntry type="module" module-name="bw-util-jmx" />
     <orderEntry type="module" module-name="bw-util-timezones" />
     <orderEntry type="module" module-name="bw-util-caching" />
+    <orderEntry type="module" module-name="bw-util-http" />
     <orderEntry type="library" name="Maven: org.iq80.leveldb:leveldb:min:0.5" level="project" />
     <orderEntry type="library" name="Maven: org.hibernate:hibernate-core:3.6.9.Final" level="project" />
     <orderEntry type="library" name="Maven: antlr:antlr:2.7.6" level="project" />

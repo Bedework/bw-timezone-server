@@ -303,6 +303,10 @@
 							<groupId>${project.groupId}</groupId>
 							<artifactId>bw-timezone-server-common</artifactId>
 						</jarModule>
+            <jarModule>
+              <groupId>${project.groupId}</groupId>
+              <artifactId>bw-timezone-server-tzconvert</artifactId>
+            </jarModule>
 					</modules>
 				</configuration>
 			</plugin>
