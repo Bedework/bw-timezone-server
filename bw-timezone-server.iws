@@ -1,15 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="0daa45d3-e7cb-4712-9a83-e6bfbc4ab832" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bw-timezone-server.ipr" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/bw-timezone-server.iws" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/bw-timezone-server-common.iml" afterPath="$PROJECT_DIR$/bw-timezone-server-common.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/bw-timezone-server-ear.iml" afterPath="$PROJECT_DIR$/bw-timezone-server-ear.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/bw-timezone-server-tzconvert.iml" afterPath="$PROJECT_DIR$/bw-timezone-server-tzconvert.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/bw-timezone-server-war.iml" afterPath="$PROJECT_DIR$/bw-timezone-server-war.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/bw-timezone-server.iml" afterPath="$PROJECT_DIR$/bw-timezone-server.iml" />
-    </list>
+    <list default="true" id="0daa45d3-e7cb-4712-9a83-e6bfbc4ab832" name="Default" comment="" />
     <ignored path="bw-timezone-server.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="TRACKING_ENABLED" value="true" />
