@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="0daa45d3-e7cb-4712-9a83-e6bfbc4ab832" name="Default" comment="" />
+    <list default="true" id="0daa45d3-e7cb-4712-9a83-e6bfbc4ab832" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/bw-timezone-server.iws" afterPath="$PROJECT_DIR$/bw-timezone-server.iws" />
+    </list>
     <ignored path="bw-timezone-server.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="TRACKING_ENABLED" value="true" />
