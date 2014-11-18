@@ -42,7 +42,7 @@ public class GetMethod extends MethodBase {
       capabilities = new CapabilitiesHandler();
       lists = new ListHandler();
       tzids = new TzidHandler();
-    } catch (ServletException e) {
+    } catch (final ServletException e) {
       e.printStackTrace();
       throw new RuntimeException(e);
     }
@@ -55,84 +55,84 @@ public class GetMethod extends MethodBase {
     super();
   }
 
-  private static final String tzspath = "/timezones";
+  private static final String tzsEl = "timezones";
+
+  /* Draft 3
+   *
+5.1.  "capabilities" Action
+   Request-URI Template:  {/service-prefix}/capabilities
+5.2.  "list" Action
+   Request-URI Template:  {/service-prefix,data-
+      prefix}/zones{?changedsince}
+5.3.  "get" Action
+   Request-URI Template:  {/service-prefix,data-
+      prefix}/zones{/tzid}{?start,end}
+5.4.  "expand" Action
+   Request-URI Template:  {/service-prefix,data-prefix}/observances
+       {/tzid}{?start,end,changedsince}
+5.5.  "find" Action
+   Request-URI Template:  {/service-prefix,data-prefix}/zones{?pattern}
+
+*/
+  private static final String capabilitiesEl = "capabilities";
+  private static final String zonesEl = "zones";
+  private static final String observancesEl = "observances";
 
   @Override
   public void doMethod(final HttpServletRequest req,
                        final HttpServletResponse resp) throws ServletException {
-    String path = getResourceUri(req);
+    final ResourceUri ruri = getResourceUri(req);
     final long start = System.currentTimeMillis();
 
     if (debug) {
-      trace("GetMethod: doMethod  path=" + path);
+      trace("GetMethod: doMethod  path=" + ruri.uri);
     }
 
     try {
-      if (path == null) {
-        path = "";
+      final String action = req.getParameter("action");
+
+      if (action != null) {
+        doAction(req, resp, action);
+        return;
       }
 
-      String action = req.getParameter("action");
+      if (doOld(req, resp)) {
+        return;
+      }
 
-      if ("capabilities".equals(action)) {
+      /* path based */
+
+      if (ruri.uriElements.size() == 0) {
+        return;
+      }
+
+      final String el0 = ruri.getPathElement(0);
+      if (el0.equals(capabilitiesEl)) {
         capabilities.doMethod(req, resp);
         return;
       }
 
-      if ("list".equals(action)) {
-        lists.doMethod(req, resp);
+      if (el0.equals(tzsEl)) {
+        // Old style
+        tzids.doTzid(resp, ruri.getElements(1));
         return;
       }
 
-      if ("expand".equals(action)) {
-        doExpand(req,resp);
+      final int dataPrefixElements = dataPrefixElements(ruri);
+
+      final String el = ruri.getPathElement(dataPrefixElements);
+
+      if (el == null) {
         return;
       }
 
-      if ("get".equals(action)) {
-        tzids.doMethod(req, resp);
+      if (el.equals(zonesEl)) {
+        doZones(req,resp, ruri, dataPrefixElements);
         return;
       }
 
-      if ("find".equals(action)) {
-        doFind(req, resp);
-        return;
-      }
-
-      /* Follow all old and non-standard actions */
-
-      if (req.getParameter("names") != null) {
-        if (ifNoneMatchTest(req, resp)) {
-          return;
-        }
-
-        doNames(resp);
-      } else if (req.getParameter("stats") != null) {
-        doStats(resp);
-      } else if (req.getParameter("info") != null) {
-        doInfo(resp);
-      } else if (req.getParameter("aliases") != null) {
-        if (ifNoneMatchTest(req, resp)) {
-          return;
-        }
-
-        doAliases(resp);
-        //} else if (req.getParameter("unalias") != null) {
-        //  doUnalias(resp, req.getParameter("id"));
-      } else if (req.getParameter("convert") != null) {
-        doConvert(resp, req.getParameter("dt"),
-                  req.getParameter("fromtzid"),
-                  req.getParameter("totzid"));
-      } else if (req.getParameter("utc") != null) {
-        doToUtc(resp, req.getParameter("dt"),
-                req.getParameter("fromtzid"));
-      } else if (path.equals(tzspath) ||
-              path.equals(tzspath + "/")) {
-        doNames(resp);
-      } else if (path.startsWith(tzspath + "/")) {
-        tzids.doTzid(resp, path.substring(tzspath.length() + 1));
-      } else {
-        tzids.doTzid(resp, req.getParameter("tzid"));
+      if (el.equals(observancesEl)) {
+        doExpand(req, resp, ruri, dataPrefixElements);
       }
     } finally {
       if (debug) {
@@ -142,20 +142,142 @@ public class GetMethod extends MethodBase {
     }
   }
 
-  private void doFind(final HttpServletRequest req,
-                      final HttpServletResponse resp) throws ServletException {
-    try {
-      String name = req.getParameter("name");
+  private int dataPrefixElements(@SuppressWarnings(
+          "UnusedParameters") final ResourceUri ruri) {
+    // Will determine how many elements are data-prefix elements.
+    return 0;
+  }
 
-      if (name == null) {
+  /** Handle pre-rest action parameter style. For backward compatibility
+   * with deployed clients.
+   *
+   * @param req http request
+   * @param resp http response
+   * @param action non-null action parameter
+   * @throws ServletException
+   */
+  private void doAction(final HttpServletRequest req,
+                       final HttpServletResponse resp,
+                       final String action) throws ServletException {
+    if ("capabilities".equals(action)) {
+      capabilities.doMethod(req, resp);
+      return;
+    }
+
+    if ("list".equals(action)) {
+      lists.doMethod(req, resp);
+      return;
+    }
+
+    if ("expand".equals(action)) {
+      doExpand(req,resp, null, 0);
+      return;
+    }
+
+    if ("get".equals(action)) {
+      tzids.doMethod(req, resp);
+      return;
+    }
+
+    if ("find".equals(action)) {
+      doFind(req, resp, req.getParameter("name"));
+    }
+  }
+
+  /**
+   *
+   * @param req http request
+   * @param resp http response
+   * @return true if this was an old request
+   * @throws ServletException
+   */
+  private boolean doOld(final HttpServletRequest req,
+                        final HttpServletResponse resp) throws ServletException {
+      /* Follow all old and non-standard actions */
+
+    if (req.getParameter("names") != null) {
+      if (ifNoneMatchTest(req, resp)) {
+        return true;
+      }
+
+      doNames(resp);
+      return true;
+    }
+
+    if (req.getParameter("stats") != null) {
+      doStats(resp);
+      return true;
+    }
+
+    if (req.getParameter("info") != null) {
+      doInfo(resp);
+      return true;
+    }
+
+    if (req.getParameter("aliases") != null) {
+      if (ifNoneMatchTest(req, resp)) {
+        return true;
+      }
+
+      doAliases(resp);
+      //} else if (req.getParameter("unalias") != null) {
+      //  doUnalias(resp, req.getParameter("id"));
+      return true;
+    }
+
+    if (req.getParameter("convert") != null) {
+      doConvert(resp, req.getParameter("dt"),
+                req.getParameter("fromtzid"),
+                req.getParameter("totzid"));
+      return true;
+    }
+
+    if (req.getParameter("utc") != null) {
+      doToUtc(resp, req.getParameter("dt"),
+              req.getParameter("fromtzid"));
+      return true;
+    }
+
+    if (req.getParameter("tzid") != null) {
+      tzids.doTzid(resp, req.getParameter("tzid"));
+      return true;
+    }
+
+    return false;
+  }
+
+  private void doZones(final HttpServletRequest req,
+                       final HttpServletResponse resp,
+                       final ResourceUri ruri,
+                       final int dataPrefixSize) throws ServletException {
+    if (req.getParameter("pattern") != null) {
+      doFind(req, resp, req.getParameter("pattern"));
+      return;
+    }
+
+    final String tzid = ruri.getElements(dataPrefixSize + 1);
+
+    if (tzid == null) {
+      lists.doMethod(req, resp);
+      return;
+    }
+
+    tzids.doTzid(resp, tzid);
+  }
+
+  private void doFind(final HttpServletRequest req,
+                      final HttpServletResponse resp,
+                      final String pattern) throws ServletException {
+    try {
+      if (pattern == null) {
         resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
         return;
       }
 
-      listResponse(resp, util.findTimezones(name));
-    } catch (ServletException se) {
+      listResponse(resp, util.findTimezones(pattern));
+    } catch (final ServletException se) {
       throw se;
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new ServletException(t);
     }
   }
@@ -181,11 +303,20 @@ public class GetMethod extends MethodBase {
 
    */
   private void doExpand(final HttpServletRequest req,
-                        final HttpServletResponse resp) throws ServletException {
+                        final HttpServletResponse resp,
+                        final ResourceUri ruri,
+                        final int dataPrefixSize) throws ServletException {
     try {
       resp.setContentType("application/json; charset=UTF-8");
 
-      final String tzid = req.getParameter("tzid");
+      final String tzid;
+
+      if (ruri == null) {
+        // Old style
+        tzid = req.getParameter("tzid");
+      } else {
+        tzid = ruri.getElements(dataPrefixSize + 1);
+      }
 
       if (tzid == null) {
         errorResponse(resp,
@@ -196,7 +327,9 @@ public class GetMethod extends MethodBase {
 
       final String start = req.getParameter("start");
       final String end = req.getParameter("end");
-      final ExpandedMapEntry tzs = util.getExpanded(tzid, start, end);
+      final String changedsince = req.getParameter("changedsince");
+      final ExpandedMapEntry tzs = util.getExpanded(tzid, start, end,
+                                                    ruri == null);
 
       if (tzs == null) {
         errorResponse(resp,

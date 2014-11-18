@@ -95,7 +95,7 @@ public abstract class MethodBase {
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
       }
 
-      DateFormat df = new SimpleDateFormat("yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'");
+      final DateFormat df = new SimpleDateFormat("yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'");
 
       mapper.setDateFormat(df);
 
@@ -116,15 +116,66 @@ public abstract class MethodBase {
                                 HttpServletResponse resp)
         throws ServletException;
 
+  public static class ResourceUri {
+    public String uri;
+    public final List<String> uriElements = new ArrayList<>();
+
+    public ResourceUri() {
+      this.uri = "";
+    }
+
+    public ResourceUri(final String uri) {
+      this.uri = uri;
+    }
+
+    public void addPathElement(final String val) {
+      uriElements.add(val);
+      uri += "/" + val;
+    }
+
+    /**
+     * @param i - index
+     * @return indexed element or null for out of range
+     */
+    public String getPathElement(final int i) {
+      if (i > uriElements.size()) {
+        return null;
+      }
+      return uriElements.get(i);
+    }
+
+    /**
+     *
+     * @param i index
+     * @return String componsed of elements starting at indexed
+     *         separated by "/"
+     */
+    public String getElements(final int i) {
+      if (i >= uriElements.size()) {
+        return null;
+      }
+
+      String uri = "";
+      for (int x = i; x < uriElements.size(); x++) {
+        if (x > i) {
+          uri += "/";
+        }
+        uri += uriElements.get(x);
+      }
+
+      return uri;
+    }
+  }
+
   /** Get the decoded and fixed resource URI
    *
    * @param req      Servlet request object
-   * @return String  fixed up uri
+   * @return resourceUri  fixed up and split uri
    * @throws ServletException
    */
-  public String getResourceUri(final HttpServletRequest req)
+  public ResourceUri getResourceUri(final HttpServletRequest req)
       throws ServletException {
-    String uri = req.getServletPath();
+    String uri = req.getPathInfo();
 
     if ((uri == null) || (uri.length() == 0)) {
       /* No path specified - set it to root. */
@@ -135,10 +186,10 @@ public abstract class MethodBase {
       trace("uri: " + uri);
     }
 
-    String resourceUri = fixPath(uri);
+    final ResourceUri resourceUri = fixPath(uri);
 
     if (debug) {
-      trace("resourceUri: " + resourceUri);
+      trace("resourceUri: " + resourceUri.uri);
     }
 
     return resourceUri;
@@ -153,20 +204,20 @@ public abstract class MethodBase {
    * @return String   fixed path
    * @throws ServletException
    */
-  public static String fixPath(final String path) throws ServletException {
+  public static ResourceUri fixPath(final String path) throws ServletException {
     if (path == null) {
-      return null;
+      return new ResourceUri();
     }
 
     String decoded;
     try {
       decoded = URLDecoder.decode(path, "UTF8");
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new ServletException("bad path: " + path);
     }
 
     if (decoded == null) {
-      return (null);
+      return new ResourceUri();
     }
 
     /** Make any backslashes into forward slashes.
@@ -183,46 +234,45 @@ public abstract class MethodBase {
 
     /** Remove all instances of '//'.
      */
-    while (decoded.indexOf("//") >= 0) {
+    while (decoded.contains("//")) {
       decoded = decoded.replaceAll("//", "/");
     }
-
-    if (decoded.indexOf("/.") < 0) {
-      return decoded;
-    }
-
     /** Somewhere we may have /./ or /../
      */
 
-    StringTokenizer st = new StringTokenizer(decoded, "/");
+    final StringTokenizer st = new StringTokenizer(decoded, "/");
 
-    ArrayList<String> al = new ArrayList<String>();
+    final ArrayList<String> al = new ArrayList<>();
     while (st.hasMoreTokens()) {
-      String s = st.nextToken();
+      final String s = st.nextToken();
 
       if (s.equals(".")) {
         // ignore
-      } else if (s.equals("..")) {
+        continue;
+      }
+
+      if (s.equals("..")) {
         // Back up 1
         if (al.size() == 0) {
           // back too far
-          return null;
+          return new ResourceUri();
         }
 
         al.remove(al.size() - 1);
-      } else {
-        al.add(s);
+        continue;
       }
+
+      al.add(s);
     }
+
+    final ResourceUri ruri = new ResourceUri();
 
     /** Reconstruct */
-    StringBuilder sb = new StringBuilder();
-    for (String s: al) {
-      sb.append('/');
-      sb.append(s);
+    for (final String s: al) {
+      ruri.addPathElement(s);
     }
 
-    return sb.toString();
+    return ruri;
   }
 
   /** ===================================================================
@@ -234,7 +284,7 @@ public abstract class MethodBase {
     try {
       resp.setContentType("application/json; charset=UTF-8");
 
-      TimezoneListType tzl = new TimezoneListType();
+      final TimezoneListType tzl = new TimezoneListType();
 
       tzl.setDtstamp(util.getDtstamp());
 
@@ -244,9 +294,9 @@ public abstract class MethodBase {
       tzl.getTimezones().addAll(tzs);
 
       writeJson(resp, tzl);
-    } catch (ServletException se) {
+    } catch (final ServletException se) {
       throw se;
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new ServletException(t);
     }
   }

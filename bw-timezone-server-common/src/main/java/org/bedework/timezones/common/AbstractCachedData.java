@@ -284,7 +284,7 @@ public abstract class AbstractCachedData implements CachedData {
 
   @Override
   public List<TimezoneType> findTimezones(final String name) throws TzException {
-    List<TimezoneType> sums = new ArrayList<TimezoneType>();
+    List<TimezoneType> sums = new ArrayList<>();
 
     List<String> ids = findIds(name);
 

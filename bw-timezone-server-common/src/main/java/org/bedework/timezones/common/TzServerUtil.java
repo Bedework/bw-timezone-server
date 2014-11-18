@@ -509,18 +509,18 @@ public class TzServerUtil {
     }
 
     conversions++;
-    long smillis = System.currentTimeMillis();
+    final long smillis = System.currentTimeMillis();
 
     // Convert to time in toTzid
 
-    Date dt = DateTimeUtil.fromISODateTimeUTC(UTCdt);
+    final Date dt = DateTimeUtil.fromISODateTimeUTC(UTCdt);
 
-    TimeZone tz = fetchTimeZone(toTzid);
+    final TimeZone tz = fetchTimeZone(toTzid);
     if (tz == null) {
       return null;
     }
 
-    String cdt = DateTimeUtil.isoDateTime(dt, tz);
+    final String cdt = DateTimeUtil.isoDateTime(dt, tz);
     conversionsMillis += System.currentTimeMillis() - smillis;
 
     return cdt;
@@ -575,7 +575,8 @@ public class TzServerUtil {
    */
   public ExpandedMapEntry getExpanded(final String tzid,
                                       final String start,
-                                      final String end) throws Throwable {
+                                      final String end,
+                                      final boolean oldForm) throws Throwable {
     expandFetches++;
 
     final ExpandedMapEntryKey emek = makeExpandedKey(tzid, start, end);
@@ -634,8 +635,10 @@ public class TzServerUtil {
     final ExpandedTimezoneType etzt = new ExpandedTimezoneType();
 
     etzt.setDtstamp(getDtstamp());
+    if (!oldForm) {
+      etzt.setTzid(tzid);
+    }
 
-    //etzt.setTzid(tzid);
     for (final ObservanceWrapper ow: obws) {
       if (etzt.getObservances() == null) {
         etzt.setObservances(new ArrayList<ObservanceType>());
