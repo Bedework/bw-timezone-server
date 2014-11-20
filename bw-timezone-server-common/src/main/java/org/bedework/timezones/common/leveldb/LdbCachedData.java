@@ -71,6 +71,8 @@ public class LdbCachedData extends AbstractCachedData {
 
   protected ObjectMapper mapper = new ObjectMapper(); // create once, reuse
 
+  protected final Object dbLock = new Object();
+
   /** Current Database
    */
   protected DB db;
@@ -115,7 +117,6 @@ public class LdbCachedData extends AbstractCachedData {
 
         synchronized (LdbCachedData.this) {
           try {
-            open();
             refreshWait = cfg.getRefreshDelay();
 
             if (debug) {
@@ -126,7 +127,7 @@ public class LdbCachedData extends AbstractCachedData {
               // Try again in at most 10 minutes (need an error retry param)
               refreshWait = Math.min(refreshWait, 600);
             }
-          } catch (Throwable t) {
+          } catch (final Throwable t) {
             if (!showedTrace) {
               error(t);
               showedTrace = true;
@@ -136,12 +137,7 @@ public class LdbCachedData extends AbstractCachedData {
 
             try {
               fail();
-            } catch (Throwable t1) {
-            }
-          } finally {
-            try {
-              close();
-            } catch (Throwable t1) {
+            } catch (final Throwable ignored) {
             }
           }
         }
@@ -271,8 +267,6 @@ public class LdbCachedData extends AbstractCachedData {
     }
 
     try {
-      open();
-
       final AliasMaps amaps = buildAliasMaps();
 
       for (final DiffListEntry dle: dles) {
@@ -288,8 +282,6 @@ public class LdbCachedData extends AbstractCachedData {
     } catch (final Throwable t) {
       fail();
       throw new TzException(t);
-    } finally {
-      close();
     }
   }
 
@@ -437,20 +429,38 @@ public class LdbCachedData extends AbstractCachedData {
    *                   Transaction methods
    * ==================================================================== */
 
-  private synchronized void open() throws TzException {
-    if (isOpen()) {
-      return;
+  private DB open() throws TzException {
+    synchronized (dbLock) {
+      while (true) {
+        if (!isOpen()) {
+          getDb();
+          open = true;
+
+          return db;
+        }
+
+        if (debug) {
+          trace("Wait for db");
+        }
+
+        try {
+          dbLock.wait(3000);
+        } catch (final Throwable t) {
+          throw new TzException(t);
+        }
+      }
     }
-    getDb();
-    open = true;
   }
 
-  private synchronized void close() {
-    if (!open) {
-      return;
+  private void close() {
+    synchronized (dbLock) {
+      if (open) {
+        closeDb();
+        open = false;
+      }
+
+      dbLock.notify();
     }
-    closeDb();
-    open = false;
   }
 
   private void fail() {
@@ -481,14 +491,18 @@ public class LdbCachedData extends AbstractCachedData {
     reloads++;
 
     try {
-      open();
+      try {
+        open();
 
-      if (clear) {
-        try (DBIterator iterator = getDb().iterator()) {
-          for(iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
-            getDb().delete(iterator.peekNext().getKey());
+        if (clear) {
+          try (DBIterator iterator = getDb().iterator()) {
+            for(iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
+              getDb().delete(iterator.peekNext().getKey());
+            }
           }
         }
+      } finally {
+        close();
       }
 
       if (!cfg.getPrimaryServer()) {
@@ -521,10 +535,17 @@ public class LdbCachedData extends AbstractCachedData {
     }
   }
 
+  private static class TzEntry {
+    String id;
+    TimezoneType sum;
+    TzDbSpec dbspec;
+    TaggedTimeZone ttz;
+  }
+
   /** Call the primary server and get a list of data that's changed since we last
    * looked. Then fetch each changed timezone and update the db.
    *
-   * <p>Db is already open.
+   * <p>We try not to keep the db locked for long periods</p>
    *
    * @return true if we successfully contacted the server
    * @throws TzException
@@ -549,6 +570,8 @@ public class LdbCachedData extends AbstractCachedData {
 
         return true; // good enough
       }
+
+      /* Get the list of changed tzs from the primary */
 
       final Timezones tzs = new TimezonesImpl();
       tzs.init(cfg.getPrimaryUrl());
@@ -594,28 +617,46 @@ public class LdbCachedData extends AbstractCachedData {
       info("There " + isAre + " " + lastFetchCt +
       		 " timezone" + theS + " to fetch");
 
-      /* Go through the returned timezones and try to update.
-       * If we have the timezone and it has an etag do a conditional fetch.
-       * If we don't have the timezone do an unconditional fetch.
+      final List<TzEntry> tzEntries = new ArrayList<>();
+
+      /* First go through the returned list and get our own spec.
+         Need the db for that.
+       */
+      try {
+        open();
+
+        for (final TimezoneType sum : tzl.getTimezones()) {
+          final TzEntry entry = new TzEntry();
+
+          entry.id = sum.getTzid();
+          entry.sum = sum;
+          if (debug) {
+            trace("Get db spec for timezone " + entry.id);
+          }
+
+          entry.dbspec = getSpec(entry.id);
+
+          tzEntries.add(entry);
+        }
+      } finally {
+        close();
+      }
+
+      /* Now fetch the timezones from the primary - no db needed
        */
 
-      final AliasMaps amaps = buildAliasMaps();
-
-      for (final TimezoneType sum: tzl.getTimezones()) {
-        final String id = sum.getTzid();
+      for (final TzEntry entry : tzEntries) {
         if (debug) {
-          trace("Updating timezone " + id);
+          trace("Fetching timezone " + entry.id);
         }
 
-        TzDbSpec dbspec = getSpec(id);
-
         String etag = null;
-        if (dbspec != null) {
-          etag = dbspec.getEtag();
+        if (entry.dbspec != null) {
+          etag = entry.dbspec.getEtag();
         }
 
         final long startFetch = System.currentTimeMillis();
-        final TaggedTimeZone ttz = tzs.getTimeZone(id, etag);
+        final TaggedTimeZone ttz = tzs.getTimeZone(entry.id, etag);
 
         fetchTime += System.currentTimeMillis() - startFetch;
 
@@ -625,75 +666,105 @@ public class LdbCachedData extends AbstractCachedData {
         }
 
         if (ttz == null) {
-          warn("Received timezone id " + id + " but not available.");
+          warn("Received timezone id " + entry.id +
+                       " but not available.");
           continue;
         }
 
-        final boolean add = dbspec == null;
+        entry.ttz = ttz;
+      }
 
-        if (add) {
-          // Create a new one
-          dbspec = new TzDbSpec();
-        }
+      /* Go through the entries and try to update.
+       * If ttz is null no update needed.
+       * If dbspec is null it's an add.
+       */
 
-        dbspec.setName(id);
-        dbspec.setEtag(ttz.etag);
-        dbspec.setDtstamp(DateTimeUtil.rfcDateTimeUTC(
-                sum.getLastModified()));
-        dbspec.setSource(cfg.getPrimaryUrl());
-        dbspec.setActive(true);
-        dbspec.setVtimezone(ttz.vtz);
+      final AliasMaps amaps = buildAliasMaps();
 
-        if (!Util.isEmpty(sum.getLocalNames())) {
-          final Set<LocalizedString> dns;
+      try {
+        open();
+
+        for (final TzEntry entry : tzEntries) {
+          if (debug) {
+            trace("Processing timezone " + entry.id);
+          }
+
+          if (entry.ttz == null) {
+            if (debug) {
+              trace("No change.");
+            }
+            continue;
+          }
+
+          final boolean add = entry.dbspec == null;
 
           if (add) {
-            dns = new TreeSet<>();
-            dbspec.setDisplayNames(dns);
-          } else {
-            dns = dbspec.getDisplayNames();
-            dns.clear(); // XXX not good - forces delete and recreate
+            // Create a new one
+            entry.dbspec = new TzDbSpec();
           }
 
-          for (final LocalNameType ln: sum.getLocalNames()) {
-            final LocalizedString ls =
-                    new LocalizedString(ln.getLang(), ln.getValue());
+          entry.dbspec.setName(entry.id);
+          entry.dbspec.setEtag(entry.ttz.etag);
+          entry.dbspec.setDtstamp(DateTimeUtil.rfcDateTimeUTC(
+                  entry.sum.getLastModified()));
+          entry.dbspec.setSource(cfg.getPrimaryUrl());
+          entry.dbspec.setActive(true);
+          entry.dbspec.setVtimezone(entry.ttz.vtz);
 
-            dns.add(ls);
-          }
-        }
+          if (!Util.isEmpty(entry.sum.getLocalNames())) {
+            final Set<LocalizedString> dns;
 
-        putTzSpec(dbspec);
-
-        /* Get all aliases for this id */
-        final SortedSet<String> aliases = amaps.byTzid.get(id);
-
-        if (!Util.isEmpty(sum.getAliases())) {
-          for (final String a: sum.getAliases()) {
-            TzAlias tza = amaps.byAlias.get(a);
-
-            if (tza == null) {
-              tza = new TzAlias(a);
+            if (add) {
+              dns = new TreeSet<>();
+              entry.dbspec.setDisplayNames(dns);
+            } else {
+              dns = entry.dbspec.getDisplayNames();
+              dns.clear(); // XXX not good - forces delete and recreate
             }
 
-            tza.addTargetId(id);
+            for (final LocalNameType ln : entry.sum.getLocalNames()) {
+              final LocalizedString ls =
+                      new LocalizedString(ln.getLang(),
+                                          ln.getValue());
 
-            putTzAlias(tza);
+              dns.add(ls);
+            }
+          }
 
-            /* We've seen this alias. Remove from the list */
-            if (aliases != null) {
-              aliases.remove(a);
+          putTzSpec(entry.dbspec);
+
+          /* Get all aliases for this id */
+          final SortedSet<String> aliases = amaps.byTzid.get(entry.id);
+
+          if (!Util.isEmpty(entry.sum.getAliases())) {
+            for (final String a : entry.sum.getAliases()) {
+              TzAlias tza = amaps.byAlias.get(a);
+
+              if (tza == null) {
+                tza = new TzAlias(a);
+              }
+
+              tza.addTargetId(entry.id);
+
+              putTzAlias(tza);
+
+              /* We've seen this alias. Remove from the list */
+              if (aliases != null) {
+                aliases.remove(a);
+              }
+            }
+          }
+
+          if (aliases != null) {
+            /* remaining aliases should be deleted */
+            for (final String alias: aliases) {
+              final TzAlias tza = getTzAlias(alias);
+              removeTzAlias(tza);
             }
           }
         }
-
-        if (aliases != null) {
-          /* remaining aliases should be deleted */
-          for (final String alias: aliases) {
-            final TzAlias tza = getTzAlias(alias);
-            removeTzAlias(tza);
-          }
-        }
+      } finally {
+        close();
       }
 
       info("Total time: " +
@@ -716,6 +787,8 @@ public class LdbCachedData extends AbstractCachedData {
                                    final AliasMaps amaps,
                                    final DiffListEntry dle) throws TzException {
     try {
+      open();
+
       final String id = dle.tzid;
 
       if (!dle.aliasChangeOnly) {
@@ -774,11 +847,15 @@ public class LdbCachedData extends AbstractCachedData {
       throw tze;
     } catch (final Throwable t) {
       throw new TzException(t);
+    } finally {
+      close();
     }
   }
 
   private boolean loadInitialData() throws TzException {
     try {
+      open();
+
       if (debug) {
         trace("Loading initial data from " + cfg.getTzdataUrl());
       }
@@ -843,6 +920,8 @@ public class LdbCachedData extends AbstractCachedData {
     } catch (final TzException te) {
       getLogger().error("Unable to add tz data to db", te);
       throw te;
+    } finally {
+      close();
     }
   }
 
@@ -858,6 +937,8 @@ public class LdbCachedData extends AbstractCachedData {
 
   private AliasMaps buildAliasMaps() throws TzException {
     try {
+      open();
+
       final AliasMaps maps = new AliasMaps();
 
       maps.byTzid = new HashMap<>();
@@ -914,11 +995,15 @@ public class LdbCachedData extends AbstractCachedData {
       return maps;
     } catch (final Throwable t) {
       throw new TzException(t);
+    } finally {
+      close();
     }
   }
 
   private void processSpecs(final String dtstamp) throws TzException {
     try {
+      open();
+
       resetTzs();
 
       try (DBIterator it = db.iterator()) {
@@ -946,6 +1031,8 @@ public class LdbCachedData extends AbstractCachedData {
       throw te;
     } catch (final Throwable t) {
       throw new TzException(t);
+    } finally {
+      close();
     }
   }
 

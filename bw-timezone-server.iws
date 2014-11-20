@@ -2,12 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="0daa45d3-e7cb-4712-9a83-e6bfbc4ab832" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/bw-timezone-server-common/src/main/java/org/bedework/timezones/common/AbstractCachedData.java" afterPath="$PROJECT_DIR$/bw-timezone-server-common/src/main/java/org/bedework/timezones/common/AbstractCachedData.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/bw-timezone-server-war/src/main/java/org/bedework/timezones/server/GetMethod.java" afterPath="$PROJECT_DIR$/bw-timezone-server-war/src/main/java/org/bedework/timezones/server/GetMethod.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/bw-timezone-server-war/src/main/java/org/bedework/timezones/server/MethodBase.java" afterPath="$PROJECT_DIR$/bw-timezone-server-war/src/main/java/org/bedework/timezones/server/MethodBase.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/bw-timezone-server-common/src/main/java/org/bedework/timezones/common/TzServerUtil.java" afterPath="$PROJECT_DIR$/bw-timezone-server-common/src/main/java/org/bedework/timezones/common/TzServerUtil.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/bw-timezone-server-common/src/main/java/org/bedework/timezones/common/leveldb/LdbCachedData.java" afterPath="$PROJECT_DIR$/bw-timezone-server-common/src/main/java/org/bedework/timezones/common/leveldb/LdbCachedData.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/bw-timezone-server.ipr" afterPath="$PROJECT_DIR$/bw-timezone-server.ipr" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/bw-timezone-server.iws" afterPath="$PROJECT_DIR$/bw-timezone-server.iws" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/bw-timezone-server-war/src/main/webapp/WEB-INF/web.xml" afterPath="$PROJECT_DIR$/bw-timezone-server-war/src/main/webapp/WEB-INF/web.xml" />
     </list>
     <ignored path="bw-timezone-server.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -67,6 +64,11 @@
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="FavoritesManager">
     <favorites_list name="bw-timezone-server" />
+  </component>
+  <component name="FindManager">
+    <FindUsagesManager>
+      <setting name="OPEN_NEW_TAB" value="true" />
+    </FindUsagesManager>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -270,12 +272,17 @@
       <workItem from="1415374827225" duration="351000" />
       <workItem from="1415505434983" duration="583000" />
       <workItem from="1415508048914" duration="594000" />
-      <workItem from="1415593082773" duration="593000" />
+      <workItem from="1415593082773" duration="1201000" />
     </task>
+    <task id="LOCAL-00001" summary="Implement latest (REST) draft of tz server">
+      <created>1416284590213</created>
+      <updated>1416284590213</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="7410000" />
+    <option name="totallyTimeSpent" value="8018000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1918" height="1080" extended-state="4" />
@@ -294,6 +301,7 @@
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="IDEtalk" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="Run with VisualVM" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Web" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
@@ -326,6 +334,8 @@
     <option name="myTodoPanelSettings">
       <TodoPanelSettings />
     </option>
+    <MESSAGE value="Implement latest (REST) draft of tz server" />
+    <option name="LAST_COMMIT_MESSAGE" value="Implement latest (REST) draft of tz server" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
