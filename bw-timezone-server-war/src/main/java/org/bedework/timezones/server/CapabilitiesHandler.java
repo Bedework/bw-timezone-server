@@ -42,126 +42,70 @@ public class CapabilitiesHandler extends MethodBase {
     capabilities.setVersion(1);
 
     addAction(capabilities, "capabilities",
+              "/capabilities",
               "This action returns the capabilities of the server, " +
                 "allowing clients to determine if a specific feature has been" +
-                " deployed and/or enabled.",
-              makePar("action",
-                      true,
-                      false,
-                      "capabilities",
-                      "Specify the action to be carried out."));
+                " deployed and/or enabled.");
 
     addAction(capabilities, "list",
+              "/zones{?changedsince}",
               "This action lists all timezone identifiers, in summary " +
                 "format, with optional localized data. In addition, it " +
                 "returns a timestamp which is the current server global " +
                 "last modification value. ",
-              makePar("action",
-                      true, // required
-                      false, // multi
-                      "list", // Value(s)
-                      "Specify the action to be carried out."),
-              makePar("lang",
-                      false,
-                      true,
-                      null,
-                      "OPTIONAL, but MAY occur multiple times. "),
               makePar("changedsince",
                       false,
                       false,
                       null,
                       "OPTIONAL, but MUST occur only once. If present, " +
                         "limits the response to timezones changed since " +
-                        "the given timestamp."),
-              makePar("tzid",
-                      false,
-                      true,
-                      null,
-                      "OPTIONAL, and MAY occur multiple times.  MUST " +
-                          "NOT be present if the \"changedsince\" parameter is present.  The " +
-                          "value of the \"dtstamp\" member corresponds to the entire set of " +
-                          "data and allows the client to determine if it should refresh " +
-                          "its full set."));
+                        "the given timestamp."));
 
     addAction(capabilities, "get",
+              "/zones{/tzid}{?start,end}",
               "This action returns a timezone. Clients must be " +
                 "prepared to accept a timezone with a different identifier " +
                 "if the requested identifier is an alias. ",
-              makePar("action",
-                      true,
-                      false,
-                      "get",
-                      "Specify the action to be carried out."),
-              makePar("format",
-                      false,
-                      false,
-                      "text/calendar",
-                      "OPTIONAL, but MUST occur only once. Return " +
-                        "information using the specified media-type. In " +
-                        "the absence of this parameter, the value " +
-                        "\"text/calendar\" MUST be assumed."),
-              makePar("lang",
-                      false,
-                      true,
-                      null,
-                      "OPTIONAL, but MAY occur multiple times."),
-              makePar("tzid",
-                      true,
-                      false,
-                      null,
-                      "REQUIRED, and MUST occur only once. Identifies " +
-                        "the timezone for which information is returned. " +
-                        "The server MUST return an Etag header. "));
-
-    addAction(capabilities, "expand",
-              "This action expands the specified timezone(s) into a " +
-                "list of onset start date/time and offset. ",
-              makePar("action",
-                      true,
-                      false,
-                      "expand",
-                      "Specify the action to be carried out."),
-              makePar("tzid",
-                      true,
-                      true,
-                      null,
-                      "REQUIRED, but MAY occur multiple times. Identifies " +
-                        "the timezones for which information is returned. " +
-                        "The value \"*\", which has a special meaning in " +
-                        "the \"get\" operation, is not supported by this " +
-                        "operation."),
-              makePar("lang",
-                      false,
-                      true,
-                      null,
-                      "OPTIONAL, but MUST occur only once. If present, " +
-                        "indicates that timezone aliases should be returned " +
-                        "in the list. "),
               makePar("start",
                       false,
-                      true,
-                      "date or date-time",
-                      "OPTIONAL, but MUST occur only once. If present, " +
-                        "specifies the start of the period of interest. " +
-                        "If omitted, the current year is assumed. "),
+                      false,
+                      null,
+                      "OPTIONAL, and MUST occur only once.  Specifies " +
+                      "the inclusive UTC date-time value at which the returned time " +
+                      "zone data is truncated at its start."),
               makePar("end",
                       false,
-                      true,
-                      "date or date-time",
-                      "OPTIONAL, but MUST occur only once. If present, " +
-                        "specifies the end of the period of interest. " +
-                        "If omitted, the current year + 10 is assumed. "));
+                      false,
+                      null,
+                      "OPTIONAL, and MUST occur only once.  Specifies " +
+                      "the exclusive UTC date-time value at which the returned time " +
+                      "zone data is truncated at its end."));
+
+    addAction(capabilities, "expand",
+              "/zones{/tzid}/observances{?start,end}",
+              "This action expands the specified timezone(s) into a " +
+                "list of onset start date/time and offset. ",
+              makePar("start",
+                      false,
+                      false,
+                      null,
+                      "OPTIONAL, and MUST occur only once.  Specifies " +
+                              "the inclusive UTC date-time value at which the returned time " +
+                              "zone data is truncated at its start."),
+              makePar("end",
+                      false,
+                      false,
+                      null,
+                      "OPTIONAL, and MUST occur only once.  Specifies " +
+                              "the exclusive UTC date-time value at which the returned time " +
+                              "zone data is truncated at its end."));
 
     addAction(capabilities, "find",
+              "/zones{?pattern}",
               "This action allows a client to query the timezone service " +
                 "for a matching identifier, alias or localized name.\n" +
                 "Response format is the same as for list with one result " +
                 "element per successful match. ",
-                makePar("action",
-                        true,
-                        false,
-                        "find",
-                        "Specify the action to be carried out."),
                 makePar("name",
                         true,
                         false,
@@ -180,11 +124,14 @@ public class CapabilitiesHandler extends MethodBase {
 
   private static void addAction(final CapabilitiesType capabilities,
                                 final String action,
-                                final String description,
+                                final String uriTemplate,
+                                @SuppressWarnings(
+                                        "UnusedParameters") final String description,
                                 final CapabilitiesAcceptParameterType... pars) {
     final CapabilitiesActionType cot = new CapabilitiesActionType();
 
     cot.setName(action);
+    cot.setUriTemplate(uriTemplate);
 
     if (pars != null) {
       for (final CapabilitiesAcceptParameterType par: pars) {
@@ -199,7 +146,8 @@ public class CapabilitiesHandler extends MethodBase {
                                                          final boolean required,
                                                          final boolean multi,
                                                          final String value,
-                                                         final String description) {
+                                                         @SuppressWarnings(
+                                                                 "UnusedParameters") final String description) {
     final CapabilitiesAcceptParameterType capt = new CapabilitiesAcceptParameterType();
 
     capt.setName(name);
@@ -211,7 +159,6 @@ public class CapabilitiesHandler extends MethodBase {
   }
 
   /**
-   * @throws javax.servlet.ServletException
    */
   public CapabilitiesHandler() throws ServletException {
     super();
@@ -237,6 +184,10 @@ public class CapabilitiesHandler extends MethodBase {
         ci.setSource(cfg.getSource());
       }
 
+      ci.getFormats().add("text/calendar");
+      ci.getFormats().add("application/calendar+xml");
+      ci.getFormats().add("application/calendar+json");
+
       final CapabilitiesTruncatedType ct = new CapabilitiesTruncatedType();
 
       ct.setAny(false);
@@ -248,9 +199,9 @@ public class CapabilitiesHandler extends MethodBase {
       capabilities.setInfo(ci);
 
       writeJson(resp, capabilities);
-    } catch (ServletException se) {
+    } catch (final ServletException se) {
       throw se;
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new ServletException(t);
     }
   }
