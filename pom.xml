@@ -25,7 +25,7 @@
 		<hibernate-validator.version>3.1.0.GA</hibernate-validator.version>
 		<servlet-api.version>2.5</servlet-api.version>
 		<junit.version>4.8.2</junit.version>
-		<ical4j.version>1.1-BW-SNAPSHOT</ical4j.version>
+		<ical4j.version>1.1.3</ical4j.version>
 		<log4j.version>1.2.15</log4j.version>
 		<asm.version>3.2</asm.version>
 		<asm-attrs.version>2.2.3</asm-attrs.version>
@@ -117,6 +117,11 @@
 				<artifactId>bw-ws-calws-soap</artifactId>
 				<version>${bw-ws.version}</version>
 			</dependency>
+      <dependency>
+        <groupId>org.bedework</groupId>
+        <artifactId>bw-ical4j-cl</artifactId>
+        <version>${ical4j.version}</version>
+      </dependency>
 			<!-- Third Party Libraries -->
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
@@ -137,11 +142,6 @@
 				<groupId>net.sf.ehcache</groupId>
 				<artifactId>ehcache</artifactId>
 				<version>${ehcache.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>net.fortuna.ical4j</groupId>
-				<artifactId>ical4j</artifactId>
-				<version>${ical4j.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.hibernate</groupId>

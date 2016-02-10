@@ -242,8 +242,8 @@
 			<artifactId>jackson-annotations</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>net.fortuna.ical4j</groupId>
-			<artifactId>ical4j</artifactId>
+      <groupId>org.bedework</groupId>
+      <artifactId>bw-ical4j-cl</artifactId>
 			<exclusions>
 				<exclusion>
 					<artifactId>commons-codec</artifactId>
