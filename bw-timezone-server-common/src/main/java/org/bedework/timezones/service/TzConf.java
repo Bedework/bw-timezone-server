@@ -21,13 +21,12 @@ package org.bedework.timezones.service;
 import org.bedework.timezones.common.Stat;
 import org.bedework.timezones.common.TzConfig;
 import org.bedework.timezones.common.TzServerUtil;
+import org.bedework.util.jmx.ConfBase;
+import org.bedework.util.jmx.ConfigHolder;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
-
-import org.bedework.util.jmx.ConfBase;
-import org.bedework.util.jmx.ConfigHolder;
 
 /**
  * @author douglm

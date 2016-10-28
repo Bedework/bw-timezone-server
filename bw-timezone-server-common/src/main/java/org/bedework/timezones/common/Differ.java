@@ -20,10 +20,9 @@ package org.bedework.timezones.common;
 
 import org.bedework.util.calendar.diff.XmlIcalCompare;
 
+import ietf.params.xml.ns.icalendar_2.IcalendarType;
 import org.apache.log4j.Logger;
 import org.oasis_open.docs.ws_calendar.ns.soap.ComponentSelectionType;
-
-import ietf.params.xml.ns.icalendar_2.IcalendarType;
 
 import java.util.ArrayList;
 import java.util.Iterator;
