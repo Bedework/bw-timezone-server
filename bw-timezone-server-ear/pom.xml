@@ -2,7 +2,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>org.bedework</groupId>
+		<groupId>org.bedework.bw-tzsvr</groupId>
 		<artifactId>bw-timezone-server</artifactId>
 		<version>4.0.0-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
@@ -61,12 +61,12 @@
       </exclusions>
 		</dependency>
     <dependency>
-      <groupId>org.bedework</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>bw-timezone-server-tzconvert</artifactId>
       <version>${project.version}</version>
     </dependency>
 		<dependency>
-			<groupId>org.bedework</groupId>
+      <groupId>${project.groupId}</groupId>
 			<artifactId>bw-timezone-server-war</artifactId>
 			<version>${project.version}</version>
 			<type>war</type>
@@ -272,10 +272,6 @@
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpcore</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>net.sf.ehcache</groupId>
-			<artifactId>ehcache</artifactId>
 		</dependency>
 	</dependencies>
 
