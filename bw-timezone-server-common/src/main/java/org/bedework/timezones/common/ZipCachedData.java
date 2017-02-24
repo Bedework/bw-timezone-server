@@ -232,7 +232,7 @@ public class ZipCachedData  extends AbstractCachedData {
 
         String id = n.substring(9, n.length() - 4);
 
-        processSpec(id, entryToString(ze), null);
+        processSpec(id, entryToString(ze), null, null);
       }
     } catch (Throwable t) {
       throw new TzException(t);

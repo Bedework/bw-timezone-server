@@ -360,7 +360,7 @@ public class LdbCachedData extends AbstractCachedData {
         for (it.seekToFirst(); it.hasNext(); it.next()) {
           final String key = Iq80DBFactory.asString(it.peekNext().getKey());
 
-          if (!key.startsWith(timezoneSpecPrefix)) {
+          if (!key.startsWith(aliasPrefix)) {
             continue;
           }
 
@@ -594,7 +594,7 @@ public class LdbCachedData extends AbstractCachedData {
         return false;
       }
 
-      final String svrCs = tzl.getDtstamp();
+      final String svrCs = tzl.getSynctoken();
 
       if ((changedSince == null) ||
                  !svrCs.equals(changedSince)) {
@@ -902,6 +902,9 @@ public class LdbCachedData extends AbstractCachedData {
         }
 
         spec.setDtstamp(cachedData.getDtstamp());
+        
+        // TODO - should this be another value?
+        spec.setEtag(cachedData.getDtstamp());
         spec.setActive(true);
 
         putTzSpec(spec);
@@ -1023,7 +1026,9 @@ public class LdbCachedData extends AbstractCachedData {
             dt += "Z";
           }
 
-          processSpec(spec.getName(), spec.getVtimezone(),
+          processSpec(spec.getName(), 
+                      spec.getVtimezone(),
+                      spec.getEtag(),
                       XcalUtil.getXmlFormatDateTime(dt));
         }
       }
@@ -1119,6 +1124,7 @@ public class LdbCachedData extends AbstractCachedData {
 
       return mapper.readValue(is, valueType);
     } catch (final Throwable t) {
+      warn("Unable to parse json value " + new String(value));
       throw new TzException(t);
     } finally {
       if (is != null) {

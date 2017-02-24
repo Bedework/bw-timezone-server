@@ -258,15 +258,15 @@ public abstract class AbstractCachedData implements CachedData {
       return timezones;
     }
 
-    List<TimezoneType> ss = new ArrayList<>();
+    final List<TimezoneType> ss = new ArrayList<>();
 
-    for (TimezoneType tz: timezones) {
+    for (final TimezoneType tz: timezones) {
       if (tz.getLastModified() == null) {
         ss.add(tz);
         continue;
       }
 
-      String lm = DateTimeUtil.rfcDateTimeUTC(tz.getLastModified());
+      final String lm = DateTimeUtil.rfcDateTimeUTC(tz.getLastModified());
 
       /*
        * cs > lm +
@@ -304,24 +304,28 @@ public abstract class AbstractCachedData implements CachedData {
   /**
    * @param id of tz
    * @param caldef a tz spec in the form of a String VCALENDAR representation
+   * @param etag for entry
    * @param storedDtstamp to set last mod
    * @throws TzException
    */
   protected void processSpec(final String id,
                              final String caldef,
+                             final String etag,
                              final String storedDtstamp) throws TzException {
-    processSpec(id, parseDef(caldef), storedDtstamp);
+    processSpec(id, parseDef(caldef), etag, storedDtstamp);
   }
 
 
   /**
    * @param id of tz
    * @param cal a tz spec in the form of a CALENDAR component
+   * @param etag for entry
    * @param storedDtstamp to set last mod
    * @throws TzException
    */
   protected void processSpec(final String id,
                              final Calendar cal,
+                             final String etag,
                              final String storedDtstamp) throws TzException {
     try {
       nameList.add(id);
@@ -348,6 +352,14 @@ public abstract class AbstractCachedData implements CachedData {
         tz.setLastModified(DateTimeUtil.fromRfcDateTimeUTC(storedDtstamp));
       } else {
         tz.setLastModified(DateTimeUtil.fromRfcDateTimeUTC(dtstamp));
+      }
+
+      if (etag != null) {
+        tz.setEtag(etag);
+      } else if (storedDtstamp != null) {
+        tz.setEtag(storedDtstamp);
+      } else {
+        tz.setEtag(dtstamp);
       }
 
       final SortedSet<String> aliases = findAliases(id);

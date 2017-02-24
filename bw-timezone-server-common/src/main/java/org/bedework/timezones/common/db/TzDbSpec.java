@@ -58,7 +58,7 @@ public class TzDbSpec extends TzDbentity<TzDbSpec> {
 
   /** Etag value for last fetch from primary
    *
-   * @param val
+   * @param val the etag
    */
   public void setEtag(final String val) {
     etag = val;

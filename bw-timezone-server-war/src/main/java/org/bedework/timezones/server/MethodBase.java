@@ -286,7 +286,7 @@ public abstract class MethodBase {
 
       final TimezoneListType tzl = new TimezoneListType();
 
-      tzl.setDtstamp(util.getDtstamp());
+      tzl.setSynctoken(util.getDtstamp());
 
       if (tzl.getTimezones() == null) {
         tzl.setTimezones(new ArrayList<TimezoneType>());

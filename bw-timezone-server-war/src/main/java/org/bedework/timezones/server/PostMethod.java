@@ -46,7 +46,7 @@ public class PostMethod extends MethodBase {
     }
 
     try {
-      resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
     } catch (Throwable t) {
       throw new ServletException(t);
     }

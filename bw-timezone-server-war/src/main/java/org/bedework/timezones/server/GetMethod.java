@@ -89,19 +89,6 @@ public class GetMethod extends MethodBase {
     }
 
     try {
-      final String action = req.getParameter("action");
-
-      if (action != null) {
-        doAction(req, resp, action);
-        return;
-      }
-
-      if (doOld(req, resp)) {
-        return;
-      }
-
-      /* path based */
-
       if (ruri.uriElements.size() == 0) {
         return;
       }
@@ -109,12 +96,6 @@ public class GetMethod extends MethodBase {
       final String el0 = ruri.getPathElement(0);
       if (el0.equals(capabilitiesEl)) {
         capabilities.doMethod(req, resp);
-        return;
-      }
-
-      if (el0.equals(tzsEl)) {
-        // Old style
-        tzids.doTzid(resp, ruri.getElements(1));
         return;
       }
 
@@ -182,68 +163,6 @@ public class GetMethod extends MethodBase {
     if ("find".equals(action)) {
       doFind(req, resp, req.getParameter("name"));
     }
-  }
-
-  /**
-   *
-   * @param req http request
-   * @param resp http response
-   * @return true if this was an old request
-   * @throws ServletException
-   */
-  private boolean doOld(final HttpServletRequest req,
-                        final HttpServletResponse resp) throws ServletException {
-      /* Follow all old and non-standard actions */
-
-    if (req.getParameter("names") != null) {
-      if (ifNoneMatchTest(req, resp)) {
-        return true;
-      }
-
-      doNames(resp);
-      return true;
-    }
-
-    if (req.getParameter("stats") != null) {
-      doStats(resp);
-      return true;
-    }
-
-    if (req.getParameter("info") != null) {
-      doInfo(resp);
-      return true;
-    }
-
-    if (req.getParameter("aliases") != null) {
-      if (ifNoneMatchTest(req, resp)) {
-        return true;
-      }
-
-      doAliases(resp);
-      //} else if (req.getParameter("unalias") != null) {
-      //  doUnalias(resp, req.getParameter("id"));
-      return true;
-    }
-
-    if (req.getParameter("convert") != null) {
-      doConvert(resp, req.getParameter("dt"),
-                req.getParameter("fromtzid"),
-                req.getParameter("totzid"));
-      return true;
-    }
-
-    if (req.getParameter("utc") != null) {
-      doToUtc(resp, req.getParameter("dt"),
-              req.getParameter("fromtzid"));
-      return true;
-    }
-
-    if (req.getParameter("tzid") != null) {
-      tzids.doTzid(resp, req.getParameter("tzid"));
-      return true;
-    }
-
-    return false;
   }
 
   private void doZones(final HttpServletRequest req,

@@ -94,6 +94,8 @@ public class TzServer extends HttpServlet
           new PostMethod().doMethod(req, resp);
           break;
       }
+      
+      resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
     } finally {
       /* We're stateless - toss away any session */
       try {

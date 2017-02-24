@@ -44,9 +44,10 @@ public class ListHandler extends MethodBase {
     }
 
     try {
-      String changedsince = req.getParameter("changedsince");
+      final String changedsince = req.getParameter("changedsince");
 
-      String[] tzids = req.getParameterValues("tzid");
+      // TODO - this is non-standard?
+      final String[] tzids = req.getParameterValues("tzid");
 
       if ((tzids != null) && (tzids.length > 0)) {
         if (changedsince != null) {
@@ -63,7 +64,8 @@ public class ListHandler extends MethodBase {
       listResponse(resp, util.getTimezones(changedsince));
 
       if (changedsince != null) {
-        Logger refreshLogger = Logger.getLogger("org.bedework.timezones.refresh.logger");
+        final Logger refreshLogger = 
+                Logger.getLogger("org.bedework.timezones.refresh.logger");
         refreshLogger.info("Refresh call from " + req.getRemoteHost());
       }
     } catch (ServletException se) {

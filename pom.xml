@@ -16,13 +16,22 @@
 		<bedework.releases.repo.url>scp://dev.bedework.org/data/repository/maven/maven2</bedework.releases.repo.url>
 		<bedework.snapshots.repo.url>scp://dev.bedework.org/data/repository/maven/maven2</bedework.snapshots.repo.url>
 		<bw-ws.version>4.0.1-SNAPSHOT</bw-ws.version>
-		<bw-util.version>4.0.1-SNAPSHOT</bw-util.version>
+		<bw-util.version>4.0.11-SNAPSHOT</bw-util.version>
+
+    <ical4j.groupId>org.bedework.ical4j</ical4j.groupId>
+    <ical4j.artifactId>ical4j</ical4j.artifactId>
+    <ical4j.version>2.0.2</ical4j.version>
+    <!--
+    <ical4j.groupId>org.bedework.ical4j</ical4j.groupId>
+    <ical4j.artifactId>ical4j</ical4j.artifactId>
+    <ical4j.version>1.1.4</ical4j.version>
+    -->
+
 		<!-- Third Party Library Versions -->
 		<jackson.version>2.3.1</jackson.version>
 		<apache-http.version>4.2.2</apache-http.version>
 		<servlet-api.version>2.5</servlet-api.version>
 		<junit.version>4.8.2</junit.version>
-		<ical4j.version>1.1.3</ical4j.version>
 		<log4j.version>1.2.15</log4j.version>
 		<leveldb.version>0.5</leveldb.version>
 	</properties>
@@ -112,8 +121,8 @@
 				<version>${bw-ws.version}</version>
 			</dependency>
       <dependency>
-        <groupId>org.bedework</groupId>
-        <artifactId>bw-ical4j-cl</artifactId>
+        <groupId>${ical4j.groupId}</groupId>
+        <artifactId>${ical4j.artifactId}</artifactId>
         <version>${ical4j.version}</version>
       </dependency>
 			<!-- Third Party Libraries -->

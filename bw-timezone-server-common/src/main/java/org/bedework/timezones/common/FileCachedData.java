@@ -205,7 +205,7 @@ public class FileCachedData extends AbstractCachedData {
         cal.getComponents().add(tzFetcher.getTz(id));
         cal.getProperties().add(new Version());
 
-        processSpec(id, cal, dtstamp);
+        processSpec(id, cal, null, dtstamp);
       }
     } catch (Throwable t) {
       throw new TzException(t);
