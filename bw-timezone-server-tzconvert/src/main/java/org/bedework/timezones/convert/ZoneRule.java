@@ -35,6 +35,7 @@ import net.fortuna.ical4j.model.Component;
 import net.fortuna.ical4j.model.ParameterList;
 import net.fortuna.ical4j.model.PropertyList;
 import net.fortuna.ical4j.model.UtcOffset;
+import net.fortuna.ical4j.model.component.Observance;
 import net.fortuna.ical4j.model.component.Standard;
 import net.fortuna.ical4j.model.component.VTimeZone;
 import net.fortuna.ical4j.model.property.DtStart;
@@ -440,7 +441,7 @@ class ZoneRule {
       throw new RuntimeException(pe);
     }
 
-    vtz.getObservances().add(comp);
+    vtz.getObservances().add((Observance)comp);
   }
 
 

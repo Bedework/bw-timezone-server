@@ -15,12 +15,12 @@
 		<!-- Bedework Versions -->
 		<bedework.releases.repo.url>scp://dev.bedework.org/data/repository/maven/maven2</bedework.releases.repo.url>
 		<bedework.snapshots.repo.url>scp://dev.bedework.org/data/repository/maven/maven2</bedework.snapshots.repo.url>
-		<bw-ws.version>4.0.1-SNAPSHOT</bw-ws.version>
-		<bw-util.version>4.0.11-SNAPSHOT</bw-util.version>
+		<bw-ws.version>4.0.4</bw-ws.version>
+		<bw-util.version>4.0.12</bw-util.version>
 
     <ical4j.groupId>org.bedework.ical4j</ical4j.groupId>
     <ical4j.artifactId>ical4j</ical4j.artifactId>
-    <ical4j.version>2.0.2</ical4j.version>
+    <ical4j.version>2.0.4</ical4j.version>
     <!--
     <ical4j.groupId>org.bedework.ical4j</ical4j.groupId>
     <ical4j.artifactId>ical4j</ical4j.artifactId>
@@ -65,6 +65,34 @@
 		<module>bw-timezone-server-war</module>
 		<module>bw-timezone-server-ear</module>
 	</modules>
+
+  <developers>
+    <developer>
+      <name>Mike Douglass</name>
+      <organization>
+        Spherical Cow Group
+      </organization>
+      <organizationUrl>http://sphericalcowgroup.com/</organizationUrl>
+    </developer>
+    <developer>
+      <name>Arlen Johnson</name>
+      <organization>
+        Spherical Cow Group
+      </organization>
+      <organizationUrl>http://sphericalcowgroup.com/</organizationUrl>
+    </developer>
+  </developers>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    </snapshotRepository>
+    <repository>
+      <id>ossrh</id>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
 
 	<dependencyManagement>
 		<dependencies>
@@ -247,19 +275,6 @@
 		</repository>
 	</repositories>
 
-	<distributionManagement>
-		<repository>
-			<id>bedework-releases-repository</id>
-			<name>Bedework Releases Repository</name>
-			<url>${bedework.releases.repo.url}</url>
-		</repository>
-		<snapshotRepository>
-			<id>bedework-snapshots-repository</id>
-			<name>Bedework Snapshots Repository</name>
-			<url>${bedework.snapshots.repo.url}</url>
-		</snapshotRepository>
-	</distributionManagement>
-
 	<build>
 		<extensions>
 			<extension>
@@ -297,6 +312,35 @@
 					</execution>
 				</executions>
 			</plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <autoVersionSubmodules>true</autoVersionSubmodules>
+          <useReleaseProfile>false</useReleaseProfile>
+          <releaseProfiles>release</releaseProfiles>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.9.1</version>
+        <configuration>
+          <additionalparam>-Xdoclint:none</additionalparam>
+          <failOnError>false</failOnError>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>versions-maven-plugin</artifactId>
+        <version>2.3</version>
+        <configuration>
+        </configuration>
+      </plugin>
 		</plugins>
 	</build>
 

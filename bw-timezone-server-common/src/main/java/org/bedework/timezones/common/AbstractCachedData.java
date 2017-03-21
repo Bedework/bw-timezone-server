@@ -31,7 +31,7 @@ import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.Component;
 import net.fortuna.ical4j.model.TimeZone;
 import net.fortuna.ical4j.model.component.VTimeZone;
-import net.fortuna.ical4j.model.property.EquivalentTzId;
+import net.fortuna.ical4j.model.property.TzidAliasOf;
 import net.fortuna.ical4j.model.property.LastModified;
 import net.fortuna.ical4j.model.property.TzId;
 import org.apache.log4j.Logger;
@@ -443,7 +443,7 @@ public abstract class AbstractCachedData implements CachedData {
 
       if (tzids != null) {
         for (String tzid: tzids) {
-          avtz.getProperties().add(new EquivalentTzId(tzid));
+          avtz.getProperties().add(new TzidAliasOf(tzid));
         }
       }
 
