@@ -307,6 +307,27 @@
 					</modules>
 				</configuration>
 			</plugin>
+      
+      <plugin>
+        <groupId>org.bedework</groupId>
+        <artifactId>bw-deploy-maven-plugin</artifactId>
+        <version>4.0.13-SNAPSHOT</version>
+        <executions>
+          <execution>
+            <phase>install</phase>
+            <goals>
+              <goal>bw-deploy</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <noversion>true</noversion>
+          <delete>true</delete>
+          <earName>bw-timezone-server</earName>
+          <baseDirPath>${project.basedir}/../..</baseDirPath>
+          <propsPath>${project.basedir}/../../bw-classic/config/wildfly.deploy.properties</propsPath>
+        </configuration>
+      </plugin>
 		</plugins>
 	</build>
 
