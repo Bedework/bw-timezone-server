@@ -63,7 +63,7 @@ public class TzServerUtil {
 
   private static TzServerUtil instance;
 
-  static ConfigHolder<TzConfig> cfgHolder;
+  static ConfigHolder<TzConfigImpl> cfgHolder;
 
   private static Object locker = new Object();
 
@@ -138,7 +138,7 @@ public class TzServerUtil {
   /**
    * @param val
    */
-  public static void setTzConfigHolder(final ConfigHolder<TzConfig> val) {
+  public static void setTzConfigHolder(final ConfigHolder<TzConfigImpl> val) {
     cfgHolder = val;
   }
 
@@ -230,8 +230,8 @@ public class TzServerUtil {
 
     Differ diff = new Differ();
 
-    final TzConfig newConfig = new TzConfig();
-    getTzConfig().copyTo(newConfig);
+    final TzConfig newConfig = new TzConfigImpl();
+    ((TzConfigImpl)getTzConfig()).copyTo(newConfig);
     newConfig.setTzdataUrl(tzdataUrl);
 
     final CachedData cd = getDataSource(newConfig);
@@ -285,8 +285,8 @@ public class TzServerUtil {
 
     final Differ diff = new Differ();
 
-    final TzConfig newConfig = new TzConfig();
-    getTzConfig().copyTo(newConfig);
+    final TzConfig newConfig = new TzConfigImpl();
+    ((TzConfigImpl)getTzConfig()).copyTo(newConfig);
     newConfig.setTzdataUrl(tzdataUrl);
 
     final CachedData cd = getDataSource(newConfig);

@@ -19,7 +19,7 @@
 package org.bedework.timezones.service;
 
 import org.bedework.timezones.common.Stat;
-import org.bedework.timezones.common.TzConfig;
+import org.bedework.timezones.common.TzConfigImpl;
 import org.bedework.timezones.common.TzServerUtil;
 import org.bedework.util.jmx.ConfBase;
 import org.bedework.util.jmx.ConfigHolder;
@@ -32,7 +32,7 @@ import java.util.List;
  * @author douglm
  *
  */
-public class TzConf extends ConfBase<TzConfig> implements TzConfMBean, ConfigHolder<TzConfig> {
+public class TzConf extends ConfBase<TzConfigImpl> implements TzConfMBean, ConfigHolder<TzConfigImpl> {
   /* Name of the property holding the location of the config data */
   private static final String confuriPname = "org.bedework.tzs.confuri";
 
@@ -58,6 +58,16 @@ public class TzConf extends ConfBase<TzConfig> implements TzConfMBean, ConfigHol
   @Override
   public String getDtstamp() {
     return getConfig().getDtstamp();
+  }
+
+  @Override
+  public void setVersion(final String val) {
+    getConfig().setVersion(val);
+  }
+
+  @Override
+  public String getVersion() {
+    return getConfig().getVersion();
   }
 
   @Override
@@ -111,13 +121,93 @@ public class TzConf extends ConfBase<TzConfig> implements TzConfMBean, ConfigHol
   }
 
   @Override
-  public void setRefreshInterval(final long val) {
+  public void setRefreshDelay(final long val) {
     getConfig().setRefreshDelay(val);
   }
 
   @Override
-  public long getRefreshInterval() {
+  public long getRefreshDelay() {
     return getConfig().getRefreshDelay();
+  }
+
+  @Override
+  public void setIndexerURL(final String val) {
+    getConfig().setIndexerURL(val);
+  }
+
+  @Override
+  public String getIndexerURL() {
+    return getConfig().getIndexerURL();
+  }
+
+  @Override
+  public void setEmbeddedIndexer(final boolean val) {
+    getConfig().setEmbeddedIndexer(val);
+  }
+
+  @Override
+  public boolean getEmbeddedIndexer() {
+    return getConfig().getEmbeddedIndexer();
+  }
+
+  @Override
+  public void setHttpEnabled(final boolean val) {
+    getConfig().setHttpEnabled(val);
+  }
+
+  @Override
+  public boolean getHttpEnabled() {
+    return getConfig().getHttpEnabled();
+  }
+
+  @Override
+  public void setClusterName(final String val) {
+    getConfig().setClusterName(val);
+  }
+
+  @Override
+  public String getClusterName() {
+    return getConfig().getClusterName();
+  }
+
+  @Override
+  public void setNodeName(final String val) {
+    getConfig().setNodeName(val);
+  }
+
+  @Override
+  public String getNodeName() {
+    return getConfig().getNodeName();
+  }
+
+  @Override
+  public void setDataDir(final String val) {
+    getConfig().setDataDir(val);
+  }
+
+  @Override
+  public String getDataDir() {
+    return getConfig().getDataDir();
+  }
+
+  @Override
+  public void setIndexerConfig(final String val) {
+    getConfig().setIndexerConfig(val);
+  }
+
+  @Override
+  public String getIndexerConfig() {
+    return getConfig().getIndexerConfig();
+  }
+
+  @Override
+  public void setIndexName(final String val) {
+    getConfig().setIndexName(val);
+  }
+
+  @Override
+  public String getIndexName() {
+    return getConfig().getIndexName();
   }
 
   /* ========================================================================
@@ -201,7 +291,7 @@ public class TzConf extends ConfBase<TzConfig> implements TzConfMBean, ConfigHol
 
   @Override
   public String loadConfig() {
-    return loadOnlyConfig(TzConfig.class);
+    return loadOnlyConfig(TzConfigImpl.class);
   }
 
   /** Save the configuration.

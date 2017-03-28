@@ -19,7 +19,7 @@
 package org.bedework.timezones.service;
 
 import org.bedework.timezones.common.Stat;
-
+import org.bedework.timezones.common.TzConfig;
 import org.bedework.util.jmx.ConfBaseMBean;
 import org.bedework.util.jmx.MBeanInfo;
 
@@ -30,94 +30,7 @@ import java.util.List;
  * @author douglm
  */
 @SuppressWarnings("unused")
-public interface TzConfMBean extends ConfBaseMBean {
-  /* ========================================================================
-   * Attributes
-   * ======================================================================== */
-
-  /**
-   * @param val the dtstamp
-   */
-  void setDtstamp(final String val);
-
-  /**
-   * @return String XML format dtstamp
-   */
-  @MBeanInfo("Timestamp from last data load.")
-  String getDtstamp();
-
-  /** Tzdata url
-   *
-   * @param val Location of the primary data
-   */
-  void setTzdataUrl(String val);
-
-  /**
-   * @return String tzdata url
-   */
-  @MBeanInfo("Location of the primary data.")
-  String getTzdataUrl();
-
-  /** Location of the leveldb data.
-   *
-   * @param val    String
-   */
-  void setLeveldbPath(final String val);
-
-  /** Location of the leveldb data.
-   *
-   * @return String, null for unset
-   */
-  @MBeanInfo("Location of the leveldb data - a directory. If relative will be in config dir")
-  String getLeveldbPath();
-
-  /** Primary url
-   *
-   * @param val The URL of a primary server, e.g. www.bedework.org
-   */
-  void setPrimaryUrl(String val);
-
-  /**
-   * @return String Primary url
-   */
-  @MBeanInfo("The URL of a primary server, e.g. www.bedework.org")
-  String getPrimaryUrl();
-
-  /** Are we a primary server?
-   *
-   * @param val    boolean
-   */
-  void setPrimaryServer(final boolean val);
-
-  /** Are we a primary server?
-   * @return boolean
-   */
-  @MBeanInfo("Is this a primary server?")
-  boolean getPrimaryServer();
-
-  /**
-   * @param val source of the data
-   */
-  void setSource(final String val);
-
-  /**
-   * @return source of the data
-   */
-  @MBeanInfo("Source of the data - usually derived from data")
-  String getSource();
-
-  /** Refresh interval - seconds
-   *
-   * @param val interval
-   */
-  void setRefreshInterval(long val);
-
-  /**
-   * @return long Refresh interval - seconds
-   */
-  @MBeanInfo("How often we attempt to refresh from the primary - seconds.")
-  long getRefreshInterval();
-
+public interface TzConfMBean extends TzConfig, ConfBaseMBean {
   /* ========================================================================
    * Operations
    * ======================================================================== */

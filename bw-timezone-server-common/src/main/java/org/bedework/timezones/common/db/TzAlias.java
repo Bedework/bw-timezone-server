@@ -75,6 +75,14 @@ public class TzAlias extends TzDbentity<TzAlias> {
     targetIds.add(val);
   }
 
+  /** set the target ids
+   *
+   * @param val target ids
+   */
+  public void setTargetIds(List<String> val) {
+    targetIds = val;
+  }
+
   /** Get the targetIds
    *
    *  @return list String

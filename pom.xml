@@ -16,7 +16,7 @@
 		<bedework.releases.repo.url>scp://dev.bedework.org/data/repository/maven/maven2</bedework.releases.repo.url>
 		<bedework.snapshots.repo.url>scp://dev.bedework.org/data/repository/maven/maven2</bedework.snapshots.repo.url>
 		<bw-ws.version>4.0.4</bw-ws.version>
-		<bw-util.version>4.0.12</bw-util.version>
+		<bw-util.version>4.0.13-SNAPSHOT</bw-util.version>
 
     <ical4j.groupId>org.bedework.ical4j</ical4j.groupId>
     <ical4j.artifactId>ical4j</ical4j.artifactId>
@@ -110,6 +110,11 @@
       <dependency>
         <groupId>org.bedework</groupId>
         <artifactId>bw-util-config</artifactId>
+        <version>${bw-util.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bedework</groupId>
+        <artifactId>bw-util-elasticsearch</artifactId>
         <version>${bw-util.version}</version>
       </dependency>
       <dependency>

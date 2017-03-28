@@ -19,173 +19,132 @@
 package org.bedework.timezones.common;
 
 import org.bedework.util.config.ConfInfo;
-import org.bedework.util.config.ConfigBase;
-import org.bedework.util.misc.ToString;
+import org.bedework.util.elasticsearch.IndexProperties;
+import org.bedework.util.jmx.MBeanInfo;
 
-/** This class defines the various properties we need for a carddav server
+/** This interface defines the various properties we need for a 
+ * timezone server
  *
  * @author Mike Douglass
- * @param <T>
  */
 @ConfInfo(elementName = "bwtz-confinfo")
-public class TzConfig<T extends TzConfig> extends ConfigBase<T> {
-  private String dtstamp;
-
-  private String version;
-
-  private String primaryUrl;
-
-  private boolean primaryServer;
-
-  private String source;
-
-  private String tzdataUrl;
-
-  private String leveldbPath;
-
-  private long refreshDelay;
-
+public interface TzConfig extends IndexProperties {
   /**
    * @param val the dtstamp
    */
-  public void setDtstamp(final String val) {
-    dtstamp = val;
-  }
+  void setDtstamp(final String val);
 
   /**
    * @return String XML format dtstamp
    */
-  public String getDtstamp() {
-    return dtstamp;
-  }
+  @MBeanInfo("Timestamp from last data load.")
+  String getDtstamp();
 
   /**
    * @param val version
    */
-  public void setVersion(final String val) {
-    version = val;
-  }
+  void setVersion(final String val);
 
   /**
    * @return String version
    */
-  public String getVersion() {
-    return version;
-  }
+  String getVersion();
 
-  /** Url for the primary server.
+  /** Tzdata url
+   *
+   * @param val Location of the primary data
+   */
+  void setTzdataUrl(String val);
+
+  /**
+   * @return String tzdata url
+   */
+  @MBeanInfo("Location of the primary data.")
+  String getTzdataUrl();
+
+  /** Location of the leveldb data.
    *
    * @param val    String
    */
-  public void setPrimaryUrl(final String val) {
-    primaryUrl = val;
-  }
+  void setLeveldbPath(final String val);
 
-  /** Url for the primary server.
+  /** Location of the leveldb data.
    *
    * @return String, null for unset
    */
-  public String getPrimaryUrl() {
-    return primaryUrl;
-  }
+  @MBeanInfo("Location of the leveldb data - a directory. If relative will be in config dir")
+  String getLeveldbPath();
+
+  /** Primary url
+   *
+   * @param val The URL of a primary server, e.g. www.bedework.org
+   */
+  void setPrimaryUrl(String val);
+
+  /**
+   * @return String Primary url
+   */
+  @MBeanInfo("The URL of a primary server, e.g. www.bedework.org")
+  String getPrimaryUrl();
 
   /** Are we a primary server?
    *
    * @param val    boolean
    */
-  public void setPrimaryServer(final boolean val) {
-    primaryServer = val;
-  }
+  void setPrimaryServer(final boolean val);
 
   /** Are we a primary server?
-   *
    * @return boolean
    */
-  public boolean getPrimaryServer() {
-    return primaryServer;
-  }
+  @MBeanInfo("Is this a primary server?")
+  boolean getPrimaryServer();
 
   /**
    * @param val source of the data
    */
-  public void setSource(final String val) {
-    source = val;
-  }
+  void setSource(final String val);
 
   /**
    * @return source of the data
    */
-  public String getSource() {
-    return source;
-  }
+  @MBeanInfo("Source of the data - usually derived from data")
+  String getSource();
 
-  /** Location of the (backup) zip file.
+  /** Refresh interval - seconds
    *
-   * @param val    String
+   * @param val interval
    */
-  public void setTzdataUrl(final String val) {
-    tzdataUrl = val;
-  }
+  void setRefreshDelay(long val);
 
-  /** Location of the (backup) zip file.
-   *
-   * @return String, null for unset
+  /**
+   * @return long Refresh interval - seconds
    */
-  public String getTzdataUrl() {
-    return tzdataUrl;
-  }
+  @MBeanInfo("How often we attempt to refresh from the primary - seconds.")
+  long getRefreshDelay();
 
-  /** Location of the leveldb data.
+  /** 
    *
-   * @param val    String
+   * @param val the indexer config location
    */
-  public void setLeveldbPath(final String val) {
-    leveldbPath = val;
-  }
+  void setIndexerConfig(String val);
 
-  /** Location of the leveldb data.
+  /** Get the indexer config location
    *
-   * @return String, null for unset
+   * @return location
    */
-  public String getLeveldbPath() {
-    return leveldbPath;
-  }
+  @MBeanInfo("indexer config location")
+  String getIndexerConfig();
 
-  /** Refresh delay - seconds
+  /**
    *
-   * @param val delay
+   * @param val the index name
    */
-  public void setRefreshDelay(final Long val) {
-    refreshDelay = val;
-  }
+  void setIndexName(String val);
 
-  /** Refresh delay - seconds
+  /** Get the index name
    *
-   * @return long refreshDelay
+   * @return index name
    */
-  public long getRefreshDelay() {
-    return refreshDelay;
-  }
-
-  /** Add our stuff to the StringBuilder
-   *
-   * @param ts    ToString for result
-   */
-  @Override
-  public void toStringSegment(final ToString ts) {
-    super.toStringSegment(ts);
-  }
-
-  /** init copy of the config
-   *
-   * @param newConf other config
-   */
-  public void copyTo(final TzConfig newConf) {
-    newConf.setDtstamp(getDtstamp());
-    newConf.setVersion(getVersion());
-    newConf.setPrimaryUrl(getPrimaryUrl());
-    newConf.setPrimaryServer(getPrimaryServer());
-    newConf.setTzdataUrl(getTzdataUrl());
-    newConf.setRefreshDelay(getRefreshDelay());
-  }
+  @MBeanInfo("index name")
+  String getIndexName();
 }
