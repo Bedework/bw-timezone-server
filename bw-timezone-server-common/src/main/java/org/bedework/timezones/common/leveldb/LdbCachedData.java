@@ -71,7 +71,7 @@ public class LdbCachedData extends AbstractCachedData {
 
   protected ObjectMapper mapper = new ObjectMapper(); // create once, reuse
 
-  protected final Object dbLock = new Object();
+  protected static final Object dbLock = new Object();
 
   /** Current Database
    */
