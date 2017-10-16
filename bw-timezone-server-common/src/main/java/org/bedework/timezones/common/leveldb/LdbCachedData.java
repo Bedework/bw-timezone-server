@@ -487,51 +487,54 @@ public class LdbCachedData extends AbstractCachedData {
   /**
    * @throws TzException
    */
-  private synchronized void loadData(final boolean clear) throws TzException {
-    reloads++;
+  private void loadData(final boolean clear) throws TzException {
+    synchronized (dbLock) {
+      reloads++;
 
-    try {
       try {
-        open();
+        try {
+          open();
 
-        if (clear) {
-          try (DBIterator iterator = getDb().iterator()) {
-            for(iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
-              getDb().delete(iterator.peekNext().getKey());
+          if (clear) {
+            try (DBIterator iterator = getDb().iterator()) {
+              for (iterator.seekToFirst(); iterator.hasNext();
+                   iterator.next()) {
+                getDb().delete(iterator.peekNext().getKey());
+              }
             }
           }
+        } finally {
+          close();
         }
-      } finally {
-        close();
-      }
 
-      if (!cfg.getPrimaryServer()) {
-        updateFromPrimary();
-      } else if (clear) {
-        loadInitialData();
-      }
+        if (!cfg.getPrimaryServer()) {
+          updateFromPrimary();
+        } else if (clear) {
+          loadInitialData();
+        }
 
-      dtstamp = cfg.getDtstamp();
+        dtstamp = cfg.getDtstamp();
 
-      TzServerUtil.lastDataFetch = System.currentTimeMillis();
+        TzServerUtil.lastDataFetch = System.currentTimeMillis();
 
       /* ===================== Rebuild the alias maps ======================= */
 
-      aliasMaps = buildAliasMaps();
+        aliasMaps = buildAliasMaps();
 
       /* ===================== All tzs into the table ======================= */
 
-      processSpecs(dtstamp);
+        processSpecs(dtstamp);
 
-      expansions.clear();
-    } catch (final TzException te) {
-      fail();
-      throw te;
-    } catch (final Throwable t) {
-      fail();
-      throw new TzException(t);
-    } finally {
-      close();
+        expansions.clear();
+      } catch (final TzException te) {
+        fail();
+        throw te;
+      } catch (final Throwable t) {
+        fail();
+        throw new TzException(t);
+      } finally {
+        close();
+      }
     }
   }
 
