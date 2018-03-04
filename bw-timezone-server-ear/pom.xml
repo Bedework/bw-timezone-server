@@ -219,15 +219,15 @@
     </dependency>
 		<dependency>
 			<groupId>org.bedework</groupId>
-			<artifactId>bw-ws-icalendar</artifactId>
+			<artifactId>bw-xml-icalendar</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.bedework</groupId>
-			<artifactId>bw-ws-tzsvr</artifactId>
+			<artifactId>bw-xml-tzsvr</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.bedework</groupId>
-			<artifactId>bw-ws-calws-soap</artifactId>
+			<artifactId>bw-xml-calws-soap</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>

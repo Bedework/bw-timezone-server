@@ -11,7 +11,10 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-args:4.0.13-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-calendar:4.0.13-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Maven: org.bedework:bw-ws-icalendar:4.0.4" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-xml:4.0.13-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Maven: org.bedework:bw-ws-tzsvr:4.0.4" level="project" />
+    <orderEntry type="library" name="Maven: org.bedework:bw-ws-calws-soap:4.0.4" level="project" />
     <orderEntry type="library" name="Maven: jtidy:jtidy:4aug2000r7-dev" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-databind:2.3.1" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-core:2.3.1" level="project" />
@@ -41,9 +44,9 @@
     <orderEntry type="library" name="Maven: org.bedework:bw-util-caching:4.0.13-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-http:4.0.13-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.3.1" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-ws-icalendar:4.0.4" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-ws-tzsvr:4.0.4" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-ws-calws-soap:4.0.4" level="project" />
+    <orderEntry type="module" module-name="bw-xml-icalendar" />
+    <orderEntry type="module" module-name="bw-xml-tzsvr" />
+    <orderEntry type="module" module-name="bw-xml-calws-soap" />
     <orderEntry type="library" name="Maven: org.iq80.leveldb:leveldb:min:0.5" level="project" />
     <orderEntry type="library" name="Maven: org.iq80.leveldb:leveldb-api:0.5" level="project" />
     <orderEntry type="library" name="Maven: com.google.guava:guava:12.0" level="project" />

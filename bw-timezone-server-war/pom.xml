@@ -37,17 +37,17 @@
 		<!-- Bedework: Web Services -->
 		<dependency>
 			<groupId>org.bedework</groupId>
-			<artifactId>bw-ws-icalendar</artifactId>
+			<artifactId>bw-xml-icalendar</artifactId>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.bedework</groupId>
-			<artifactId>bw-ws-tzsvr</artifactId>
+			<artifactId>bw-xml-tzsvr</artifactId>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.bedework</groupId>
-			<artifactId>bw-ws-calws-soap</artifactId>
+			<artifactId>bw-xml-calws-soap</artifactId>
 			<scope>provided</scope>
 		</dependency>
 		<!-- Third Party Libraries -->
