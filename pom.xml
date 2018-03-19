@@ -16,7 +16,7 @@
 		<bedework.releases.repo.url>scp://dev.bedework.org/data/repository/maven/maven2</bedework.releases.repo.url>
 		<bedework.snapshots.repo.url>scp://dev.bedework.org/data/repository/maven/maven2</bedework.snapshots.repo.url>
 		<bw-xml.version>4.0.5-SNAPSHOT</bw-xml.version>
-		<bw-util.version>4.0.13-SNAPSHOT</bw-util.version>
+		<bw-util.version>4.0.17-SNAPSHOT</bw-util.version>
 
     <ical4j.groupId>org.bedework.ical4j</ical4j.groupId>
     <ical4j.artifactId>ical4j</ical4j.artifactId>

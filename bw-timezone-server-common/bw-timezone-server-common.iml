@@ -9,18 +9,14 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-args:4.0.13-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-calendar:4.0.13-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-ws-icalendar:4.0.4" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-xml:4.0.13-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-ws-tzsvr:4.0.4" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-ws-calws-soap:4.0.4" level="project" />
-    <orderEntry type="library" name="Maven: jtidy:jtidy:4aug2000r7-dev" level="project" />
+    <orderEntry type="module" module-name="bw-util-args" />
+    <orderEntry type="library" name="Maven: org.bedework:bw-util-calendar:4.0.17-SNAPSHOT" level="project" />
+    <orderEntry type="module" module-name="bw-util-xml" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-databind:2.3.1" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-core:2.3.1" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-config:4.0.13-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-elasticsearch:4.0.13-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-indexing:4.0.13-SNAPSHOT" level="project" />
+    <orderEntry type="module" module-name="bw-util-config" />
+    <orderEntry type="module" module-name="bw-util-elasticsearch" />
+    <orderEntry type="module" module-name="bw-util-indexing" />
     <orderEntry type="library" name="Maven: org.elasticsearch:elasticsearch:1.5.2" level="project" />
     <orderEntry type="library" name="Maven: org.apache.lucene:lucene-core:4.10.4" level="project" />
     <orderEntry type="library" name="Maven: org.apache.lucene:lucene-analyzers-common:4.10.4" level="project" />
@@ -38,11 +34,11 @@
     <orderEntry type="library" name="Maven: org.antlr:antlr-runtime:3.5" level="project" />
     <orderEntry type="library" name="Maven: org.ow2.asm:asm:4.1" level="project" />
     <orderEntry type="library" name="Maven: org.ow2.asm:asm-commons:4.1" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-jmx:4.0.13-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-misc:4.0.13-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-timezones:4.0.13-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-caching:4.0.13-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-http:4.0.13-SNAPSHOT" level="project" />
+    <orderEntry type="module" module-name="bw-util-jmx" />
+    <orderEntry type="module" module-name="bw-util-misc" />
+    <orderEntry type="module" module-name="bw-util-timezones" />
+    <orderEntry type="module" module-name="bw-util-caching" />
+    <orderEntry type="module" module-name="bw-util-http" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.3.1" level="project" />
     <orderEntry type="module" module-name="bw-xml-icalendar" />
     <orderEntry type="module" module-name="bw-xml-tzsvr" />

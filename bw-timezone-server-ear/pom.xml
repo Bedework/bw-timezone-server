@@ -310,7 +310,7 @@
       
       <plugin>
         <groupId>org.bedework</groupId>
-        <artifactId>bw-deploy-maven-plugin</artifactId>
+        <artifactId>bw-util-maven-deploy</artifactId>
         <version>${bw-util.version}</version>
         <executions>
           <execution>

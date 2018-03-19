@@ -100,10 +100,6 @@
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
-    <dependency>
-      <groupId>org.bedework</groupId>
-      <artifactId>bw-util-elasticsearch</artifactId>
-    </dependency>
   </dependencies>
 
 </project>

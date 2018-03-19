@@ -34,6 +34,7 @@ import org.bedework.util.timezones.DateTimeUtil;
 import org.bedework.util.timezones.Timezones;
 import org.bedework.util.timezones.Timezones.TaggedTimeZone;
 import org.bedework.util.timezones.TimezonesImpl;
+import org.bedework.util.timezones.TzNoPrimaryException;
 import org.bedework.util.timezones.TzUnknownHostException;
 import org.bedework.util.timezones.model.LocalNameType;
 import org.bedework.util.timezones.model.TimezoneListType;
@@ -588,6 +589,9 @@ public class LdbCachedData extends AbstractCachedData {
 
       try {
         tzl = tzs.getList(changedSince);
+      } catch (final TzNoPrimaryException tznpe) {
+        error("Unable to contact primary: " + tznpe.getExtra());
+        return false;
       } catch (final TzUnknownHostException tuhe) {
         error("Unknown host exception contacting " + cfg.getPrimaryUrl());
         return false;

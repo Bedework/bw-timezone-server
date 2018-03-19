@@ -23,16 +23,12 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="bw-timezone-server-common" scope="PROVIDED" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.bedework:bw-util-args:4.0.13-SNAPSHOT" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.bedework:bw-util-calendar:4.0.13-SNAPSHOT" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.bedework:bw-ws-icalendar:4.0.4" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-xml:4.0.13-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-ws-tzsvr:4.0.4" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-ws-calws-soap:4.0.4" level="project" />
-    <orderEntry type="library" name="Maven: jtidy:jtidy:4aug2000r7-dev" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-config:4.0.13-SNAPSHOT" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.bedework:bw-util-elasticsearch:4.0.13-SNAPSHOT" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.bedework:bw-util-indexing:4.0.13-SNAPSHOT" level="project" />
+    <orderEntry type="module" module-name="bw-util-args" scope="PROVIDED" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: org.bedework:bw-util-calendar:4.0.17-SNAPSHOT" level="project" />
+    <orderEntry type="module" module-name="bw-util-xml" />
+    <orderEntry type="module" module-name="bw-util-config" />
+    <orderEntry type="module" module-name="bw-util-elasticsearch" scope="PROVIDED" />
+    <orderEntry type="module" module-name="bw-util-indexing" scope="PROVIDED" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.elasticsearch:elasticsearch:1.5.2" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.apache.lucene:lucene-core:4.10.4" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.apache.lucene:lucene-analyzers-common:4.10.4" level="project" />
@@ -50,24 +46,17 @@
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.antlr:antlr-runtime:3.5" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.ow2.asm:asm:4.1" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.ow2.asm:asm-commons:4.1" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-jmx:4.0.13-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-misc:4.0.13-SNAPSHOT" level="project" />
+    <orderEntry type="module" module-name="bw-util-jmx" />
+    <orderEntry type="module" module-name="bw-util-misc" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.iq80.leveldb:leveldb:min:0.5" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.iq80.leveldb:leveldb-api:0.5" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: com.google.guava:guava:12.0" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: com.google.code.findbugs:jsr305:1.3.9" level="project" />
     <orderEntry type="module" module-name="bw-timezone-server-tzconvert" scope="PROVIDED" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-servlet:4.0.13-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: org.apache.struts:struts-core:1.3.10" level="project" />
-    <orderEntry type="library" name="Maven: antlr:antlr:2.7.2" level="project" />
-    <orderEntry type="library" name="Maven: commons-beanutils:commons-beanutils:1.8.0" level="project" />
-    <orderEntry type="library" name="Maven: commons-chain:commons-chain:1.2" level="project" />
-    <orderEntry type="library" name="Maven: commons-digester:commons-digester:1.8" level="project" />
-    <orderEntry type="library" name="Maven: commons-validator:commons-validator:1.3.1" level="project" />
-    <orderEntry type="library" name="Maven: oro:oro:2.0.8" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-timezones:4.0.13-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-caching:4.0.13-SNAPSHOT" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-http:4.0.13-SNAPSHOT" level="project" />
+    <orderEntry type="module" module-name="bw-util-servlet" />
+    <orderEntry type="module" module-name="bw-util-timezones" />
+    <orderEntry type="module" module-name="bw-util-caching" />
+    <orderEntry type="module" module-name="bw-util-http" />
     <orderEntry type="module" module-name="bw-xml-icalendar" scope="PROVIDED" />
     <orderEntry type="module" module-name="bw-xml-tzsvr" scope="PROVIDED" />
     <orderEntry type="module" module-name="bw-xml-calws-soap" scope="PROVIDED" />
@@ -83,7 +72,7 @@
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.apache.commons:commons-lang3:3.3.2" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: commons-codec:commons-codec:1.9" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.apache.httpcomponents:httpclient:4.2.2" level="project" />
-    <orderEntry type="library" name="Maven: commons-logging:commons-logging:1.1.1" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: commons-logging:commons-logging:1.1.1" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.apache.httpcomponents:httpcore:4.2.2" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: javax.servlet:servlet-api:2.5" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: log4j:log4j:1.2.15" level="project" />
