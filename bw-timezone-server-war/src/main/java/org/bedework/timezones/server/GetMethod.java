@@ -78,6 +78,9 @@ public class GetMethod extends MethodBase {
   private static final String zonesEl = "zones";
   private static final String observancesEl = "observances";
 
+  // TODO - fix stylesheets to parse json from list
+  private static final String namesReqPar = "names";
+
   @Override
   public void doMethod(final HttpServletRequest req,
                        final HttpServletResponse resp) throws ServletException {
@@ -89,6 +92,15 @@ public class GetMethod extends MethodBase {
     }
 
     try {
+      if (req.getParameter("names") != null) {
+        if (ifNoneMatchTest(req, resp)) {
+          return;
+        }
+
+        doNames(resp);
+        return;
+      }
+
       if (ruri.uriElements.size() == 0) {
         return;
       }
