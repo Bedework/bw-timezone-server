@@ -17,6 +17,7 @@
 		<bedework.snapshots.repo.url>scp://dev.bedework.org/data/repository/maven/maven2</bedework.snapshots.repo.url>
 		<bw-xml.version>4.0.5</bw-xml.version>
 		<bw-util.version>4.0.18</bw-util.version>
+    <bw-util2.version>4.0.0</bw-util2.version>
 
     <ical4j.groupId>org.bedework.ical4j</ical4j.groupId>
     <ical4j.artifactId>ical4j</ical4j.artifactId>
@@ -104,11 +105,6 @@
       </dependency>
       <dependency>
         <groupId>org.bedework</groupId>
-        <artifactId>bw-util-calendar</artifactId>
-        <version>${bw-util.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.bedework</groupId>
         <artifactId>bw-util-config</artifactId>
         <version>${bw-util.version}</version>
       </dependency>
@@ -137,6 +133,13 @@
         <artifactId>bw-util-timezones</artifactId>
         <version>${bw-util.version}</version>
       </dependency>
+
+      <dependency>
+        <groupId>org.bedework</groupId>
+        <artifactId>bw-util2-calendar</artifactId>
+        <version>${bw-util2.version}</version>
+      </dependency>
+
 			<!-- Bedework: Web Services -->
 			<dependency>
 				<groupId>org.bedework</groupId>

@@ -19,7 +19,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="bw-timezone-server-common" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-args:4.0.18" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-calendar:4.0.18" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-config:4.0.18" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-elasticsearch:4.0.18" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-indexing:4.0.18" level="project" />
@@ -42,6 +41,7 @@
     <orderEntry type="library" name="Maven: org.bedework:bw-util-misc:4.0.18" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-timezones:4.0.18" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-http:4.0.18" level="project" />
+    <orderEntry type="library" name="Maven: org.bedework:bw-util2-calendar:4.0.0" level="project" />
     <orderEntry type="library" name="Maven: org.iq80.leveldb:leveldb:min:0.5" level="project" />
     <orderEntry type="module" module-name="bw-timezone-server-tzconvert" />
     <orderEntry type="library" name="Maven: log4j:log4j:1.2.15" level="project" />

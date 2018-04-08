@@ -16,10 +16,7 @@
       <groupId>org.bedework</groupId>
       <artifactId>bw-util-args</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.bedework</groupId>
-      <artifactId>bw-util-calendar</artifactId>
-    </dependency>
+
     <dependency>
       <groupId>org.bedework</groupId>
       <artifactId>bw-util-config</artifactId>
@@ -40,7 +37,14 @@
       <groupId>org.bedework</groupId>
       <artifactId>bw-util-timezones</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>org.bedework</groupId>
+      <artifactId>bw-util2-calendar</artifactId>
+    </dependency>
+
 		<!-- Bedework: Web Services -->
+
 		<dependency>
 			<groupId>org.bedework</groupId>
 			<artifactId>bw-xml-icalendar</artifactId>

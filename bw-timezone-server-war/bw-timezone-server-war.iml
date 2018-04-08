@@ -24,7 +24,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="bw-timezone-server-common" scope="PROVIDED" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.bedework:bw-util-args:4.0.18" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.bedework:bw-util-calendar:4.0.18" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-config:4.0.18" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-xml:4.0.18" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.bedework:bw-util-elasticsearch:4.0.18" level="project" />
@@ -48,6 +47,7 @@
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.ow2.asm:asm-commons:4.1" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-jmx:4.0.18" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-misc:4.0.18" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: org.bedework:bw-util2-calendar:4.0.0" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.iq80.leveldb:leveldb:min:0.5" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.iq80.leveldb:leveldb-api:0.5" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: com.google.guava:guava:12.0" level="project" />
