@@ -193,7 +193,14 @@ public class GetMethod extends MethodBase {
       return;
     }
 
-    tzids.doTzid(resp, tzid);
+    if (!tzid.endsWith("/observances")) {
+      tzids.doTzid(resp, tzid);
+      return;
+    }
+
+    final int len = tzid.lastIndexOf("/");
+
+    doExpand(req, resp, tzid.substring(0, len));
   }
 
   private void doFind(final HttpServletRequest req,
@@ -261,6 +268,42 @@ public class GetMethod extends MethodBase {
       final String changedsince = req.getParameter("changedsince");
       final ExpandedMapEntry tzs = util.getExpanded(tzid, start, end,
                                                     ruri == null);
+
+      if (tzs == null) {
+        errorResponse(resp,
+                      HttpServletResponse.SC_NOT_FOUND,
+                      missingTzid);
+        return;
+      }
+
+      resp.setHeader("ETag", tzs.getEtag());
+
+      writeJson(resp, tzs.getTzs());
+    } catch (final ServletException se) {
+      throw se;
+    } catch (final Throwable t) {
+      throw new ServletException(t);
+    }
+  }
+
+  // New style
+  private void doExpand(final HttpServletRequest req,
+                        final HttpServletResponse resp,
+                        final String tzid) throws ServletException {
+    try {
+      resp.setContentType("application/json; charset=UTF-8");
+
+      if (tzid == null) {
+        errorResponse(resp,
+                      HttpServletResponse.SC_BAD_REQUEST,
+                      missingTzid);
+        return;
+      }
+
+      final String start = req.getParameter("start");
+      final String end = req.getParameter("end");
+      final ExpandedMapEntry tzs = util.getExpanded(tzid, start, end,
+                                                    false);
 
       if (tzs == null) {
         errorResponse(resp,

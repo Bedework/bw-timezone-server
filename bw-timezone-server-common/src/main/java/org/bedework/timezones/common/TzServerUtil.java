@@ -579,7 +579,14 @@ public class TzServerUtil {
                                       final boolean oldForm) throws Throwable {
     expandFetches++;
 
-    final ExpandedMapEntryKey emek = makeExpandedKey(tzid, start, end);
+    final ExpandedMapEntryKey emek;
+    if (oldForm) {
+      emek = makeExpandedKey(tzid, start, end);
+    } else {
+      emek = new ExpandedMapEntryKey(tzid,
+                                     XcalUtil.getIcalFormatDateTime(start),
+                                     XcalUtil.getIcalFormatDateTime(end));
+    }
 
     ExpandedMapEntry tzs = getcache().getExpanded(emek);
     if (tzs != null) {
