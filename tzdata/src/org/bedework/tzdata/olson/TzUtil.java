@@ -36,11 +36,7 @@ import java.util.Map;
  *
  * @author douglm
  */
-public class TzUtil {
-  private transient Logger log;
-
-  private boolean debug;
-
+public class TzUtil extends Logged {
   private String infileName;
 
   private Map<String, List<ZoneData>> zones = new HashMap<String, List<ZoneData>>();
@@ -210,30 +206,6 @@ public class TzUtil {
     System.out.println("       -f <filename>");
     System.out.println("            specify file containing data");
     System.out.println("");
-  }
-
-  protected Logger getLog() {
-    if (log == null) {
-      log = Logger.getLogger(this.getClass());
-    }
-
-    return log;
-  }
-
-  protected void info(final String msg) {
-    getLog().info(msg);
-  }
-
-  protected void error(final String msg) {
-    getLog().error(msg);
-  }
-
-  protected void error(final Throwable t) {
-    getLog().error(this, t);
-  }
-
-  protected void trace(final String msg) {
-    getLog().debug(msg);
   }
 
   /** Main
