@@ -28,7 +28,7 @@
     -->
 
 		<!-- Third Party Library Versions -->
-		<jackson.version>2.3.1</jackson.version>
+		<jackson.version>2.9.6</jackson.version>
 		<apache-http.version>4.2.2</apache-http.version>
 		<servlet-api.version>2.5</servlet-api.version>
 		<junit.version>4.8.2</junit.version>
