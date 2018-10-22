@@ -28,9 +28,9 @@
     -->
 
 		<!-- Third Party Library Versions -->
-		<jackson.version>2.3.1</jackson.version>
     <http-client.version>4.5.3</http-client.version>
     <http-core.version>4.4.8</http-core.version>
+		<jackson.version>2.9.6</jackson.version>
 		<servlet-api.version>2.5</servlet-api.version>
 		<junit.version>4.8.2</junit.version>
 		<log4j.version>1.2.15</log4j.version>
