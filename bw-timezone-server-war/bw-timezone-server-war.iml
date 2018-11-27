@@ -22,9 +22,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: com.fasterxml.jackson.core:jackson-core:2.9.6" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: com.fasterxml.jackson.core:jackson-databind:2.9.6" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.9.6" level="project" />
     <orderEntry type="module" module-name="bw-timezone-server-common" scope="PROVIDED" />
     <orderEntry type="module" module-name="bw-util-args" scope="PROVIDED" />
     <orderEntry type="module" module-name="bw-util-config" />
