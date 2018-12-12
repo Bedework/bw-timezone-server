@@ -16,7 +16,7 @@
 package org.bedework.timezones.convert;
 
 import org.bedework.util.jmx.InfoLines;
-import org.bedework.util.misc.Logged;
+import org.bedework.util.logging.Logged;
 import org.bedework.util.timezones.TzFetcher;
 
 import net.fortuna.ical4j.model.ComponentList;
@@ -45,7 +45,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-class Compare extends Logged {
+class Compare implements Logged {
   /**
    * @param vtzs timezones to compare
    * @param tzFetcher fetcher to compare against
@@ -96,7 +96,7 @@ class Compare extends Logged {
       matches = false;
     }
 
-    if (debug) {
+    if (debug()) {
       debug("Timezone " + tzid + " match=" + matches);
     }
 
