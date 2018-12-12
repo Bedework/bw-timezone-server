@@ -41,9 +41,9 @@
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-core:2.9.6" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.9.6" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util2-calendar:4.0.1" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-xml-icalendar:4.0.6" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-xml-tzsvr:4.0.6" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-xml-calws-soap:4.0.6" level="project" />
+    <orderEntry type="module" module-name="bw-xml-icalendar" />
+    <orderEntry type="module" module-name="bw-xml-tzsvr" />
+    <orderEntry type="module" module-name="bw-xml-calws-soap" />
     <orderEntry type="library" name="Maven: org.iq80.leveldb:leveldb:min:0.5" level="project" />
     <orderEntry type="library" name="Maven: org.iq80.leveldb:leveldb-api:0.5" level="project" />
     <orderEntry type="library" name="Maven: com.google.guava:guava:12.0" level="project" />
