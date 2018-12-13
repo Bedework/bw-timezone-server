@@ -22,7 +22,7 @@ import org.bedework.timezones.common.Differ.DiffListEntry;
 import org.bedework.timezones.common.leveldb.LdbCachedData;
 import org.bedework.util.calendar.XcalUtil;
 import org.bedework.util.jmx.ConfigHolder;
-import org.bedework.util.logging.SLogged;
+import org.bedework.util.logging.BwLogger;
 import org.bedework.util.timezones.DateTimeUtil;
 import org.bedework.util.timezones.model.ExpandedTimezoneType;
 import org.bedework.util.timezones.model.ObservanceType;
@@ -58,10 +58,10 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *
  *   @author Mike Douglass
  */
-public class TzServerUtil implements SLogged {
-  static {
-    SLogged.setLoggerClass(TzServerUtil.class);
-  }
+public class TzServerUtil {
+  private static BwLogger logger =
+          new BwLogger().setLoggedClass(TzServerUtil.class);
+
   private static String appname = "tzsvr";
 
   private static TzServerUtil instance;
@@ -198,8 +198,8 @@ public class TzServerUtil implements SLogged {
       try {
         tzutil.cache.stop();
       } catch (final Throwable t) {
-        SLogged.error(t);
-        SLogged.error("Error stopping cache");
+        logger.error(t);
+        logger.error("Error stopping cache");
       }
 
       tzutil.cache = null;
@@ -314,7 +314,7 @@ public class TzServerUtil implements SLogged {
     final String tzdataUrl = config.getTzdataUrl();
 
     if (tzdataUrl == null) {
-      SLogged.error("No tz data url");
+      logger.error("No tz data url");
       return null;
     }
 
@@ -809,14 +809,14 @@ public class TzServerUtil implements SLogged {
     final TzConfig cfg = getTzConfig();
 
     if (cfg == null) {
-      SLogged.error("No config data");
+      logger.error("No config data");
       return;
     }
 
     try {
       cache = new LdbCachedData(cfg, clear);
     } catch (final TzException te) {
-      SLogged.error(te);
+      logger.error(te);
       cache = null;
     }
 

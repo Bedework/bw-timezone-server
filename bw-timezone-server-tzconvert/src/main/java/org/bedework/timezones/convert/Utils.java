@@ -15,7 +15,7 @@
 */
 package org.bedework.timezones.convert;
 
-import org.bedework.util.logging.SLogged;
+import org.bedework.util.logging.BwLogger;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -28,10 +28,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-class Utils implements SLogged {
-  static {
-    SLogged.setLoggerClass(Utils.class);
-  }
+class Utils {
+  private static BwLogger logger =
+          new BwLogger().setLoggedClass(Utils.class);
+
   /**
    * @param month - in Cyrus form 1->12
    * @param year - actual year
@@ -233,7 +233,7 @@ class Utils implements SLogged {
                     final Object... params) {
     final Formatter f = new Formatter();
 
-    SLogged.info(f.format(fmt, params).toString());
+    logger.info(f.format(fmt, params).toString());
   }
 
   static void assertion(final boolean test,
