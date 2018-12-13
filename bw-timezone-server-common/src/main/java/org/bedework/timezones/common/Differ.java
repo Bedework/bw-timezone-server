@@ -19,9 +19,10 @@
 package org.bedework.timezones.common;
 
 import org.bedework.util.calendar.diff.XmlIcalCompare;
+import org.bedework.util.logging.BwLogger;
+import org.bedework.util.logging.Logged;
 
 import ietf.params.xml.ns.icalendar_2.IcalendarType;
-import org.apache.log4j.Logger;
 import org.oasis_open.docs.ws_calendar.ns.soap.ComponentSelectionType;
 
 import java.util.ArrayList;
@@ -35,11 +36,7 @@ import java.util.TreeSet;
  *
  * @author douglm
  */
-public class Differ {
-  private boolean debug;
-
-  private transient Logger log;
-
+public class Differ implements Logged {
   /**
    */
   public static class DiffListEntry {
@@ -108,7 +105,6 @@ public class Differ {
   /**
    */
   public Differ() {
-    debug = getLogger().isDebugEnabled();
   }
 
   /** Compares the new set of data with the supplied current set of data.
@@ -133,10 +129,10 @@ public class Differ {
       }
     }
 
-    if (debug) {
-      trace("Following ids appear to have been added");
+    if (debug()) {
+      debug("Following ids appear to have been added");
       for (String id: nc.addedNames) {
-        trace("   " + id);
+        debug("   " + id);
       }
     }
 
@@ -183,8 +179,8 @@ public class Differ {
         continue;
       }
 
-      if (debug) {
-        trace("Adding " + tzid);
+      if (debug()) {
+        debug("Adding " + tzid);
       }
 
       DiffListEntry dle = new DiffListEntry();
@@ -271,49 +267,18 @@ public class Differ {
     return nc;
   }
 
-  /**
-   * @return Logger
-   */
-  protected Logger getLogger() {
-    if (log == null) {
-      log = Logger.getLogger(this.getClass());
+  /* ====================================================================
+   *                   Logged methods
+   * ==================================================================== */
+
+  private BwLogger logger = new BwLogger();
+
+  @Override
+  public BwLogger getLogger() {
+    if ((logger.getLoggedClass() == null) && (logger.getLoggedName() == null)) {
+      logger.setLoggedClass(getClass());
     }
 
-    return log;
-  }
-
-  /**
-   * @param t
-   */
-  protected void error(final Throwable t) {
-    getLogger().error(this, t);
-  }
-
-  /**
-   * @param msg
-   */
-  protected void error(final String msg) {
-    getLogger().error(msg);
-  }
-
-  /**
-   * @param msg
-   */
-  protected void warn(final String msg) {
-    getLogger().warn(msg);
-  }
-
-  /**
-   * @param msg
-   */
-  protected void info(final String msg) {
-    getLogger().info(msg);
-  }
-
-  /**
-   * @param msg
-   */
-  protected void trace(final String msg) {
-    getLogger().debug(msg);
+    return logger;
   }
 }

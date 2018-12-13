@@ -21,9 +21,9 @@ package org.bedework.timezones.server;
 import org.bedework.timezones.convert.TzCnvSvc;
 import org.bedework.timezones.service.TzConf;
 import org.bedework.util.jmx.ConfBase;
+import org.bedework.util.logging.BwLogger;
+import org.bedework.util.logging.Logged;
 import org.bedework.util.servlet.HttpServletUtils;
-
-import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.Enumeration;
@@ -50,19 +50,13 @@ import javax.servlet.http.HttpSessionListener;
  *
  */
 public class TzServer extends HttpServlet
-        implements HttpSessionListener, ServletContextListener {
-  private boolean debug;
-
+        implements Logged, HttpSessionListener, ServletContextListener {
   protected boolean dumpContent;
-
-  protected transient Logger log;
 
   @Override
   public void init(final ServletConfig config) throws ServletException {
     try {
       super.init(config);
-
-      debug = getLogger().isDebugEnabled();
 
       dumpContent = "true".equals(config.getInitParameter("dumpContent"));
     } catch (final ServletException se) {
@@ -78,8 +72,8 @@ public class TzServer extends HttpServlet
     try {
       final String methodName = req.getMethod();
 
-      if (debug) {
-        debugMsg("entry: " + methodName);
+      if (debug()) {
+        debug("entry: " + methodName);
         dumpRequest(req);
       }
 
@@ -114,37 +108,35 @@ public class TzServer extends HttpServlet
    */
   @SuppressWarnings("unchecked")
   public void dumpRequest(final HttpServletRequest req) {
-    final Logger log = getLogger();
-
     try {
       String title = "Request headers";
 
-      log.debug(title);
+      debug(title);
 
-      HttpServletUtils.dumpHeaders(req, log);
+      HttpServletUtils.dumpHeaders(req);
 
       final Enumeration<String> names = req.getParameterNames();
 
       title = "Request parameters";
 
-      log.debug(title + " - global info and uris");
-      log.debug("getRemoteAddr = " + req.getRemoteAddr());
-      log.debug("getRequestURI = " + req.getRequestURI());
-      log.debug("getRemoteUser = " + req.getRemoteUser());
-      log.debug("getRequestedSessionId = " + req.getRequestedSessionId());
-      log.debug("HttpUtils.getRequestURL(req) = " + req.getRequestURL());
-      log.debug("contextPath=" + req.getContextPath());
-      log.debug("query=" + req.getQueryString());
-      log.debug("contentlen=" + req.getContentLength());
-      log.debug("request=" + req);
-      log.debug("parameters:");
+      debug(title + " - global info and uris");
+      debug("getRemoteAddr = " + req.getRemoteAddr());
+      debug("getRequestURI = " + req.getRequestURI());
+      debug("getRemoteUser = " + req.getRemoteUser());
+      debug("getRequestedSessionId = " + req.getRequestedSessionId());
+      debug("HttpUtils.getRequestURL(req) = " + req.getRequestURL());
+      debug("contextPath=" + req.getContextPath());
+      debug("query=" + req.getQueryString());
+      debug("contentlen=" + req.getContentLength());
+      debug("request=" + req);
+      debug("parameters:");
 
-      log.debug(title);
+      debug(title);
 
       while (names.hasMoreElements()) {
         final String key = names.nextElement();
         final String val = req.getParameter(key);
-        log.debug("  " + key + " = \"" + val + "\"");
+        debug("  " + key + " = \"" + val + "\"");
       }
     } catch (final Throwable ignored) {
     }
@@ -203,42 +195,6 @@ public class TzServer extends HttpServlet
     conf.stop();
   }
 
-  /**
-   * @return Logger
-   */
-  public Logger getLogger() {
-    if (log == null) {
-      log = Logger.getLogger(this.getClass());
-    }
-
-    return log;
-  }
-
-  /** Debug
-   *
-   * @param msg the message
-   */
-  public void debugMsg(final String msg) {
-    getLogger().debug(msg);
-  }
-
-  /** Info messages
-   *
-   * @param msg the message text
-   */
-  @SuppressWarnings("UnusedDeclaration")
-  public void logIt(final String msg) {
-    getLogger().info(msg);
-  }
-
-  protected void error(final String msg) {
-    getLogger().error(msg);
-  }
-
-  protected void error(final Throwable t) {
-    getLogger().error(this, t);
-  }
-
   @Override
   public void sessionCreated(final HttpSessionEvent se) {
   }
@@ -248,5 +204,20 @@ public class TzServer extends HttpServlet
    */
   @Override
   public void sessionDestroyed(final HttpSessionEvent se) {
+  }
+
+  /* ====================================================================
+   *                   Logged methods
+   * ==================================================================== */
+
+  private BwLogger logger = new BwLogger();
+
+  @Override
+  public BwLogger getLogger() {
+    if ((logger.getLoggedClass() == null) && (logger.getLoggedName() == null)) {
+      logger.setLoggedClass(getClass());
+    }
+
+    return logger;
   }
 }

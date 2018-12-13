@@ -18,7 +18,7 @@
 */
 package org.bedework.timezones.server;
 
-import org.apache.log4j.Logger;
+import org.bedework.util.logging.BwLogger;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -39,8 +39,8 @@ public class ListHandler extends MethodBase {
   @Override
   public void doMethod(final HttpServletRequest req,
                        final HttpServletResponse resp) throws ServletException {
-    if (debug) {
-      trace("ListHandler: doMethod");
+    if (debug()) {
+      debug("ListHandler: doMethod");
     }
 
     try {
@@ -64,9 +64,8 @@ public class ListHandler extends MethodBase {
       listResponse(resp, util.getTimezones(changedsince));
 
       if (changedsince != null) {
-        final Logger refreshLogger = 
-                Logger.getLogger("org.bedework.timezones.refresh.logger");
-        refreshLogger.info("Refresh call from " + req.getRemoteHost());
+        new BwLogger().setLoggedName("org.bedework.timezones.refresh.logger")
+                      .info("Refresh call from " + req.getRemoteHost());
       }
     } catch (ServletException se) {
       throw se;

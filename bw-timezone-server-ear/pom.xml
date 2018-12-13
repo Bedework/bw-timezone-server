@@ -22,10 +22,6 @@
 					<artifactId>derbynet</artifactId>
 				</exclusion>
 				<exclusion>
-					<groupId>log4j</groupId>
-					<artifactId>log4j</artifactId>
-				</exclusion>
-				<exclusion>
 					<groupId>org.apache.lucene</groupId>
 					<artifactId>lucene-core</artifactId>
 				</exclusion>
@@ -89,10 +85,6 @@
           <artifactId>hibernate-jpa-2.0-api</artifactId>
         </exclusion>
         <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>
-        <exclusion>
           <groupId>org.apache.derby</groupId>
           <artifactId>derbynet</artifactId>
         </exclusion>
@@ -123,10 +115,6 @@
       <artifactId>bw-util-servlet</artifactId>
       <version>${bw-util.version}</version>
       <exclusions>
-        <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>
         <exclusion>
           <groupId>org.hibernate</groupId>
           <artifactId>hibernate-core</artifactId>
@@ -170,10 +158,6 @@
       <artifactId>bw-util-xml</artifactId>
       <version>${bw-util.version}</version>
       <exclusions>
-        <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>
         <exclusion>
           <artifactId>commons-codec</artifactId>
           <groupId>commons-codec</groupId>

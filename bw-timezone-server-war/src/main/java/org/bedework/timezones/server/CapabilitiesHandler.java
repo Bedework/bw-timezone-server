@@ -167,8 +167,8 @@ public class CapabilitiesHandler extends MethodBase {
   @Override
   public void doMethod(final HttpServletRequest req,
                        final HttpServletResponse resp) throws ServletException {
-    if (debug) {
-      trace("CapabilitiesHandler: doMethod");
+    if (debug()) {
+      debug("CapabilitiesHandler: doMethod");
     }
 
     try {

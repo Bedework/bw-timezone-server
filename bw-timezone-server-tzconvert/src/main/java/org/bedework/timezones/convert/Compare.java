@@ -16,6 +16,7 @@
 package org.bedework.timezones.convert;
 
 import org.bedework.util.jmx.InfoLines;
+import org.bedework.util.logging.BwLogger;
 import org.bedework.util.logging.Logged;
 import org.bedework.util.timezones.TzFetcher;
 
@@ -303,6 +304,21 @@ class Compare implements Logged {
     withOffset.setUtc(true);
 
     return withOffset;
+  }
+
+  /* ====================================================================
+   *                   Logged methods
+   * ==================================================================== */
+
+  private BwLogger logger = new BwLogger();
+
+  @Override
+  public BwLogger getLogger() {
+    if ((logger.getLoggedClass() == null) && (logger.getLoggedName() == null)) {
+      logger.setLoggedClass(getClass());
+    }
+
+    return logger;
   }
 }
 

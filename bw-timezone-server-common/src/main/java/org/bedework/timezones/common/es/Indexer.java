@@ -10,7 +10,8 @@ import org.bedework.util.elasticsearch.DocBuilderBase.UpdateInfo;
 import org.bedework.util.elasticsearch.EsDocInfo;
 import org.bedework.util.elasticsearch.EsUtil;
 import org.bedework.util.indexing.IndexException;
-import org.bedework.util.misc.Logged;
+import org.bedework.util.logging.BwLogger;
+import org.bedework.util.logging.Logged;
 
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.Client;
@@ -20,7 +21,7 @@ import org.elasticsearch.client.Client;
  * Date: 3/22/17
  * Time: 22:57
  */
-public class Indexer extends Logged {
+public class Indexer implements Logged {
   private final EsUtil utils;
   private final TzConfig config;
   
@@ -53,7 +54,7 @@ public class Indexer extends Logged {
 
     IndexResponse resp = utils.indexDoc(edi, config.getIndexName());
 
-    if (debug) {
+    if (debug()) {
       if (resp == null) {
         debug("IndexResponse: resp=null");
       } else {
@@ -72,5 +73,20 @@ public class Indexer extends Logged {
     
     client = utils.getClient();
     return client;
+  }
+
+  /* ====================================================================
+   *                   Logged methods
+   * ==================================================================== */
+
+  private BwLogger logger = new BwLogger();
+
+  @Override
+  public BwLogger getLogger() {
+    if ((logger.getLoggedClass() == null) && (logger.getLoggedName() == null)) {
+      logger.setLoggedClass(getClass());
+    }
+
+    return logger;
   }
 }

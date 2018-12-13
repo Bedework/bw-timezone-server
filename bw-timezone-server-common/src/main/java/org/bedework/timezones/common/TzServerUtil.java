@@ -22,6 +22,7 @@ import org.bedework.timezones.common.Differ.DiffListEntry;
 import org.bedework.timezones.common.leveldb.LdbCachedData;
 import org.bedework.util.calendar.XcalUtil;
 import org.bedework.util.jmx.ConfigHolder;
+import org.bedework.util.logging.SLogged;
 import org.bedework.util.timezones.DateTimeUtil;
 import org.bedework.util.timezones.model.ExpandedTimezoneType;
 import org.bedework.util.timezones.model.ObservanceType;
@@ -37,7 +38,6 @@ import net.fortuna.ical4j.model.UtcOffset;
 import net.fortuna.ical4j.model.component.Observance;
 import net.fortuna.ical4j.model.component.VTimeZone;
 import net.fortuna.ical4j.util.TimeZones;
-import org.apache.log4j.Logger;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -58,7 +58,10 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *
  *   @author Mike Douglass
  */
-public class TzServerUtil {
+public class TzServerUtil implements SLogged {
+  static {
+    SLogged.setLoggerClass(TzServerUtil.class);
+  }
   private static String appname = "tzsvr";
 
   private static TzServerUtil instance;
@@ -195,8 +198,8 @@ public class TzServerUtil {
       try {
         tzutil.cache.stop();
       } catch (final Throwable t) {
-        error(t);
-        error("Error stopping cache");
+        SLogged.error(t);
+        SLogged.error("Error stopping cache");
       }
 
       tzutil.cache = null;
@@ -311,7 +314,7 @@ public class TzServerUtil {
     final String tzdataUrl = config.getTzdataUrl();
 
     if (tzdataUrl == null) {
-      error("No tz data url");
+      SLogged.error("No tz data url");
       return null;
     }
 
@@ -464,7 +467,7 @@ public class TzServerUtil {
       cal.setTime(date);
 
       //formatTd.setTimeZone(utctz);
-      //trace("formatTd with utc: " + formatTd.format(date));
+      //debug("formatTd with utc: " + formatTd.format(date));
 
       StringBuilder sb = new StringBuilder();
       digit4(sb, cal.get(Calendar.YEAR));
@@ -806,14 +809,14 @@ public class TzServerUtil {
     final TzConfig cfg = getTzConfig();
 
     if (cfg == null) {
-      error("No config data");
+      SLogged.error("No config data");
       return;
     }
 
     try {
       cache = new LdbCachedData(cfg, clear);
     } catch (final TzException te) {
-      error(te);
+      SLogged.error(te);
       cache = null;
     }
 
@@ -832,41 +835,6 @@ public class TzServerUtil {
       throw new RuntimeException("Unable to initialise UTC timezone");
     }
     cal.setTimeZone(utctz);
-  }
-
-  /**
-   * @return Logger
-   */
-  static Logger getLogger() {
-    return Logger.getLogger(TzServerUtil.class);
-  }
-
-  /** Debug
-   *
-   * @param msg
-   */
-  static void debugMsg(final String msg) {
-    getLogger().debug(msg);
-  }
-
-  /** Info messages
-   *
-   * @param msg
-   */
-  static void logIt(final String msg) {
-    getLogger().info(msg);
-  }
-
-  static void error(final String msg) {
-    getLogger().error(msg);
-  }
-
-  static void info(final String msg) {
-    getLogger().info(msg);
-  }
-
-  static void error(final Throwable t) {
-    getLogger().error(TzServerUtil.class, t);
   }
 
   private static void digit2(final StringBuilder sb, final int val) throws Throwable {

@@ -41,8 +41,8 @@ public class TzidHandler extends MethodBase {
   @Override
   public void doMethod(final HttpServletRequest req,
                        final HttpServletResponse resp) throws ServletException {
-    if (debug) {
-      trace("TzidHandler: doMethod");
+    if (debug()) {
+      debug("TzidHandler: doMethod");
     }
 
     doTzid(resp, req.getParameter("tzid"));

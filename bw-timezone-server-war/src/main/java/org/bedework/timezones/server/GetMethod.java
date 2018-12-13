@@ -87,8 +87,8 @@ public class GetMethod extends MethodBase {
     final ResourceUri ruri = getResourceUri(req);
     final long start = System.currentTimeMillis();
 
-    if (debug) {
-      trace("GetMethod: doMethod  path=" + ruri.uri);
+    if (debug()) {
+      debug("GetMethod: doMethod  path=" + ruri.uri);
     }
 
     try {
@@ -128,8 +128,8 @@ public class GetMethod extends MethodBase {
         doExpand(req, resp, ruri, dataPrefixElements);
       }
     } finally {
-      if (debug) {
-        trace("GET exit. Took " + TzServerUtil.printableTime(
+      if (debug()) {
+        debug("GET exit. Took " + TzServerUtil.printableTime(
                 System.currentTimeMillis() - start));
       }
     }

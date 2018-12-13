@@ -41,8 +41,8 @@ public class PostMethod extends MethodBase {
   @Override
   public void doMethod(HttpServletRequest req,
                         HttpServletResponse resp) throws ServletException {
-    if (debug) {
-      trace("PostMethod: doMethod");
+    if (debug()) {
+      debug("PostMethod: doMethod");
     }
 
     try {

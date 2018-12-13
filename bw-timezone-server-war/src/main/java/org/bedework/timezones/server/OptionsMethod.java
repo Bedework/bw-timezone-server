@@ -39,8 +39,8 @@ public class OptionsMethod extends MethodBase {
   @Override
   public void doMethod(HttpServletRequest req,
                         HttpServletResponse resp) throws ServletException {
-    if (debug) {
-      trace("OptionsMethod: doMethod");
+    if (debug()) {
+      debug("OptionsMethod: doMethod");
     }
 
     try {

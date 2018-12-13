@@ -21,6 +21,8 @@ package org.bedework.timezones.common;
 import org.bedework.timezones.common.db.TzAlias;
 import org.bedework.util.caching.FlushMap;
 import org.bedework.util.calendar.IcalToXcal;
+import org.bedework.util.logging.BwLogger;
+import org.bedework.util.logging.Logged;
 import org.bedework.util.timezones.DateTimeUtil;
 import org.bedework.util.timezones.model.TimezoneType;
 
@@ -31,10 +33,9 @@ import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.Component;
 import net.fortuna.ical4j.model.TimeZone;
 import net.fortuna.ical4j.model.component.VTimeZone;
-import net.fortuna.ical4j.model.property.TzidAliasOf;
 import net.fortuna.ical4j.model.property.LastModified;
 import net.fortuna.ical4j.model.property.TzId;
-import org.apache.log4j.Logger;
+import net.fortuna.ical4j.model.property.TzidAliasOf;
 
 import java.io.StringReader;
 import java.sql.Timestamp;
@@ -51,11 +52,7 @@ import java.util.TreeSet;
  *
  * @author douglm
  */
-public abstract class AbstractCachedData implements CachedData {
-  protected boolean debug;
-
-  protected transient Logger log;
-
+public abstract class AbstractCachedData implements Logged, CachedData {
   protected String msgPrefix;
 
   /** When we were created for debugging */
@@ -110,8 +107,6 @@ public abstract class AbstractCachedData implements CachedData {
    */
   public AbstractCachedData(final TzConfig cfg,
                             final String msgPrefix) throws TzException {
-    debug = getLogger().isDebugEnabled();
-
     if (cfg == null) {
       throw new TzException("No configuration data");
     }
@@ -521,52 +516,17 @@ public abstract class AbstractCachedData implements CachedData {
    };
 
   /* ====================================================================
-   *                   private methods
+   *                   Logged methods
    * ==================================================================== */
 
-  /**
-   * @return Logger
-   */
-  protected Logger getLogger() {
-    if (log == null) {
-      log = Logger.getLogger(this.getClass());
+  private BwLogger logger = new BwLogger();
+
+  @Override
+  public BwLogger getLogger() {
+    if ((logger.getLoggedClass() == null) && (logger.getLoggedName() == null)) {
+      logger.setLoggedClass(getClass());
     }
 
-    return log;
-  }
-
-  /**
-   * @param t
-   */
-  protected void error(final Throwable t) {
-    getLogger().error(this, t);
-  }
-
-  /**
-   * @param msg
-   */
-  protected void error(final String msg) {
-    getLogger().error(msg);
-  }
-
-  /**
-   * @param msg
-   */
-  protected void warn(final String msg) {
-    getLogger().warn(msg);
-  }
-
-  /**
-   * @param msg
-   */
-  protected void info(final String msg) {
-    getLogger().info(msg);
-  }
-
-  /**
-   * @param msg
-   */
-  protected void trace(final String msg) {
-    getLogger().debug(msg);
+    return logger;
   }
 }

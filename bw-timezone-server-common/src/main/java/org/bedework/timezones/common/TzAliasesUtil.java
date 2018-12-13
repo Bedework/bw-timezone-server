@@ -19,11 +19,11 @@
 package org.bedework.timezones.common;
 
 import org.bedework.util.args.Args;
+import org.bedework.util.logging.BwLogger;
+import org.bedework.util.logging.Logged;
 import org.bedework.util.timezones.model.aliases.AliasInfoType;
 import org.bedework.util.timezones.model.aliases.TimezoneAliasInfoType;
 import org.bedework.util.timezones.model.aliases.TimezonesAliasInfoType;
-
-import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -47,7 +47,7 @@ import javax.xml.namespace.QName;
  *
  *   @author Mike Douglass
  */
-public class TzAliasesUtil {
+public class TzAliasesUtil implements Logged {
   private String infileName;
 
   private String outfileName;
@@ -278,38 +278,18 @@ public class TzAliasesUtil {
     ai.setSource(currentURIStr);
   }
 
-  /**
-   * @return Logger
-   */
-  static Logger getLogger() {
-    return Logger.getLogger(TzAliasesUtil.class);
-  }
+  /* ====================================================================
+   *                   Logged methods
+   * ==================================================================== */
 
-  /** Debug
-   *
-   * @param msg
-   */
-  static void debugMsg(final String msg) {
-    getLogger().debug(msg);
-  }
+  private BwLogger logger = new BwLogger();
 
-  /** Info messages
-   *
-   * @param msg
-   */
-  static void logIt(final String msg) {
-    getLogger().info(msg);
-  }
+  @Override
+  public BwLogger getLogger() {
+    if ((logger.getLoggedClass() == null) && (logger.getLoggedName() == null)) {
+      logger.setLoggedClass(getClass());
+    }
 
-  static void error(final String msg) {
-    getLogger().error(msg);
-  }
-
-  static void info(final String msg) {
-    getLogger().info(msg);
-  }
-
-  static void error(final Throwable t) {
-    getLogger().error(TzAliasesUtil.class, t);
+    return logger;
   }
 }

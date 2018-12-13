@@ -120,8 +120,8 @@ public class LdbCachedData extends AbstractCachedData {
           try {
             refreshWait = cfg.getRefreshDelay();
 
-            if (debug) {
-              trace("Updater: About to update");
+            if (debug()) {
+              debug("Updater: About to update");
             }
 
             if (!updateFromPrimary()) {
@@ -143,8 +143,8 @@ public class LdbCachedData extends AbstractCachedData {
           }
         }
 
-        if (debug) {
-          trace("Updater: About to wait for " +
+        if (debug()) {
+          debug("Updater: About to wait for " +
               refreshWait +
                 " seconds");
 
@@ -161,8 +161,8 @@ public class LdbCachedData extends AbstractCachedData {
             o.wait(refreshWait * 1000);
           }
         } catch (InterruptedException ie) {
-          if (debug) {
-            trace("Updater: Interrupted ");
+          if (debug()) {
+            debug("Updater: Interrupted ");
           }
         } catch (Throwable t) {
           error(t.getMessage());
@@ -185,7 +185,7 @@ public class LdbCachedData extends AbstractCachedData {
     super(cfg, "Db");
 
     try {
-      if (debug) {
+      if (debug()) {
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
       }
 
@@ -440,8 +440,8 @@ public class LdbCachedData extends AbstractCachedData {
           return db;
         }
 
-        if (debug) {
-          trace("Wait for db");
+        if (debug()) {
+          debug("Wait for db");
         }
 
         try {
@@ -555,15 +555,15 @@ public class LdbCachedData extends AbstractCachedData {
    * @throws TzException
    */
   private synchronized boolean updateFromPrimary() throws TzException {
-    if (debug) {
-      trace("Updating from primary");
+    if (debug()) {
+      debug("Updating from primary");
     }
 
     try {
       if (cfg.getPrimaryServer()) {
         // We are a primary. No update needed
-        if (debug) {
-          trace("We are a primary: exit");
+        if (debug()) {
+          debug("We are a primary: exit");
         }
 
         return true; // good enough
@@ -637,8 +637,8 @@ public class LdbCachedData extends AbstractCachedData {
 
           entry.id = sum.getTzid();
           entry.sum = sum;
-          if (debug) {
-            trace("Get db spec for timezone " + entry.id);
+          if (debug()) {
+            debug("Get db spec for timezone " + entry.id);
           }
 
           entry.dbspec = getSpec(entry.id);
@@ -653,8 +653,8 @@ public class LdbCachedData extends AbstractCachedData {
        */
 
       for (final TzEntry entry : tzEntries) {
-        if (debug) {
-          trace("Fetching timezone " + entry.id);
+        if (debug()) {
+          debug("Fetching timezone " + entry.id);
         }
 
         String etag = null;
@@ -692,13 +692,13 @@ public class LdbCachedData extends AbstractCachedData {
         open();
 
         for (final TzEntry entry : tzEntries) {
-          if (debug) {
-            trace("Processing timezone " + entry.id);
+          if (debug()) {
+            debug("Processing timezone " + entry.id);
           }
 
           if (entry.ttz == null) {
-            if (debug) {
-              trace("No change.");
+            if (debug()) {
+              debug("No change.");
             }
             continue;
           }
@@ -863,8 +863,8 @@ public class LdbCachedData extends AbstractCachedData {
     try {
       open();
 
-      if (debug) {
-        trace("Loading initial data from " + cfg.getTzdataUrl());
+      if (debug()) {
+        debug("Loading initial data from " + cfg.getTzdataUrl());
       }
 
       final CachedData cachedData = TzServerUtil.getDataSource(cfg);
@@ -876,8 +876,8 @@ public class LdbCachedData extends AbstractCachedData {
 
       final List<TimezoneType> tzs = cachedData.getTimezones((String)null);
 
-      if (debug) {
-        trace("Initial load has " + tzs.size() + " timezones");
+      if (debug()) {
+        debug("Initial load has " + tzs.size() + " timezones");
       }
 
       int ct = 0;
@@ -917,18 +917,18 @@ public class LdbCachedData extends AbstractCachedData {
         putTzSpec(spec);
 
         ct++;
-        if (debug && ((ct%25) == 0)) {
-          trace("Initial load has processed " + ct + " timezones");
+        if (debug() && ((ct%25) == 0)) {
+          debug("Initial load has processed " + ct + " timezones");
         }
       }
 
-      if (debug) {
-        trace("Initial load processed " + ct + " timezones");
+      if (debug()) {
+        debug("Initial load processed " + ct + " timezones");
       }
 
       return true;
     } catch (final TzException te) {
-      getLogger().error("Unable to add tz data to db", te);
+      error("Unable to add tz data to db", te);
       throw te;
     } finally {
       close();
@@ -1058,8 +1058,8 @@ public class LdbCachedData extends AbstractCachedData {
           (!lastConfigLevelDbPath.equals(cfg.getLeveldbPath()))) {
         lastConfigLevelDbPath = cfg.getLeveldbPath();
 
-        if (debug) {
-          trace("Try to open leveldb at " + lastConfigLevelDbPath);
+        if (debug()) {
+          debug("Try to open leveldb at " + lastConfigLevelDbPath);
         }
 
         final File f = new File(lastConfigLevelDbPath);

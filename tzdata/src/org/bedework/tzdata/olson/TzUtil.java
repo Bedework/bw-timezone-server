@@ -20,8 +20,6 @@ package org.bedework.tzdata.olson;
 
 import edu.rpi.sss.util.Args;
 
-import org.apache.log4j.Logger;
-
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;

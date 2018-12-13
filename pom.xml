@@ -16,7 +16,7 @@
 		<!-- Bedework Versions -->
 		<bw-xml.version>4.0.7-SNAPSHOT</bw-xml.version>
 		<bw-util.version>4.0.20-SNAPSHOT</bw-util.version>
-    <bw-util2.version>4.0.1</bw-util2.version>
+    <bw-util2.version>4.0.2-SNAPSHOT</bw-util2.version>
     <bw-util-logging.version>4.0.0-SNAPSHOT</bw-util-logging.version>
 
     <ical4j.groupId>org.bedework.ical4j</ical4j.groupId>
@@ -34,8 +34,10 @@
 		<jackson.version>2.9.6</jackson.version>
 		<servlet-api.version>2.5</servlet-api.version>
 		<junit.version>4.8.2</junit.version>
-		<log4j.version>1.2.15</log4j.version>
 		<leveldb.version>0.5</leveldb.version>
+
+    <!-- For runnable version -->
+    <log4j.version>1.2.15</log4j.version>
 	</properties>
 
 	<organization>
@@ -205,25 +207,6 @@
 				<artifactId>servlet-api</artifactId>
 				<version>${servlet-api.version}</version>
 				<scope>provided</scope>
-			</dependency>
-			<dependency>
-				<groupId>log4j</groupId>
-				<artifactId>log4j</artifactId>
-				<version>${log4j.version}</version>
-				<exclusions>
-					<exclusion>
-						<artifactId>jmxtools</artifactId>
-						<groupId>com.sun.jdmk</groupId>
-					</exclusion>
-					<exclusion>
-						<artifactId>jmxri</artifactId>
-						<groupId>com.sun.jmx</groupId>
-					</exclusion>
-					<exclusion>
-						<artifactId>jms</artifactId>
-						<groupId>javax.jms</groupId>
-					</exclusion>
-				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>asm</groupId>

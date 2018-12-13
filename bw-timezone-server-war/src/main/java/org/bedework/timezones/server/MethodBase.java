@@ -19,6 +19,8 @@
 package org.bedework.timezones.server;
 
 import org.bedework.timezones.common.TzServerUtil;
+import org.bedework.util.logging.BwLogger;
+import org.bedework.util.logging.Logged;
 import org.bedework.util.timezones.model.ErrorResponseType;
 import org.bedework.util.timezones.model.TimezoneListType;
 import org.bedework.util.timezones.model.TimezoneType;
@@ -26,7 +28,6 @@ import org.bedework.util.timezones.model.TimezoneType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import org.apache.log4j.Logger;
 
 import java.net.URLDecoder;
 import java.text.DateFormat;
@@ -43,7 +44,7 @@ import javax.servlet.http.HttpServletResponse;
  * @author douglm
  *
  */
-public abstract class MethodBase {
+public abstract class MethodBase implements Logged {
   protected static final ErrorResponseType invalidTzid =
       new ErrorResponseType("invalid-tzid",
                             "The \"tzid\" query parameter is not present, or" +
@@ -76,10 +77,6 @@ public abstract class MethodBase {
                                 "The \"tzid\" query parameter is present along with the " +
                                         "\"changedsince\", or has an incorrect value.");
 
-  protected boolean debug;
-
-  protected transient Logger log;
-
   protected ObjectMapper mapper = new ObjectMapper(); // create once, reuse
 
   protected TzServerUtil util;
@@ -88,10 +85,8 @@ public abstract class MethodBase {
    * @throws ServletException
    */
   public MethodBase() throws ServletException {
-    this.debug = getLogger().isDebugEnabled();
-
     try {
-      if (debug) {
+      if (debug()) {
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
       }
 
@@ -182,14 +177,14 @@ public abstract class MethodBase {
       uri = "/";
     }
 
-    if (debug) {
-      trace("uri: " + uri);
+    if (debug()) {
+      debug("uri: " + uri);
     }
 
     final ResourceUri resourceUri = fixPath(uri);
 
-    if (debug) {
-      trace("resourceUri: " + resourceUri.uri);
+    if (debug()) {
+      debug("resourceUri: " + resourceUri.uri);
     }
 
     return resourceUri;
@@ -325,42 +320,18 @@ public abstract class MethodBase {
     }
   }
 
-  /** ===================================================================
-   *                   Logging methods
-   *  =================================================================== */
+  /* ====================================================================
+   *                   Logged methods
+   * ==================================================================== */
 
-  /**
-   * @return Logger
-   */
-  protected Logger getLogger() {
-    if (log == null) {
-      log = Logger.getLogger(this.getClass());
+  private BwLogger logger = new BwLogger();
+
+  @Override
+  public BwLogger getLogger() {
+    if ((logger.getLoggedClass() == null) && (logger.getLoggedName() == null)) {
+      logger.setLoggedClass(getClass());
     }
 
-    return log;
-  }
-
-  protected void debugMsg(final String msg) {
-    getLogger().debug(msg);
-  }
-
-  protected void error(final Throwable t) {
-    getLogger().error(this, t);
-  }
-
-  protected void error(final String msg) {
-    getLogger().error(msg);
-  }
-
-  protected void warn(final String msg) {
-    getLogger().warn(msg);
-  }
-
-  protected void logIt(final String msg) {
-    getLogger().info(msg);
-  }
-
-  protected void trace(final String msg) {
-    getLogger().debug(msg);
+    return logger;
   }
 }
