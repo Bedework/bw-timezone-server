@@ -304,6 +304,7 @@
           </execution>
         </executions>
         <configuration>
+          <checkonly>${org.bedework.deploy.checkonly}</checkonly>
           <noversion>true</noversion>
           <delete>true</delete>
           <earName>bw-timezone-server</earName>
