@@ -294,7 +294,7 @@
       <plugin>
         <groupId>org.bedework</groupId>
         <artifactId>bw-util-maven-deploy</artifactId>
-        <version>${bw-util.version}</version>
+        <version>${bw-util-deploy.version}</version>
         <executions>
           <execution>
             <phase>install</phase>
