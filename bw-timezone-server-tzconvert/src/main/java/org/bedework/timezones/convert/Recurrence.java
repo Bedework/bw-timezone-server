@@ -97,9 +97,9 @@ public class Recurrence {
   Recur getRecur() {
     final StringBuilder sb = new StringBuilder("FREQ=");
     sb.append(Recur.YEARLY);
-    sb.append(';');
 
     if (useUntil) {
+      sb.append(';');
       sb.append("UNTIL=");
       sb.append(until.utcTime());
     }
@@ -157,6 +157,7 @@ public class Recurrence {
     try {
       return new Recur(sb.toString());
     } catch (final ParseException pe) {
+      System.err.println(sb.toString());
       throw new RuntimeException(pe);
     }
   }
