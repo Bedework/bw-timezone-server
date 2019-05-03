@@ -92,7 +92,7 @@ public class RuleSet extends ArrayList<Rule> {
    *  @param maxYear: the maximum year to expand out to
    */
   List<DateOffset> expand(final ZoneRule zoneinfo,
-              final int maxYear) {
+                             final int maxYear) {
     final List<DateOffset> results = new ArrayList<>();
 
     for (final Rule rule: this) {
