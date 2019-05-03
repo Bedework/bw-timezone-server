@@ -27,7 +27,7 @@ public class TzConvertParams extends ConfigBase<TzConvertParams>
   // Set the PRODID value used in generated iCalendar data
   private String prodid = "-//bedework.org//tzsvr//EN";
   private String rootdir = "../../stuff/temp";
-  private int startYear = 1800;
+  private int startYear = 1600;
   private int endYear = 2040;
 
   private boolean compare;
