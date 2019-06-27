@@ -137,6 +137,16 @@ public class TzCnvSvc extends ConfBase<TzConvertParams>
   }
 
   @Override
+  public void setVerboseId(final String val) {
+    getConfig().setVerboseId(val);
+  }
+
+  @Override
+  public String getVerboseId() {
+    return getConfig().getVerboseId();
+  }
+
+  @Override
   public void setAliasesPath(final String val) {
     getConfig().setAliasesPath(val);
   }

@@ -130,14 +130,14 @@ class Zone {
     }
   */
 
-  static class ExpandResult {
+  static class ZoneExpandResult {
     DateTime transition;
     int offsetFrom;
     int offsetTo;
     ZoneRule zonerule;
     Rule rule;
 
-    ExpandResult(final DateTime transition,
+    ZoneExpandResult(final DateTime transition,
                  final int offsetFrom,
                  final int offsetTo,
                  final ZoneRule zonerule,
@@ -164,8 +164,7 @@ class Zone {
   /**   Expand this zone into a set of transitions.
 
    @param ruleSets: parsed Rules for the tzdb
-   @param minYear: starting year
-   @param maxYear: ending year
+   @param params: parameters
 
    @return C{list} of C{tuple} for (
    transition date-time,
@@ -174,12 +173,12 @@ class Zone {
    associated rule,
    )
    */
-  List<ExpandResult> expand(final Map<String, RuleSet> ruleSets,
-                            final int minYear,
-                            final int maxYear) {
+  List<ZoneExpandResult> expand(final Map<String, RuleSet> ruleSets,
+                                final TzConvertParamsI params) {
     // Start at 1/1/1800 with the offset from the initial zone rule
 
-    final DateTime start = new DateTime(1800, 1, 1, 0, 0, 0);
+    final DateTime start = new DateTime(params.getStartYear(),
+                                        1, 1, 0, 0, 0);
     final int start_offset = rules.get(0).getUTCOffset();
     final int start_stdoffset = rules.get(0).getUTCOffset();
     final DateTime startdt = start.duplicate();
@@ -191,13 +190,20 @@ class Zone {
     Offsets lastOffsets = new Offsets(start_offset, start_stdoffset);
     boolean first = true;
 
+    if (name.equals(params.getVerboseId())) {
+      Utils.print("In %s", name);
+    }
+
+    ZoneRule lastZoneRule = null;
     for (final ZoneRule zonerule: rules) {
       lastOffsets =
               zonerule.expand(ruleSets,
                               transitions,
                               lastUntilDateUTC,
                               lastOffsets,
-                              maxYear);
+                              lastZoneRule,
+                              params);
+      lastZoneRule = zonerule;
       final DateTimeWrapper lastUntilDate = zonerule.getUntilDate();
       lastUntilDateUTC = lastUntilDate.getUTC(lastOffsets);
 
@@ -212,78 +218,53 @@ class Zone {
     Collections.sort(transitions);
 
     // Now scan transitions looking for real changes and note those
-    final ArrayList<ExpandResult> results = new ArrayList<>();
-    ExpandResult last_transition = new ExpandResult(startdt,
-                                                    start_offset,
-                                                    start_offset,
-                                                    null,
-                                                    null);
+    final ArrayList<ZoneExpandResult> results = new ArrayList<>();
+    ZoneExpandResult lastTransition =
+            new ZoneExpandResult(startdt,
+                                 start_offset,
+                                 start_offset,
+                                 null,
+                                 null);
     for (final ZoneRule.ExpandResult transition: transitions) {
       //dtutc, to_offset, zonerule, rule = transition;
       final DateTime dtutc = transition.utc.getDt();
       final DateTime dt = dtutc.duplicate();
-      dt.offsetSeconds(last_transition.offsetFrom);
+      dt.offsetSeconds(lastTransition.offsetFrom);
 
-      if (dtutc.getYear() >= minYear) {
-        if (dt.compareTo(last_transition.transition) > 0) {
-          results.add(new ExpandResult(dt,
-                                       last_transition.offsetFrom,
+      if (dtutc.getYear() >= params.getStartYear()) {
+        if (dt.compareTo(lastTransition.transition) > 0) {
+          results.add(
+                  new ZoneExpandResult(dt,
+                                       lastTransition.offsetFrom,
                                        transition.offset,
                                        transition.zonerule,
                                        transition.rule));
         } else {
           if (results.size() > 0) {
-            final ExpandResult lastOne = results.get(results.size() - 1);
+            final ZoneExpandResult lastOne =
+                    results.get(results.size() - 1);
 
             lastOne.offsetTo = transition.offset;
             lastOne.zonerule = transition.zonerule;
           } else {
-            results.add(new ExpandResult(last_transition.transition,
-                                         last_transition.offsetFrom,
-                                         last_transition.offsetTo,
+            results.add(
+                    new ZoneExpandResult(lastTransition.transition,
+                                         lastTransition.offsetFrom,
+                                         lastTransition.offsetTo,
                                          transition.zonerule,
                                          null));
           }
         }
       }
-      last_transition = new ExpandResult(dt,
-                                         transition.offset,
-                                         last_transition.offsetTo,
-                                         last_transition.zonerule,
-                                         transition.rule);
+      lastTransition =
+              new ZoneExpandResult(dt,
+                                   transition.offset,
+                                   lastTransition.offsetTo,
+                                   lastTransition.zonerule,
+                                   transition.rule);
     }
 
     return results;
-  }
-
-  private static class RuleMapEntry {
-    DateTime dt;
-    int offsetFrom;
-    int offsetTo;
-
-    private RuleMapEntry(final DateTime dt,
-                         final int offsetFrom,
-                         final int offsetTo) {
-      this.dt = dt;
-      this.offsetFrom = offsetFrom;
-      this.offsetTo = offsetTo;
-    }
-
-    public boolean offsetsEqual(final RuleMapEntry that) {
-      return (offsetFrom == that.offsetFrom) &&
-              (offsetTo == that.offsetTo);
-    }
-
-    @Override
-    public String toString() {
-      final ToString ts = new ToString(this);
-
-      ts.append("offsetFrom", offsetFrom);
-      ts.append("offsetTo", offsetTo);
-      ts.append("dt", dt);
-
-      return ts.toString();
-    }
   }
 
   /**
@@ -292,8 +273,7 @@ class Zone {
    @return vtimezone component.
    */
   VTimeZone vtimezone(final Map<String, RuleSet> rules,
-                      final int minYear,
-                      final int maxYear) {
+                      final TzConvertParamsI params) {
     // Get a VTIMEZONE component
     final VTimeZone vtz = new VTimeZone();
 
@@ -303,14 +283,15 @@ class Zone {
     pl.add(new TzId(name));
     pl.add(new XProperty("X-LIC-LOCATION", name));
 
-    final List<ExpandResult> transitions = expand(rules, minYear, maxYear);
+    final List<ZoneExpandResult> transitions =
+            expand(rules, params);
 
     // Group rules
     ZoneRule lastZoneRule = null;
     final List<Rule> ruleorder = new ArrayList<>();
     final Map<Rule, List<RuleMapEntry>> rulemap = new HashMap<>();
 
-    for (final ExpandResult expr: transitions) {
+    for (final ZoneExpandResult expr: transitions) {
       // for (dt, offsetfrom, offsetto, zonerule, rule in transitions) {
       // Check for change of rule - we ignore LMT's
       if (!expr.zonerule.getFormat().equals(("LMT"))) {
@@ -327,9 +308,17 @@ class Zone {
           rulemap.put(expr.rule, lrme);
         }
 
+        final boolean standard;
+        if (expr.rule == null) {
+          standard = true;
+        } else {
+          standard = expr.rule.isStandard();
+        }
+
         lrme.add(new RuleMapEntry(expr.transition,
                                   expr.offsetFrom,
-                                  expr.offsetTo));
+                                  expr.offsetTo,
+                                  standard));
       }
       lastZoneRule = expr.zonerule;
     }
@@ -381,12 +370,14 @@ class Zone {
                 rme.size());
       } else {
         final List<RuleMapEntry> rme = rulemap.get(null);
+        final RuleMapEntry rme0 = rme.get(0);
         zonerule.vtimezone(
                         vtz,
-                        rme.get(0).dt,
+                        rme0.dt,
                         rme.get(rme.size() - 1).dt,
-                        rme.get(0).offsetFrom,
-                        rme.get(0).offsetTo);
+                        rme0.offsetFrom,
+                        rme0.offsetTo,
+                        rme0.standard);
       }
     }
     ruleorder.clear();

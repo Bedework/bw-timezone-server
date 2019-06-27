@@ -94,6 +94,8 @@ class Tzconvert {
       } else if (args.ifMatch("--comparewith")) {
         params.setCompareWithPath(args.next());
         params.setCompare(true);
+      } else if (args.ifMatch("--verboseid")) {
+        params.setVerboseId(args.next());
       } else if (args.ifMatch("--aliases")) {
         params.setAliasesPath(args.next());
       } else if (args.ifMatch("--source")) {

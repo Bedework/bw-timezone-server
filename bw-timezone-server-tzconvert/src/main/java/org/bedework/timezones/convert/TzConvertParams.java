@@ -36,6 +36,8 @@ public class TzConvertParams extends ConfigBase<TzConvertParams>
   //          "https://demo.calendarserver.org:8443/stdtimezones";
   private String compareWithPath;
 
+  private String verboseId;
+
   private String aliasesPath;
 
   private String source;
@@ -131,6 +133,16 @@ public class TzConvertParams extends ConfigBase<TzConvertParams>
   @Override
   public String getCompareWithPath() {
     return compareWithPath;
+  }
+
+  @Override
+  public void setVerboseId(final String val) {
+    verboseId = val;
+  }
+
+  @Override
+  public String getVerboseId() {
+    return verboseId;
   }
 
   @Override

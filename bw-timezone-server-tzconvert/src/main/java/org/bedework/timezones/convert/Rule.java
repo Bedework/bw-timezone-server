@@ -275,6 +275,10 @@ class Rule {
     return ((hours * 60) + minutes) * 60;
   }
 
+  public boolean isStandard() {
+    return getOffset() == 0;
+  }
+
   private int startYear() {
     return new Integer(fromYear);
   }
@@ -330,11 +334,13 @@ class Rule {
       special = null;
     }
 
+    boolean advanceDay = false;
+
     // Special case for 24:00
     if ((hours == 24) & (minutes == 0)) {
-      dt.setHours(23);
-      dt.setMinutes(59);
-      dt.setSeconds(59);
+      dt.setHours(0);
+      dt.setMinutes(0);
+      advanceDay = true;
     } else {
       dt.setHours(hours);
       dt.setMinutes(minutes);
@@ -354,6 +360,11 @@ class Rule {
       } catch (final Throwable t) {
         Utils.assertion(false, "onDay value is not recognized: %s" , onDay);
       }
+    }
+
+    if (advanceDay) {
+      dt.setDay(dt.getDay() + 1);
+      dt.normalise();
     }
 
     return new Utils.DateTimeWrapper(dt, special);
@@ -484,9 +495,15 @@ class Rule {
     }
 
     final int zoneoffset = zoneinfo.getUTCOffset();
+    final DateTimeWrapper lastForZI = zoneinfo.getUntilDate();
     final int offset = getOffset();
     for (final DateTimeWrapper dt: fullExpand(maxYear)) {
-      results.add(new DateOffset(dt.duplicate(), zoneoffset + offset, this));
+      if (dt.compareTo(lastForZI) > 0) {
+        // After end for zoneinfo
+        continue;
+      }
+      results.add(new DateOffset(dt.duplicate(),
+                                 zoneoffset + offset, this));
     }
   }
 
@@ -540,14 +557,21 @@ class Rule {
                  final int offsetto,
                  final int instanceCount) {
     // Determine type of component based on offset
-    final int dstoffset = getOffset();
     final Component comp;
+    final boolean standard = isStandard();
 
-    if (dstoffset == 0) {
+    if (standard) {
       comp = new Standard();
     } else {
       comp = new Daylight();
     }
+
+    // Do TZNAME
+    final String tzname = Utils.formatTzname(zonerule.getFormat(),
+                                             letter,
+                                             standard);
+
+    comp.getProperties().add(new TzName(tzname));
 
     // Do offsets
     final UtcOffset tzoffsetfrom = new UtcOffset(offsetfrom * 1000);
@@ -555,12 +579,6 @@ class Rule {
 
     comp.getProperties().add(new TzOffsetFrom(null, tzoffsetfrom));
     comp.getProperties().add(new TzOffsetTo(null, tzoffsetto));
-
-    // Do TZNAME
-    final String tzname = Utils.formatTzname(zonerule.getFormat(),
-                                             letter);
-
-    comp.getProperties().add(new TzName(tzname));
 
     // Do DTSTART
     try {

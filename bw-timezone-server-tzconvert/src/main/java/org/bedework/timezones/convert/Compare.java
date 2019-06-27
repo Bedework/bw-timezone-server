@@ -28,11 +28,13 @@ import net.fortuna.ical4j.model.Property;
 import net.fortuna.ical4j.model.PropertyList;
 import net.fortuna.ical4j.model.TimeZone;
 import net.fortuna.ical4j.model.component.Observance;
+import net.fortuna.ical4j.model.component.Standard;
 import net.fortuna.ical4j.model.component.VTimeZone;
 import net.fortuna.ical4j.model.parameter.Value;
 import net.fortuna.ical4j.model.property.DtStart;
 import net.fortuna.ical4j.model.property.RDate;
 import net.fortuna.ical4j.model.property.RRule;
+import net.fortuna.ical4j.model.property.TzName;
 import net.fortuna.ical4j.util.Dates;
 import net.fortuna.ical4j.util.TimeZones;
 
@@ -46,16 +48,20 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import static net.fortuna.ical4j.model.Property.TZNAME;
+
 class Compare implements Logged {
   /**
    * @param vtzs timezones to compare
    * @param tzFetcher fetcher to compare against
    * @param msgs for output
+   * @param verboseId for debug trace
    * @return tzs that differ - null for exception
    */
   List<String> compare(final Map<String, VTimeZone> vtzs,
                        final TzFetcher tzFetcher,
-                       final InfoLines msgs) {
+                       final InfoLines msgs,
+                       final String verboseId) {
     try {
       final Date endDate = new DateTime("20200101T000000Z");
       final List<String> tzids = new ArrayList<>();
@@ -68,7 +74,8 @@ class Compare implements Logged {
           continue;
         }
 
-        if (!compareTz(ourVtz, otherTz, endDate, msgs)) {
+        if (!compareTz(ourVtz, otherTz, endDate, msgs,
+                       verboseId)) {
           tzids.add(tzid);
         }
       }
@@ -83,14 +90,16 @@ class Compare implements Logged {
   boolean compareTz(final VTimeZone tz,
                     final VTimeZone thatTz,
                     final Date endDate,
-                    final InfoLines msgs) {
+                    final InfoLines msgs,
+                    final String verboseId) {
     final Set<Onset> onsets = getOnsets(tz, endDate, msgs);
     final Set<Onset> thatOnsets = getOnsets(thatTz, endDate, msgs);
 
     final String tzid = tz.getTimeZoneId().getValue();
 
     boolean matches = missing(onsets, thatOnsets,
-                              "For " + tzid + " in this but not that", msgs);
+                              "For " + tzid + " in this but not that",
+                              msgs);
 
     if (!missing(thatOnsets, onsets,
                  "For " + tzid + " in that but not this", msgs)) {
@@ -122,7 +131,7 @@ class Compare implements Logged {
       return true;
     }
 
-    for (final Object o: notInThat) {
+    for (final Onset o: notInThat) {
       msgs.addLn(msgPrefix + " " + o);
     }
 
@@ -132,18 +141,20 @@ class Compare implements Logged {
   private Set<Onset> getOnsets(final VTimeZone tz,
                                 final Date endDate,
                                 final InfoLines msgs) {
-    final ComponentList observances = tz.getObservances();
+    final ComponentList<Observance> observances = tz.getObservances();
 
     final Set<Onset> onsets = new TreeSet<>();
 
-    for (final Object o: observances) {
-      final Set<Onset> dl = getOnsets((Observance)o, endDate, msgs);
+    for (final Observance obs: observances) {
+      final Set<Onset> dl = getOnsets(obs, endDate, msgs);
+
+      if (dl == null) {
+        continue;
+      }
 
       //noinspection unchecked
       onsets.addAll(dl);
     }
-
-//    Collections.sort(onsets);
 
     return onsets;
   }
@@ -158,49 +169,6 @@ class Compare implements Logged {
   static {
     UTC_FORMAT.setTimeZone(TimeZone.getTimeZone(TimeZones.UTC_ID));
     UTC_FORMAT.setLenient(false);
-  }
-
-  private static class Onset implements Comparable<Onset> {
-    DateTime onset;
-    long offset;
-
-    private Onset(final DateTime onset,
-                  final long offset) {
-      this.onset = onset;
-      this.offset = offset;
-
-      onset.setUtc(true);
-    }
-
-    public boolean equals(final Object o) {
-      final Onset on = (Onset)o;
-
-      return (onset.equals(on.onset)) &&
-              (offset == on.offset);
-    }
-
-    @Override
-    public int compareTo(final Onset o) {
-      int res = onset.compareTo(o.onset);
-
-      if (res != 0) {
-        return res;
-      }
-
-      if (offset > o.offset) {
-        return 1;
-      }
-
-      if (offset < o.offset) {
-        return -1;
-      }
-
-      return 0;
-    }
-
-    public String toString() {
-      return onset.toString() + " " + offset;
-    }
   }
 
   private Set<Onset> getOnsets(final Observance o,
@@ -219,7 +187,18 @@ class Compare implements Logged {
       return null;
     }
 
-    onsets.add(new Onset(initialOnset, offset));
+    final TzName tznameP = (TzName)o.getProperty(TZNAME);
+    final String tzname;
+
+    if (tznameP == null) {
+      tzname = "unknown";
+    } else {
+      tzname = tznameP.getValue();
+    }
+
+    onsets.add(new Onset(tzname,
+                         o instanceof Standard,
+                         initialOnset, offset));
 
     final Date initialOnsetUTC;
     // get first onset without adding TZFROM as this may lead to a day boundary
@@ -243,7 +222,9 @@ class Compare implements Logged {
                   applyOffsetFrom(o, calculateOnset(
                           o1.toString()));
           if (!rdateOnset.after(endDate)) {
-            onsets.add(new Onset(rdateOnset, offset));
+            onsets.add(new Onset(tzname,
+                                 o instanceof Standard,
+                                 rdateOnset, offset));
           }
         } catch (final ParseException e) {
           msgs.add("Unexpected error calculating onset" + e);
@@ -269,7 +250,9 @@ class Compare implements Logged {
                 applyOffsetFrom(o,
                                 (DateTime)recurrenceDate);
         if (!rruleOnset.after(endDate)) {
-          onsets.add(new Onset(rruleOnset, offset));
+          onsets.add(new Onset(tzname,
+                               o instanceof Standard,
+                               rruleOnset, offset));
         }
       }
     }

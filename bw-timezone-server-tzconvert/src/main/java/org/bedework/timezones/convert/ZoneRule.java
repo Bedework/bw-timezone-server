@@ -32,14 +32,13 @@ import org.bedework.util.misc.ToString;
 import org.bedework.util.misc.Util;
 
 import net.fortuna.ical4j.model.Component;
-import net.fortuna.ical4j.model.ParameterList;
 import net.fortuna.ical4j.model.PropertyList;
 import net.fortuna.ical4j.model.UtcOffset;
+import net.fortuna.ical4j.model.component.Daylight;
 import net.fortuna.ical4j.model.component.Observance;
 import net.fortuna.ical4j.model.component.Standard;
 import net.fortuna.ical4j.model.component.VTimeZone;
 import net.fortuna.ical4j.model.property.DtStart;
-import net.fortuna.ical4j.model.property.RDate;
 import net.fortuna.ical4j.model.property.TzName;
 import net.fortuna.ical4j.model.property.TzOffsetFrom;
 import net.fortuna.ical4j.model.property.TzOffsetTo;
@@ -133,7 +132,7 @@ class ZoneRule {
    */
   boolean parse(final List<String> splits,
                 final String line,
-             final boolean zoneLine) {
+                final boolean zoneLine) {
     final int offset;
     if (zoneLine){
       offset = 2;
@@ -319,12 +318,20 @@ class ZoneRule {
                  final List<ExpandResult> results,
                  final DateTime lastUntilUTC,
                  final Offsets lastOffsets,
-                 final int maxYear) {
-    final boolean isDigit =
-            Character.getType(rule.charAt(0)) == Character.DECIMAL_DIGIT_NUMBER;
+                 final ZoneRule lastZoneRule,
+                 final TzConvertParamsI params) {
+    final boolean isTime =
+            Character.getType(rule.charAt(0)) ==
+                    Character.DECIMAL_DIGIT_NUMBER ||
 
-    if (rule.equals("-") || isDigit) {
-      return expand_norule(results, lastUntilUTC);
+                    // Check for negative time
+                    (rule.length() > 1 &&
+                             rule.charAt(0) == '-' &&
+                             Character.getType(rule.charAt(1)) ==
+                                     Character.DECIMAL_DIGIT_NUMBER);
+
+    if (rule.equals("-") || isTime) {
+      return expandNorule(results, lastUntilUTC);
     }
 
     // Expand the rule
@@ -335,7 +342,7 @@ class ZoneRule {
 
     assert ruleset != null;
     final List<DateOffset> tempresults = ruleset.expand(this,
-                                                        maxYear);
+                                                        params.getEndYear());
 
     // Sort the results by date
     Collections.sort(tempresults);
@@ -357,10 +364,19 @@ class ZoneRule {
             resOffsets.stdoffset = getUTCOffset();
             dtutc = doffset.dt.getUTC(resOffsets);
           }
+
+          final ZoneRule inForce;
+          if (lastZoneRule == null) {
+            inForce = this;
+          } else {
+            inForce = lastZoneRule;
+          }
           results.add(new ExpandResult(new DateTimeWrapper(lastUntilUTC, null),
                                        resOffsets.offset,
-                                       this,
+                                       inForce,
                                        null));
+          // Tried this and trnsition shows up but wrong type
+            //          this, doffset.rule));
         }
         foundStart = true;
 
@@ -388,14 +404,30 @@ class ZoneRule {
     return resOffsets;
   }
 
-  Offsets expand_norule(final List<ExpandResult> results,
-                        final DateTime lastUntil) {
+  Offsets expandNorule(final List<ExpandResult> results,
+                       final DateTime lastUntil) {
     int to_offset = 0;
-    if (Character.getType(rule.charAt(0)) == Character.DECIMAL_DIGIT_NUMBER) {
-      final String[] splits = rule.split(":");
+
+    if (!rule.equals("-")) {
+      final String ruleNoMinus;
+      final boolean neg;
+
+      if (rule.startsWith("-")) {
+        neg = true;
+        ruleNoMinus = rule.substring(1);
+      } else {
+        neg = false;
+        ruleNoMinus = rule;
+      }
+
+      final String[] splits = ruleNoMinus.split(":");
       to_offset = 60 * 60 * Integer.valueOf(splits[0]);
       if (splits.length > 1) {
         to_offset += 60 * Integer.valueOf(splits[1]);
+      }
+
+      if (neg) {
+        to_offset = -to_offset;
       }
     }
 
@@ -411,32 +443,48 @@ class ZoneRule {
                  final DateTime start,
                  final DateTime end,
                  final int offsetfrom,
-                 final int offsetto) {
+                 final int offsetto,
+                 final boolean standard) {
     // Determine type of component based on offset
-    final Component comp = new Standard();
-    final String tzname;
+    final Component comp;
 
-    // Do offsets
+    if (standard) {
+      comp = new Standard();
+    } else {
+      comp = new Daylight();
+    }
 
     final PropertyList pl = comp.getProperties();
-    pl.add(new TzOffsetFrom(new UtcOffset(offsetfrom * 1000)));
-    pl.add(new TzOffsetTo(new UtcOffset(offsetto * 1000)));
+
+    final String tzname;
 
     // Do TZNAME
     if (format.contains("%s")) {
       tzname = format.replace("%s", "S");
+    } else if (format.contains("/")) {
+      final String[] splitTzname = format.split("/");
+      if (standard) {
+        tzname = splitTzname[0];
+      } else {
+        tzname = splitTzname[1];
+      }
     } else {
       tzname = format;
     }
 
     pl.add(new TzName(tzname));
 
+    // Do offsets
+
+    pl.add(new TzOffsetFrom(new UtcOffset(offsetfrom * 1000)));
+    pl.add(new TzOffsetTo(new UtcOffset(offsetto * 1000)));
+
     // Do DTSTART
     try {
       pl.add(new DtStart(start.localTime()));
 
       // Recurrence
-      pl.add(new RDate(new ParameterList(), start.localTime()));
+      //pl.add(new RDate(new ParameterList(), start.localTime()));
     } catch (final ParseException pe) {
       throw new RuntimeException(pe);
     }

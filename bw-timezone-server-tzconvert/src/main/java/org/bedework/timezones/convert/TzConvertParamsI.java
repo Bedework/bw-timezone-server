@@ -112,6 +112,16 @@ public interface TzConvertParamsI extends Serializable {
   String getCompareWithPath();
 
   /**
+   * @param val Tzid for verbose output
+   */
+  void setVerboseId(final String val);
+
+  /**
+   * @return Tzid for verbose output
+   */
+  String getVerboseId();
+
+  /**
    * @param val Path to property file defining extra aliases
    */
   void setAliasesPath(final String val);

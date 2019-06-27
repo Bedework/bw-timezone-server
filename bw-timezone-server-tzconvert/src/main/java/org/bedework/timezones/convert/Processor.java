@@ -29,6 +29,7 @@ import zone
 */
 
 import org.bedework.timezones.convert.LineReader.LineReaderIterator;
+import org.bedework.timezones.convert.Zone.ZoneExpandResult;
 import org.bedework.util.jmx.InfoLines;
 import org.bedework.util.misc.Util;
 import org.bedework.util.timezones.FileTzFetcher;
@@ -155,29 +156,23 @@ class Processor {
   /**
    Expand a zones transition dates up to the specified year.
    */
-  List<Zone.ExpandResult> expandZone(final String zonename,
-                                     final int minYear,
-                                     int maxYear) {
-    if (maxYear < 0) {
-      maxYear = 2018;
-    }
-
+  List<ZoneExpandResult> expandZone(final String zonename,
+                                    final TzConvertParamsI params) {
     final Zone zone = zones.get(zonename);
-    return zone.expand(rules, minYear, maxYear);
+    return zone.expand(rules, params);
   }
 
   /**
   Generate iCalendar data for all VTIMEZONEs or just those specified
   */
-  public String vtimezones(final int minYear,
-                           final int maxYear) {
+  public String vtimezones(final TzConvertParamsI params) {
     final Calendar cal = new Calendar();
     for (final Zone zone: zones.values()) {
       if ((filterzones != null) && (!filterzones.contains(zone.name))) {
         continue;
       }
 
-      final VTimeZone vtz = zone.vtimezone(rules, minYear, maxYear);
+      final VTimeZone vtz = zone.vtimezone(rules, params);
       cal.getComponents().add(vtz);
     }
 
@@ -187,7 +182,7 @@ class Processor {
   /**
    * @param outputdir - where to put output
    * @param doLinks - true to create link data
-   * @throws Throwable
+   * @throws Throwable on fatal error
    */
   public void generateZoneinfoFiles(final String outputdir,
                                     final boolean doLinks) throws Throwable {
@@ -201,7 +196,7 @@ class Processor {
       final ComponentList cl = cal.getComponents();
       final PropertyList pl = cal.getProperties();
 
-      pl.add(new Version());
+      pl.add(Version.VERSION_2_0);
       pl.add(new ProdId(params.getProdid()));
 
       cl.add(vtzs.get(zoneName));
@@ -271,7 +266,8 @@ class Processor {
                final InfoLines msgs) {
     buildVtzs();
 
-    new Compare().compare(vtzs, tzFetcher, msgs);
+    new Compare().compare(vtzs, tzFetcher, msgs,
+                          params.getVerboseId());
   }
 
   private void buildVtzs() {
@@ -285,8 +281,7 @@ class Processor {
       }
 
       final VTimeZone vtz = zone.vtimezone(rules,
-                                           params.getStartYear(),
-                                           params.getEndYear());
+                                           params);
 
       vtzs.put(zone.name, vtz);
     }

@@ -212,7 +212,15 @@ class Utils {
   }
 
   static String formatTzname(final String format,
-                             final String letter) {
+                             final String letter,
+                             final boolean standard) {
+    if (format.contains("/")) {
+      final String[] splitTzname = format.split("/");
+      if (standard) {
+        return splitTzname[0];
+      }
+      return splitTzname[1];
+    }
     if (!format.contains("%")) {
       return format;
     }
