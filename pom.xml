@@ -35,6 +35,7 @@
     <http-core.version>4.4.8</http-core.version>
 		<jackson.version>2.9.8</jackson.version>
 		<servlet-api.version>4.0.0</servlet-api.version>
+    <java.jaxb.api.version>2.3.0</java.jaxb.api.version>
 		<junit.version>4.8.2</junit.version>
 		<leveldb.version>0.5</leveldb.version>
 
@@ -163,75 +164,96 @@
 				<artifactId>bw-xml-icalendar</artifactId>
 				<version>${bw-xml.version}</version>
 			</dependency>
+
 			<dependency>
 				<groupId>org.bedework</groupId>
 				<artifactId>bw-xml-tzsvr</artifactId>
 				<version>${bw-xml.version}</version>
 			</dependency>
+
 			<dependency>
 				<groupId>org.bedework</groupId>
 				<artifactId>bw-xml-calws-soap</artifactId>
 				<version>${bw-xml.version}</version>
 			</dependency>
+
       <dependency>
         <groupId>${ical4j.groupId}</groupId>
         <artifactId>${ical4j.artifactId}</artifactId>
         <version>${ical4j.version}</version>
       </dependency>
+
 			<!-- Third Party Libraries -->
+
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
 				<artifactId>jackson-core</artifactId>
 				<version>${jackson.version}</version>
 			</dependency>
+
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
 				<artifactId>jackson-databind</artifactId>
 				<version>${jackson.version}</version>
 			</dependency>
+
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
 				<artifactId>jackson-annotations</artifactId>
 				<version>${jackson.version}</version>
 			</dependency>
+
 			<dependency>
 				<groupId>org.apache.httpcomponents</groupId>
 				<artifactId>httpclient</artifactId>
         <version>${http-client.version}</version>
 			</dependency>
+
 			<dependency>
 				<groupId>org.apache.httpcomponents</groupId>
 				<artifactId>httpcore</artifactId>
         <version>${http-core.version}</version>
 			</dependency>
+
 			<dependency>
 				<groupId>javax.servlet</groupId>
 				<artifactId>javax.servlet-api</artifactId>
 				<version>${servlet-api.version}</version>
 				<scope>provided</scope>
 			</dependency>
+
 			<dependency>
 				<groupId>asm</groupId>
 				<artifactId>asm</artifactId>
 				<version>${asm.version}</version>
 			</dependency>
+
 			<dependency>
 				<groupId>asm</groupId>
 				<artifactId>asm-attrs</artifactId>
 				<version>${asm-attrs.version}</version>
 			</dependency>
+
 			<dependency>
 				<groupId>cglib</groupId>
 				<artifactId>cglib</artifactId>
 				<version>${cglib.version}</version>
 			</dependency>
+
 			<dependency>
 				<groupId>org.iq80.leveldb</groupId>
 				<artifactId>leveldb</artifactId>
 				<version>${leveldb.version}</version>
 				<classifier>min</classifier>
 			</dependency>
-			<!-- Test Dependencies -->
+
+      <dependency>
+        <groupId>javax.xml.bind</groupId>
+        <artifactId>jaxb-api</artifactId>
+        <version>${java.jaxb.api.version}</version>
+      </dependency>
+
+      <!-- Test Dependencies -->
 			<dependency>
 				<groupId>junit</groupId>
 				<artifactId>junit</artifactId>
