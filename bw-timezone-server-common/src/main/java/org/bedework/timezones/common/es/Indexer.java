@@ -14,7 +14,7 @@ import org.bedework.util.logging.BwLogger;
 import org.bedework.util.logging.Logged;
 
 import org.elasticsearch.action.index.IndexResponse;
-import org.elasticsearch.client.Client;
+import org.elasticsearch.client.RestHighLevelClient;
 
 /**
  * User: mike
@@ -25,7 +25,7 @@ public class Indexer implements Logged {
   private final EsUtil utils;
   private final TzConfig config;
   
-  private Client client;
+  private RestHighLevelClient client;
   
   public Indexer(final TzConfig config) throws IndexException {
     utils = new EsUtil(config);
@@ -66,7 +66,7 @@ public class Indexer implements Logged {
     }
   }
   
-  private Client getClient() throws IndexException {
+  private RestHighLevelClient getClient() throws IndexException {
     if (client != null) {
       return client;
     }

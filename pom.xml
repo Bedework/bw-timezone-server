@@ -15,11 +15,11 @@
 		<maven.source.plugin.version>2.1.2</maven.source.plugin.version>
 
 		<!-- Bedework Versions -->
-		<bw-xml.version>4.0.8</bw-xml.version>
-		<bw-util.version>4.0.24</bw-util.version>
-    <bw-util-deploy.version>4.0.24</bw-util-deploy.version>
-    <bw-util2.version>4.0.4</bw-util2.version>
-    <bw-util-logging.version>4.0.2</bw-util-logging.version>
+		<bw-xml.version>4.0.9</bw-xml.version>
+		<bw-util.version>4.0.25</bw-util.version>
+    <bw-util-deploy.version>4.0.25</bw-util-deploy.version>
+    <bw-util2.version>4.0.5</bw-util2.version>
+    <bw-util-logging.version>4.0.4</bw-util-logging.version>
 
     <ical4j.groupId>org.bedework.ical4j</ical4j.groupId>
     <ical4j.artifactId>ical4j</ical4j.artifactId>
@@ -313,9 +313,9 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.9.1</version>
+        <version>3.1.1</version>
         <configuration>
-          <additionalparam>-Xdoclint:none</additionalparam>
+          <additionalJOption>-Xdoclint:none</additionalJOption>
           <failOnError>false</failOnError>
         </configuration>
       </plugin>
@@ -351,7 +351,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
-            <version>2.9.1</version>
+            <version>3.1.1</version>
             <executions>
               <execution>
                 <id>attach-javadocs</id>
@@ -361,7 +361,7 @@
               </execution>
             </executions>
             <configuration>
-              <additionalparam>-Xdoclint:none</additionalparam>
+              <additionalJOption>-Xdoclint:none</additionalJOption>
               <failOnError>false</failOnError>
             </configuration>
           </plugin>
