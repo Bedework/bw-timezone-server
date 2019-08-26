@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.bedework.bw-tzsvr</groupId>
 	<artifactId>bw-timezone-server</artifactId>
-	<version>4.0.5</version>
+	<version>4.0.6-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>bw-timezone-server</name>
   <description>A timezone server implmenting tzdist and an experimental timzone converter</description>
@@ -59,7 +59,7 @@
 		<connection>scm:git:git@github.com:Bedework/bw-timezone-server.git</connection>
 		<developerConnection>scm:git:git@github.com:Bedework/bw-timezone-server.git</developerConnection>
 		<url>https://github.com/Bedework/bw-timezone-server</url>
-	  <tag>bw-timezone-server-4.0.5</tag>
+	  <tag>HEAD</tag>
   </scm>
 
 	<issueManagement>
