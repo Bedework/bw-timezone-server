@@ -10,15 +10,15 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-args:4.0.25" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-config:4.0.25" level="project" />
+    <orderEntry type="library" name="Maven: org.bedework:bw-util-args:4.0.26" level="project" />
+    <orderEntry type="library" name="Maven: org.bedework:bw-util-config:4.0.26" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-logging:4.0.4" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-xml:4.0.25" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-jmx:4.0.25" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-misc:4.0.25" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-timezones:4.0.25" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-caching:4.0.25" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-http:4.0.25" level="project" />
+    <orderEntry type="library" name="Maven: org.bedework:bw-util-xml:4.0.26" level="project" />
+    <orderEntry type="library" name="Maven: org.bedework:bw-util-jmx:4.0.26" level="project" />
+    <orderEntry type="library" name="Maven: org.bedework:bw-util-misc:4.0.26" level="project" />
+    <orderEntry type="library" name="Maven: org.bedework:bw-util-timezones:4.0.26" level="project" />
+    <orderEntry type="library" name="Maven: org.bedework:bw-util-caching:4.0.26" level="project" />
+    <orderEntry type="library" name="Maven: org.bedework:bw-util-http:4.0.26" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-databind:2.9.8" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-core:2.9.8" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.9.8" level="project" />
