@@ -17,7 +17,11 @@
 		<!-- Bedework Versions -->
 		<bw-xml.version>4.0.9</bw-xml.version>
 		<bw-util.version>4.0.26</bw-util.version>
+    <bw-util-conf.version>4.1.0-SNAPSHOT</bw-util-conf.version>
     <bw-util-deploy.version>4.0.25</bw-util-deploy.version>
+    <bw-util-index.version>4.1.0-SNAPSHOT</bw-util-index.version>
+    <bw-util-network.version>4.1.0-SNAPSHOT</bw-util-network.version>
+    <bw-util-tz.version>4.1.0-SNAPSHOT</bw-util-tz.version>
     <bw-util2.version>4.0.5</bw-util2.version>
     <bw-util-logging.version>4.0.4</bw-util-logging.version>
 
@@ -108,25 +112,25 @@
       <dependency>
         <groupId>org.bedework</groupId>
         <artifactId>bw-util-args</artifactId>
-        <version>${bw-util.version}</version>
+        <version>${bw-util-conf.version}</version>
       </dependency>
 
       <dependency>
         <groupId>org.bedework</groupId>
         <artifactId>bw-util-config</artifactId>
-        <version>${bw-util.version}</version>
+        <version>${bw-util-conf.version}</version>
       </dependency>
 
       <dependency>
         <groupId>org.bedework</groupId>
         <artifactId>bw-util-elasticsearch</artifactId>
-        <version>${bw-util.version}</version>
+        <version>${bw-util-index.version}</version>
       </dependency>
 
       <dependency>
         <groupId>org.bedework</groupId>
         <artifactId>bw-util-jmx</artifactId>
-        <version>${bw-util.version}</version>
+        <version>${bw-util-conf.version}</version>
       </dependency>
 
       <dependency>
@@ -144,12 +148,13 @@
       <dependency>
         <groupId>org.bedework</groupId>
         <artifactId>bw-util-servlet</artifactId>
-        <version>${bw-util.version}</version>
+        <version>${bw-util-network.version}</version>
       </dependency>
       <dependency>
+
         <groupId>org.bedework</groupId>
         <artifactId>bw-util-tz</artifactId>
-        <version>${bw-util.version}</version>
+        <version>${bw-util-tz.version}</version>
       </dependency>
 
       <dependency>
