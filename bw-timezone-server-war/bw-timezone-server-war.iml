@@ -70,8 +70,8 @@
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.elasticsearch.plugin:lang-mustache-client:7.2.0" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: com.github.spullara.mustache.java:compiler:0.9.3" level="project" />
     <orderEntry type="module" module-name="bw-util-jmx" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-misc:4.0.26" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.bedework:bw-util2-calendar:4.0.5" level="project" />
+    <orderEntry type="module" module-name="bw-util-misc" />
+    <orderEntry type="module" module-name="bw-util2-calendar" scope="PROVIDED" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.iq80.leveldb:leveldb:min:0.5" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.iq80.leveldb:leveldb-api:0.5" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: com.google.guava:guava:12.0" level="project" />
