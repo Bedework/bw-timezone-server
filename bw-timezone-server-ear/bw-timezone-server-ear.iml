@@ -76,7 +76,7 @@
     <orderEntry type="module" module-name="bw-timezone-server-war" />
     <orderEntry type="module" module-name="bw-util-caching" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-logging:4.0.4" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-servlet:4.0.27-SNAPSHOT" level="project" />
+    <orderEntry type="module" module-name="bw-util-servlet" />
     <orderEntry type="module" module-name="bw-util-xml" />
     <orderEntry type="library" name="Maven: org.bedework:bw-xml-icalendar:4.0.9" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: org.glassfish.jaxb:jaxb-runtime:2.3.2" level="project" />
