@@ -30,9 +30,9 @@ import org.bedework.util.timezones.model.TimezoneType;
 
 import net.fortuna.ical4j.model.ComponentList;
 import net.fortuna.ical4j.model.DateTime;
-import net.fortuna.ical4j.model.Dur;
 import net.fortuna.ical4j.model.Period;
 import net.fortuna.ical4j.model.PeriodList;
+import net.fortuna.ical4j.model.TemporalAmountAdapter;
 import net.fortuna.ical4j.model.TimeZone;
 import net.fortuna.ical4j.model.UtcOffset;
 import net.fortuna.ical4j.model.component.Observance;
@@ -59,16 +59,16 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *   @author Mike Douglass
  */
 public class TzServerUtil {
-  private static BwLogger logger =
+  private static final BwLogger logger =
           new BwLogger().setLoggedClass(TzServerUtil.class);
 
-  private static String appname = "tzsvr";
+  private static final String appname = "tzsvr";
 
   private static TzServerUtil instance;
 
   static ConfigHolder<TzConfigImpl> cfgHolder;
 
-  private static Object locker = new Object();
+  private static final Object locker = new Object();
 
   private static String prodid = "/bedework.org//NONSGML Bedework//EN";
 
@@ -102,9 +102,8 @@ public class TzServerUtil {
   public static long lastDataFetch;
 
   /**
-   * @throws TzException
    */
-  private TzServerUtil() throws TzException {
+  private TzServerUtil() {
   }
 
   /* ====================================================================
@@ -113,9 +112,8 @@ public class TzServerUtil {
 
   /**
    * @return a singleton instance
-   * @throws TzException
    */
-  public static TzServerUtil getInstance() throws TzException {
+  public static TzServerUtil getInstance() {
     if (instance != null) {
       return instance;
     }
@@ -139,7 +137,7 @@ public class TzServerUtil {
   }
 
   /**
-   * @param val
+   * @param val config holder
    */
   public static void setTzConfigHolder(final ConfigHolder<TzConfigImpl> val) {
     cfgHolder = val;
@@ -184,7 +182,7 @@ public class TzServerUtil {
     final long seconds = millis / 1000;
     final long minutes = seconds / 60;
 
-    return String.valueOf(minutes) + ":" + (seconds - minutes * 60);
+    return minutes + ":" + (seconds - minutes * 60);
   }
 
   /** Cause a refresh of the data
@@ -229,9 +227,9 @@ public class TzServerUtil {
    * @throws TzException
    */
   public static List<String> updateData(final String tzdataUrl) throws TzException {
-    TzServerUtil util = getInstance();
+    final TzServerUtil util = getInstance();
 
-    Differ diff = new Differ();
+    final Differ diff = new Differ();
 
     final TzConfig newConfig = new TzConfigImpl();
     ((TzConfigImpl)getTzConfig()).copyTo(newConfig);
@@ -296,7 +294,7 @@ public class TzServerUtil {
 
     final List<DiffListEntry> dles = diff.compare(cd, util.getcache());
 
-    final List<String> out = new ArrayList<String>();
+    final List<String> out = new ArrayList<>();
 
     if (dles == null) {
       out.add("No data returned");
@@ -330,7 +328,7 @@ public class TzServerUtil {
    * @throws TzException
    */
   public static List<Stat> getStats() throws TzException {
-    List<Stat> stats = new ArrayList<>();
+    final List<Stat> stats = new ArrayList<>();
 
     stats.add(new Stat("Gets", String.valueOf(gets)));
     stats.add(new Stat("Hits", String.valueOf(cacheHits)));
@@ -373,7 +371,7 @@ public class TzServerUtil {
    * @throws TzException
    */
   public String getDtstamp() throws TzException {
-    String dtst = getcache().getDtstamp();
+    final String dtst = getcache().getDtstamp();
     if (dtst != null) {
       return dtst;
     }
@@ -392,7 +390,7 @@ public class TzServerUtil {
   }
 
   /**
-   * @param name
+   * @param name of tz
    * @return spec
    * @throws TzException
    */
@@ -409,7 +407,7 @@ public class TzServerUtil {
   }
 
   /**
-   * @param name
+   * @param name alias
    * @return spec
    * @throws TzException
    */
@@ -426,7 +424,7 @@ public class TzServerUtil {
   }
 
   /**
-   * @param tzid
+   * @param tzid timezone id
    * @return list of aliases or null
    * @throws TzException
    */
@@ -435,8 +433,8 @@ public class TzServerUtil {
   }
 
   /**
-   * @param time
-   * @param tzid
+   * @param time to convert to UTC
+   * @param tzid timezone id
    * @return String utc date
    * @throws Throwable
    */
@@ -452,15 +450,15 @@ public class TzServerUtil {
     }
 
     conversions++;
-    long smillis = System.currentTimeMillis();
+    final long smillis = System.currentTimeMillis();
 
-    TimeZone tz = fetchTimeZone(tzid);
+    final TimeZone tz = fetchTimeZone(tzid);
 
-    DateFormat formatTd  = new SimpleDateFormat("yyyyMMdd'T'HHmmss");
+    final DateFormat formatTd  = new SimpleDateFormat("yyyyMMdd'T'HHmmss");
     formatTd.setTimeZone(tz);
 
-    Date date = formatTd.parse(time);
-    String utc;
+    final Date date = formatTd.parse(time);
+    final String utc;
 
     synchronized (cal) {
       cal.clear();
@@ -469,7 +467,7 @@ public class TzServerUtil {
       //formatTd.setTimeZone(utctz);
       //debug("formatTd with utc: " + formatTd.format(date));
 
-      StringBuilder sb = new StringBuilder();
+      final StringBuilder sb = new StringBuilder();
       digit4(sb, cal.get(Calendar.YEAR));
       digit2(sb, cal.get(Calendar.MONTH) + 1); // Month starts at 0
       digit2(sb, cal.get(Calendar.DAY_OF_MONTH));
@@ -490,15 +488,15 @@ public class TzServerUtil {
   /** Convert from local time in fromTzid to local time in toTzid. If dateTime is
    * already an iso utc date time fromTzid may be null.
    *
-   * @param dateTime
-   * @param fromTzid
-   * @param toTzid
+   * @param dateTime local time
+   * @param fromTzid tz converting from
+   * @param toTzid tz converting to
    * @return String time in given timezone
    * @throws Throwable
    */
   public String convertDateTime(final String dateTime, final String fromTzid,
                                 final String toTzid) throws Throwable {
-    String UTCdt = null;
+    String UTCdt;
     if (DateTimeUtil.isISODateTimeUTC(dateTime)) {
       // Already UTC
       UTCdt = dateTime;
@@ -570,9 +568,9 @@ public class TzServerUtil {
   }
 
   /**
-   * @param tzid
-   * @param start
-   * @param end
+   * @param tzid for expansion
+   * @param start of range
+   * @param end of range
    * @return expansion or null
    * @throws Throwable
    */
@@ -649,7 +647,7 @@ public class TzServerUtil {
 
     for (final ObservanceWrapper ow: obws) {
       if (etzt.getObservances() == null) {
-        etzt.setObservances(new ArrayList<ObservanceType>());
+        etzt.setObservances(new ArrayList<>());
       }
       etzt.getObservances().add(ow.ot);
     }
@@ -675,15 +673,15 @@ public class TzServerUtil {
       pos = 1;
     }
 
-    sb.append(offset.substring(pos, pos + 2));
+    sb.append(offset, pos, pos + 2);
     sb.append(':');
     pos += 2;
-    sb.append(offset.substring(pos, pos + 2));
+    sb.append(offset, pos, pos + 2);
     pos += 2;
 
     if (pos < offset.length()) {
       sb.append(':');
-      sb.append(offset.substring(pos, pos + 2));
+      sb.append(offset, pos, pos + 2);
     }
 
     return sb.toString();
@@ -691,7 +689,7 @@ public class TzServerUtil {
 
   /** Get a timezone object from the server given the id.
    *
-   * @param tzid
+   * @param tzid to fetch
    * @return TimeZone with id or null
    * @throws TzException
    */
@@ -779,7 +777,7 @@ public class TzServerUtil {
           final net.fortuna.ical4j.model.Date start,
           final String val) throws TzException {
     if (val == null) {
-      final Dur dur = new Dur("P520W");
+      final TemporalAmountAdapter dur = TemporalAmountAdapter.parse("P520W");
 
       return new net.fortuna.ical4j.model.Date(dur.getTime(
               new Date(start.getTime())
