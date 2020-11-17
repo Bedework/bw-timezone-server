@@ -117,14 +117,12 @@ class Compare implements Logged {
     return matches;
   }
 
-  @SuppressWarnings("unchecked")
   private static boolean missing(final Set<Onset> a,
                                  final Set<Onset> b,
                                  final String msgPrefix,
                                  final InfoLines msgs) {
-    final Set<Onset> notInThat = new TreeSet<>();
+    final Set<Onset> notInThat = new TreeSet<>(a);
 
-    notInThat.addAll(a);
     notInThat.removeAll(b);
 
     if (notInThat.isEmpty()) {
@@ -152,7 +150,6 @@ class Compare implements Logged {
         continue;
       }
 
-      //noinspection unchecked
       onsets.addAll(dl);
     }
 
@@ -176,7 +173,7 @@ class Compare implements Logged {
                                 final InfoLines msgs) {
     final DateTime initialOnset;
     final Set<Onset> onsets = new TreeSet<>();
-    final long offset = o.getOffsetTo().getOffset().getOffset();
+    final long offsetSeconds = o.getOffsetTo().getOffset().getTotalSeconds();
 
     try {
       initialOnset = applyOffsetFrom(o, calculateOnset(
@@ -187,7 +184,7 @@ class Compare implements Logged {
       return null;
     }
 
-    final TzName tznameP = (TzName)o.getProperty(TZNAME);
+    final TzName tznameP = o.getProperty(TZNAME);
     final String tzname;
 
     if (tznameP == null) {
@@ -198,7 +195,7 @@ class Compare implements Logged {
 
     onsets.add(new Onset(tzname,
                          o instanceof Standard,
-                         initialOnset, offset));
+                         initialOnset, offsetSeconds));
 
     final Date initialOnsetUTC;
     // get first onset without adding TZFROM as this may lead to a day boundary
@@ -213,8 +210,8 @@ class Compare implements Logged {
     }
 
     // check rdates for latest applicable onset..
-    final PropertyList rdates = o.getProperties(Property.RDATE);
-    for (final Object rdate1 : rdates) {
+    final PropertyList<Property> rdates = o.getProperties(Property.RDATE);
+    for (final Property rdate1 : rdates) {
       final RDate rdate = (RDate)rdate1;
       for (final Object o1 : rdate.getDates()) {
         try {
@@ -224,7 +221,7 @@ class Compare implements Logged {
           if (!rdateOnset.after(endDate)) {
             onsets.add(new Onset(tzname,
                                  o instanceof Standard,
-                                 rdateOnset, offset));
+                                 rdateOnset, offsetSeconds));
           }
         } catch (final ParseException e) {
           msgs.add("Unexpected error calculating onset" + e);
@@ -233,8 +230,8 @@ class Compare implements Logged {
     }
 
     // check recurrence rules for latest applicable onset..
-    final PropertyList rrules = o.getProperties(Property.RRULE);
-    for (final Object rrule1 : rrules) {
+    final PropertyList<Property> rrules = o.getProperties(Property.RRULE);
+    for (final Property rrule1 : rrules) {
       final RRule rrule = (RRule)rrule1;
       // include future onsets to determine onset period..
       final Calendar cal = Dates.getCalendarInstance(endDate);
@@ -252,7 +249,7 @@ class Compare implements Logged {
         if (!rruleOnset.after(endDate)) {
           onsets.add(new Onset(tzname,
                                o instanceof Standard,
-                               rruleOnset, offset));
+                               rruleOnset, offsetSeconds));
         }
       }
     }
@@ -282,8 +279,8 @@ class Compare implements Logged {
           final Observance o,
           final DateTime orig) {
     final DateTime withOffset = new DateTime(true);
-    withOffset.setTime(orig.getTime() - o.getOffsetFrom().getOffset()
-            .getOffset());
+    withOffset.setTime(orig.getTime() - (o.getOffsetFrom().getOffset()
+            .getTotalSeconds() * Dates.MILLIS_PER_SECOND));
     withOffset.setUtc(true);
 
     return withOffset;
@@ -293,7 +290,7 @@ class Compare implements Logged {
    *                   Logged methods
    * ==================================================================== */
 
-  private BwLogger logger = new BwLogger();
+  private final BwLogger logger = new BwLogger();
 
   @Override
   public BwLogger getLogger() {

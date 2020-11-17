@@ -12,16 +12,16 @@ public class Onset implements Comparable<Onset> {
   final String observanceName;
   final boolean standard;
   net.fortuna.ical4j.model.DateTime onset;
-  long offset;
+  long offsetSeconds;
 
   public Onset(final String observanceName,
                final boolean standard,
                final DateTime onset,
-               final long offset) {
+               final long offsetSeconds) {
     this.observanceName = observanceName;
     this.standard = standard;
     this.onset = onset;
-    this.offset = offset;
+    this.offsetSeconds = this.offsetSeconds;
 
     onset.setUtc(true);
   }
@@ -30,7 +30,7 @@ public class Onset implements Comparable<Onset> {
     final Onset on = (Onset)o;
 
     return (onset.equals(on.onset)) &&
-            (offset == on.offset);
+            (offsetSeconds == on.offsetSeconds);
   }
 
   @Override
@@ -55,11 +55,11 @@ public class Onset implements Comparable<Onset> {
       return res;
     }
 
-    if (offset > o.offset) {
+    if (offsetSeconds > o.offsetSeconds) {
       return 1;
     }
 
-    if (offset < o.offset) {
+    if (offsetSeconds < o.offsetSeconds) {
       return -1;
     }
 
@@ -75,7 +75,7 @@ public class Onset implements Comparable<Onset> {
     }
 
     return observanceName + "(" + type + "): " +
-            onset.toString() + " " + offset;
+            onset.toString() + " " + offsetSeconds;
   }
 }
 

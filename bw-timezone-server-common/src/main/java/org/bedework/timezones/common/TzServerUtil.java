@@ -614,13 +614,11 @@ public class TzServerUtil {
 
     final Period p = new Period(dtstart, dtend);
 
-    final ComponentList cl = vtz.getObservances();
+    final ComponentList<Observance> cl = vtz.getObservances();
 
     final TreeSet<ObservanceWrapper> obws = new TreeSet<>();
 
-    for (final Object o: cl) {
-      final Observance ob = (Observance)o;
-
+    for (final Observance ob: cl) {
       final PeriodList pl = ob.calculateRecurrenceSet(p);
 
       for (final Object po: pl) {
@@ -633,10 +631,10 @@ public class TzServerUtil {
                 onsetPer.getStart().toString()));
 
         ot.setUtcOffsetFrom(
-                (int)(ob.getOffsetFrom().getOffset().getOffset() / 1000));
+                ob.getOffsetFrom().getOffset().getTotalSeconds());
 
         ot.setUtcOffsetTo(
-                (int)(ob.getOffsetTo().getOffset().getOffset() / 1000));
+                ob.getOffsetTo().getOffset().getTotalSeconds());
 
         obws.add(new ObservanceWrapper(ot));
       }
@@ -667,10 +665,10 @@ public class TzServerUtil {
   }
 
   private String delimited(final UtcOffset val) {
-    String offset = val.toString();
+    final String offset = val.toString();
 
     int pos = 0;
-    StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder();
 
     if (offset.startsWith("-") || offset.startsWith("+")) {
       sb.append(offset.charAt(0));
@@ -729,7 +727,7 @@ public class TzServerUtil {
    * @throws TzException
    */
   public String getEtag() throws TzException {
-    StringBuilder val = new StringBuilder();
+    final StringBuilder val = new StringBuilder();
 
     val.append("\"");
     val.append(getDtstamp());
