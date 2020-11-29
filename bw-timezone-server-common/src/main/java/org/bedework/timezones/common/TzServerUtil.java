@@ -41,6 +41,7 @@ import net.fortuna.ical4j.util.TimeZones;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -777,7 +778,8 @@ public class TzServerUtil {
           final net.fortuna.ical4j.model.Date start,
           final String val) throws TzException {
     if (val == null) {
-      final TemporalAmountAdapter dur = TemporalAmountAdapter.parse("P520W");
+      final TemporalAmountAdapter dur = new TemporalAmountAdapter(
+              Duration.ofDays(520 * 7)); //520 weeks
 
       return new net.fortuna.ical4j.model.Date(dur.getTime(
               new Date(start.getTime())
