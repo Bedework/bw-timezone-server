@@ -18,7 +18,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="bw-timezone-server-common" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-args:4.1.0" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-config:4.1.0" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-elasticsearch:4.1.0" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-indexing:4.1.0" level="project" />
@@ -63,21 +62,22 @@
     <orderEntry type="library" name="Maven: org.elasticsearch.plugin:lang-mustache-client:7.2.0" level="project" />
     <orderEntry type="library" name="Maven: com.github.spullara.mustache.java:compiler:0.9.3" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-jmx:4.1.0" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-misc:4.0.27" level="project" />
+    <orderEntry type="module" module-name="bw-util-misc" />
     <orderEntry type="module" module-name="bw-util-tz" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-http:4.1.0" level="project" />
     <orderEntry type="module" module-name="bw-util2-calendar" />
     <orderEntry type="library" name="Maven: org.iq80.leveldb:leveldb:min:0.5" level="project" />
     <orderEntry type="module" module-name="bw-timezone-server-tzconvert" />
+    <orderEntry type="module" module-name="bw-util-args" />
     <orderEntry type="library" name="Maven: log4j:log4j:1.2.15" level="project" />
     <orderEntry type="library" name="Maven: javax.mail:mail:1.4" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-log4j12:1.7.26" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.26" level="project" />
     <orderEntry type="module" module-name="bw-timezone-server-war" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-caching:4.0.27" level="project" />
+    <orderEntry type="module" module-name="bw-util-caching" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-logging:4.0.5" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-servlet:4.1.0" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-xml:4.0.27" level="project" />
+    <orderEntry type="module" module-name="bw-util-xml" />
     <orderEntry type="library" name="Maven: org.bedework:bw-xml-icalendar:4.0.10" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: org.glassfish.jaxb:jaxb-runtime:2.3.2" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: jakarta.xml.bind:jakarta.xml.bind-api:2.3.2" level="project" />

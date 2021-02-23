@@ -13,11 +13,6 @@
     <!-- Bedework: Util -->
     <dependency>
       <groupId>org.bedework</groupId>
-      <artifactId>bw-util-args</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.bedework</groupId>
       <artifactId>bw-util-config</artifactId>
     </dependency>
 

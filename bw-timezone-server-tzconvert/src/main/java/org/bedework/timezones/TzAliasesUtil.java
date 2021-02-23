@@ -16,7 +16,7 @@
     specific language governing permissions and limitations
     under the License.
 */
-package org.bedework.timezones.common;
+package org.bedework.timezones;
 
 import org.bedework.util.args.Args;
 import org.bedework.util.logging.BwLogger;
@@ -25,7 +25,6 @@ import org.bedework.util.timezones.model.aliases.AliasInfoType;
 import org.bedework.util.timezones.model.aliases.TimezoneAliasInfoType;
 import org.bedework.util.timezones.model.aliases.TimezonesAliasInfoType;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -59,22 +58,22 @@ public class TzAliasesUtil implements Logged {
   private String currentURIStr;
 
   /**
-   * @throws TzException
    */
-  private TzAliasesUtil() throws TzException {
+  private TzAliasesUtil() {
   }
 
   /** Merge properties into the given object. If that object is null a new one
    * will be created.
    *
-   * @param tzsai
-   * @param p
+   * @param tzsai TimezonesAliasInfoType
+   * @param p set of (alias, tzid)
    * @param source a URI representing the source of the information
    * @return merged object.
    */
-  public TimezonesAliasInfoType mergeProperties(final TimezonesAliasInfoType tzsai,
-                                                final Properties p,
-                                                final URI source) {
+  public TimezonesAliasInfoType mergeProperties(
+          final TimezonesAliasInfoType tzsai,
+          final Properties p,
+          final URI source) {
     if (source == null) {
       currentURIStr = null;
     } else {
@@ -89,16 +88,16 @@ public class TzAliasesUtil implements Logged {
 
     List<TimezoneAliasInfoType> atai = tzsaires.getTimezoneAliasInfo();
     if (atai == null) {
-      atai = new ArrayList<TimezoneAliasInfoType>();
+      atai = new ArrayList<>();
       tzsaires.setTimezoneAliasInfo(atai);
     }
 
-    Map<String, TimezoneAliasInfoType> tzmap = getTzMap(atai);
+    final Map<String, TimezoneAliasInfoType> tzmap = getTzMap(atai);
 
-    for (Object o: p.keySet()) {
-      String alias = (String)o;
+    for (final Object o: p.keySet()) {
+      final String alias = (String)o;
 
-      String tzid = p.getProperty(alias);
+      final String tzid = p.getProperty(alias);
 
       TimezoneAliasInfoType tai = tzmap.get(tzid);
 
@@ -117,13 +116,13 @@ public class TzAliasesUtil implements Logged {
 
   /**
    * @return true if processing went ok
-   * @throws Throwable
+   * @throws Throwable on fatal error
    */
   public boolean process() throws Throwable {
     TimezonesAliasInfoType tai = null;
 
     if (infileName != null) {
-      InputStream in = new FileInputStream(new File(infileName));
+      final InputStream in = new FileInputStream(infileName);
 
       tai = (TimezonesAliasInfoType)unmarshal(in);
     }
@@ -134,18 +133,18 @@ public class TzAliasesUtil implements Logged {
       return false;
     }
 
-    InputStream propStream = new FileInputStream(new File(propsfileName));
+    final InputStream propStream = new FileInputStream(propsfileName);
 
-    Properties props = new Properties();
+    final Properties props = new Properties();
 
     props.load(propStream);
 
-    OutputStream out;
+    final OutputStream out;
 
     if (outfileName == null) {
       out = System.out;
     } else {
-      out = new FileOutputStream(new File(outfileName));
+      out = new FileOutputStream(outfileName);
     }
 
     tai = mergeProperties(tai, props, null);
@@ -159,10 +158,10 @@ public class TzAliasesUtil implements Logged {
 
   /** Main
    *
-   * @param args
+   * @param args command line arguments
    */
   public static void main(final String[] args) {
-    TzAliasesUtil tzau = null;
+    final TzAliasesUtil tzau;
 
     try {
       tzau = new TzAliasesUtil();
@@ -172,7 +171,7 @@ public class TzAliasesUtil implements Logged {
       }
 
       tzau.process();
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       t.printStackTrace();
     }
   }
@@ -184,9 +183,9 @@ public class TzAliasesUtil implements Logged {
   @SuppressWarnings("unchecked")
   protected void marshal(final TimezonesAliasInfoType tai,
                          final OutputStream out) throws Throwable {
-    JAXBContext contextObj = JAXBContext.newInstance(tai.getClass());
+    final JAXBContext contextObj = JAXBContext.newInstance(tai.getClass());
 
-    Marshaller marshaller = contextObj.createMarshaller();
+    final Marshaller marshaller = contextObj.createMarshaller();
     marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 
     //ObjectFactory of = new ObjectFactory();
@@ -196,8 +195,8 @@ public class TzAliasesUtil implements Logged {
   }
 
   protected Object unmarshal(final InputStream in) throws Throwable {
-    JAXBContext jc = JAXBContext.newInstance(TimezonesAliasInfoType.class);
-    Unmarshaller u = jc.createUnmarshaller();
+    final JAXBContext jc = JAXBContext.newInstance(TimezonesAliasInfoType.class);
+    final Unmarshaller u = jc.createUnmarshaller();
     return u.unmarshal(in);
   }
 
@@ -235,18 +234,18 @@ public class TzAliasesUtil implements Logged {
     System.out.println("            specify file containing properties");
     System.out.println("       -o <filename>");
     System.out.println("            specify file for XML output");
-    System.out.println("");
+    System.out.println();
   }
 
   private Map<String, TimezoneAliasInfoType> getTzMap(final List<TimezoneAliasInfoType> atai) {
-    Map<String, TimezoneAliasInfoType> tzmap =
-        new HashMap<String, TimezoneAliasInfoType>();
+    final Map<String, TimezoneAliasInfoType> tzmap =
+            new HashMap<>();
 
     if (atai == null) {
       return tzmap;
     }
 
-    for (TimezoneAliasInfoType tai: atai) {
+    for (final TimezoneAliasInfoType tai: atai) {
       tzmap.put(tai.getTzid(), tai);
     }
 
@@ -259,11 +258,11 @@ public class TzAliasesUtil implements Logged {
     List<AliasInfoType> aai = tai.getAliases();
 
     if (aai == null) {
-      aai = new ArrayList<AliasInfoType>();
+      aai = new ArrayList<>();
       tai.setAliases(aai);
     }
 
-    for (AliasInfoType ai: aai) {
+    for (final AliasInfoType ai: aai) {
       if (ai.getAlias().equals(alias)) {
         // Already there
         return;
@@ -271,7 +270,7 @@ public class TzAliasesUtil implements Logged {
     }
 
     // Not found
-    AliasInfoType ai = new AliasInfoType();
+    final AliasInfoType ai = new AliasInfoType();
     aai.add(ai);
 
     ai.setAlias(alias);
@@ -282,7 +281,7 @@ public class TzAliasesUtil implements Logged {
    *                   Logged methods
    * ==================================================================== */
 
-  private BwLogger logger = new BwLogger();
+  private final BwLogger logger = new BwLogger();
 
   @Override
   public BwLogger getLogger() {

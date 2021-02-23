@@ -24,7 +24,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="bw-timezone-server-common" scope="PROVIDED" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.bedework:bw-util-args:4.1.0" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-config:4.1.0" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-xml:4.0.27" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.bedework:bw-util-elasticsearch:4.1.0" level="project" />
@@ -71,7 +70,7 @@
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.elasticsearch.plugin:lang-mustache-client:7.2.0" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: com.github.spullara.mustache.java:compiler:0.9.3" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-jmx:4.1.0" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-misc:4.0.27" level="project" />
+    <orderEntry type="module" module-name="bw-util-misc" />
     <orderEntry type="module" module-name="bw-util2-calendar" scope="PROVIDED" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.iq80.leveldb:leveldb:min:0.5" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.iq80.leveldb:leveldb-api:0.5" level="project" />
@@ -79,6 +78,7 @@
     <orderEntry type="library" scope="PROVIDED" name="Maven: com.google.code.findbugs:jsr305:1.3.9" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: javax.xml.bind:jaxb-api:2.3.0" level="project" />
     <orderEntry type="module" module-name="bw-timezone-server-tzconvert" scope="PROVIDED" />
+    <orderEntry type="module" module-name="bw-util-args" scope="PROVIDED" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: log4j:log4j:1.2.15" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: javax.mail:mail:1.4" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.slf4j:slf4j-log4j12:1.7.26" level="project" />
