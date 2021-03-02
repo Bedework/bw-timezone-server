@@ -24,6 +24,7 @@ import org.bedework.util.calendar.IcalToXcal;
 import org.bedework.util.logging.BwLogger;
 import org.bedework.util.logging.Logged;
 import org.bedework.util.timezones.DateTimeUtil;
+import org.bedework.util.timezones.TimeZoneRegistryNoFetch;
 import org.bedework.util.timezones.model.TimezoneType;
 
 import ietf.params.xml.ns.icalendar_2.IcalendarType;
@@ -399,7 +400,8 @@ public abstract class AbstractCachedData implements Logged, CachedData {
 
   protected Calendar parseDef(final String caldef) throws TzException {
     try {
-      CalendarBuilder cb = new CalendarBuilder();
+      final CalendarBuilder cb =
+              new CalendarBuilder(new TimeZoneRegistryNoFetch());
 
       UnfoldingReader ufrdr = new UnfoldingReader(new StringReader(caldef), true);
 
