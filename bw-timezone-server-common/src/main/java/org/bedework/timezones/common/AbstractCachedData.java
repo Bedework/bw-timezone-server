@@ -62,17 +62,17 @@ public abstract class AbstractCachedData implements Logged, CachedData {
   /** XML formatted UTC dtstamp (i.e. separators) for the data */
   protected String dtstamp;
 
-  private Map<String, String> vtzs = new HashMap<>();
+  private final Map<String, String> vtzs = new HashMap<>();
 
-  private Map<String, TimeZone> timeZones = new FlushMap<>();
+  private final Map<String, TimeZone> timeZones = new FlushMap<>();
 
-  private Map<String, IcalendarType> xtzs = new HashMap<>();
+  private final Map<String, IcalendarType> xtzs = new HashMap<>();
 
-  private Map<String, String> aliasedVtzs = new HashMap<>();
+  private final Map<String, String> aliasedVtzs = new HashMap<>();
 
 //  private Map<String, TimeZone> aliasedTzs = new HashMap<String, TimeZone>();
 
-  private Map<String, IcalendarType> aliasedXtzs = new HashMap<>();
+  private final Map<String, IcalendarType> aliasedXtzs = new HashMap<>();
 
   private SortedSet<String> nameList;
 
@@ -120,11 +120,7 @@ public abstract class AbstractCachedData implements Logged, CachedData {
   public List<Stat> getStats() throws TzException {
     final List<Stat> stats = new ArrayList<>();
 
-    if (vtzs == null) {
-      stats.add(new Stat(msgPrefix, " #tzs  Unavailable"));
-    } else {
-      stats.add(new Stat(msgPrefix + " #tzs", String.valueOf(vtzs.size())));
-    }
+    stats.add(new Stat(msgPrefix + " #tzs", String.valueOf(vtzs.size())));
 
     stats.add(new Stat(msgPrefix + " dtstamp", dtstamp));
     stats.add(new Stat(msgPrefix + " cached expansions",
@@ -150,57 +146,58 @@ public abstract class AbstractCachedData implements Logged, CachedData {
   }
 
   @Override
-  public TzAlias fromAlias(final String val) throws TzException {
+  public TzAlias fromAlias(final String val) {
     return aliasMaps.byAlias.get(val);
   }
 
   @Override
-  public String getAliasesStr() throws TzException {
+  public String getAliasesStr() {
     return aliasMaps.aliasesStr;
   }
 
   @Override
-  public SortedSet<String> findAliases(final String tzid) throws TzException {
+  public SortedSet<String> findAliases(final String tzid) {
     return aliasMaps.byTzid.get(tzid);
   }
 
   @Override
-  public SortedSet<String> getNameList() throws TzException {
+  public SortedSet<String> getNameList() {
     return nameList;
   }
 
   @Override
   public void setExpanded(final ExpandedMapEntryKey key,
-                          final ExpandedMapEntry tzs) throws TzException {
+                          final ExpandedMapEntry tzs) {
     expansions.put(key, tzs);
   }
 
   @Override
-  public ExpandedMapEntry getExpanded(final ExpandedMapEntryKey key) throws TzException {
+  public ExpandedMapEntry getExpanded(final ExpandedMapEntryKey key) {
     return expansions.get(key);
   }
 
   @Override
-  public String getCachedVtz(final String name) throws TzException {
+  public String getCachedVtz(final String name) {
     return vtzs.get(name);
   }
 
   @Override
-  public Collection<String> getAllCachedVtzs() throws TzException {
+  public Collection<String> getAllCachedVtzs() {
     return vtzs.values();
   }
 
   @Override
-  public TimeZone getTimeZone(final String tzid) throws TzException {
+  public TimeZone getTimeZone(final String tzid) {
     TimeZone tz = timeZones.get(tzid);
 
     if (tz != null) {
       return tz;
     }
 
-    Calendar cal = parseDef(TzServerUtil.getCalHdr() +
-                                    getCachedVtz(tzid) +
-                                    TzServerUtil.getCalTlr());
+    final Calendar cal =
+            parseDef(TzServerUtil.getCalHdr() +
+                             getCachedVtz(tzid) +
+                             TzServerUtil.getCalTlr());
 
     tz = new TimeZone(vtzFromCal(cal));
 
@@ -210,35 +207,33 @@ public abstract class AbstractCachedData implements Logged, CachedData {
     return tz;
   }
 
-  /* (non-Javadoc)
-   * @see org.bedework.timezones.common.CachedData#getAliasedTimeZone(java.lang.String)
-   * /
+  /*
   @Override
   public TimeZone getAliasedTimeZone(final String tzid) throws TzException {
     return aliasedTzs.get(tzid);
   }*/
 
   @Override
-  public IcalendarType getXTimeZone(final String tzid) throws TzException {
+  public IcalendarType getXTimeZone(final String tzid) {
     return xtzs.get(tzid);
   }
 
   @Override
-  public IcalendarType getAliasedXTimeZone(final String tzid) throws TzException {
+  public IcalendarType getAliasedXTimeZone(final String tzid) {
     return aliasedXtzs.get(tzid);
   }
 
   @Override
-  public String getAliasedCachedVtz(final String name) throws TzException {
+  public String getAliasedCachedVtz(final String name) {
     return aliasedVtzs.get(name);
   }
 
   @Override
-  public List<TimezoneType> getTimezones(final String[] tzids) throws TzException {
-    List<TimezoneType> ss = new ArrayList<>();
+  public List<TimezoneType> getTimezones(final String[] tzids) {
+    final List<TimezoneType> ss = new ArrayList<>();
 
-    for (String tzid: tzids) {
-      TimezoneType t = timezonesMap.get(tzid);
+    for (final String tzid: tzids) {
+      final TimezoneType t = timezonesMap.get(tzid);
 
       if (t != null) {
         ss.add(t);
@@ -249,7 +244,7 @@ public abstract class AbstractCachedData implements Logged, CachedData {
   }
 
   @Override
-  public List<TimezoneType> getTimezones(final String changedSince) throws TzException {
+  public List<TimezoneType> getTimezones(final String changedSince) {
     if (changedSince == null) {
       return timezones;
     }
@@ -280,11 +275,11 @@ public abstract class AbstractCachedData implements Logged, CachedData {
 
   @Override
   public List<TimezoneType> findTimezones(final String name) throws TzException {
-    List<TimezoneType> sums = new ArrayList<>();
+    final List<TimezoneType> sums = new ArrayList<>();
 
-    List<String> ids = findIds(name);
+    final List<String> ids = findIds(name);
 
-    for (TimezoneType tz: timezones) {
+    for (final TimezoneType tz: timezones) {
       if (ids.contains(tz.getTzid())) {
         sums.add(tz);
       }
@@ -302,12 +297,11 @@ public abstract class AbstractCachedData implements Logged, CachedData {
    * @param caldef a tz spec in the form of a String VCALENDAR representation
    * @param etag for entry
    * @param storedDtstamp to set last mod
-   * @throws TzException
    */
   protected void processSpec(final String id,
                              final String caldef,
                              final String etag,
-                             final String storedDtstamp) throws TzException {
+                             final String storedDtstamp) {
     processSpec(id, parseDef(caldef), etag, storedDtstamp);
   }
 
@@ -317,104 +311,98 @@ public abstract class AbstractCachedData implements Logged, CachedData {
    * @param cal a tz spec in the form of a CALENDAR component
    * @param etag for entry
    * @param storedDtstamp to set last mod
-   * @throws TzException
    */
   protected void processSpec(final String id,
                              final Calendar cal,
                              final String etag,
-                             final String storedDtstamp) throws TzException {
-    try {
-      nameList.add(id);
+                             final String storedDtstamp) {
+    nameList.add(id);
 
-      final VTimeZone vtz = vtzFromCal(cal);
+    final VTimeZone vtz = vtzFromCal(cal);
 
-      vtzs.put(id, vtz.toString());
+    vtzs.put(id, vtz.toString());
 
-      /* Now build the XML version */
+    /* Now build the XML version */
 
-      IcalendarType xcal = IcalToXcal.fromIcal(cal, null, true);
+    IcalendarType xcal = IcalToXcal.fromIcal(cal, null, true);
 
-      xtzs.put(id, xcal);
+    xtzs.put(id, xcal);
 
-      /* ================== Build summary info ======================== */
-      final TimezoneType tz = new TimezoneType();
+    /* ================== Build summary info ======================== */
+    final TimezoneType tz = new TimezoneType();
 
-      tz.setTzid(id);
+    tz.setTzid(id);
 
-      final LastModified lm = vtz.getLastModified();
-      if (lm!= null) {
-        tz.setLastModified(DateTimeUtil.fromRfcDateTimeUTC(lm.getValue()));
-      } else if (storedDtstamp != null) {
-        tz.setLastModified(DateTimeUtil.fromRfcDateTimeUTC(storedDtstamp));
-      } else {
-        tz.setLastModified(DateTimeUtil.fromRfcDateTimeUTC(dtstamp));
-      }
-
-      if (etag != null) {
-        tz.setEtag(etag);
-      } else if (storedDtstamp != null) {
-        tz.setEtag(storedDtstamp);
-      } else {
-        tz.setEtag(dtstamp);
-      }
-
-      final SortedSet<String> aliases = findAliases(id);
-
-      // XXX Need to have list of local names per timezone
-      //String ln = vtz.
-      if (aliases != null) {
-        for (String a: aliases) {
-          if (tz.getAliases() == null) {
-            tz.setAliases(new ArrayList<String>());
-          }
-          tz.getAliases().add(a);
-
-          List<String> aliasedIds = null;
-
-          if (aliasMaps != null) {
-            final TzAlias alias = aliasMaps.byAlias.get(a);
-            if (alias != null) {
-              aliasedIds = alias.getTargetIds();
-            }
-          }
-
-          final VTimeZone avtz = addAlias(a, vtz, aliasedIds);
-
-          cal.getComponents().clear();
-          cal.getComponents().add(avtz);
-
-          xcal = IcalToXcal.fromIcal(cal, null, true);
-
-          aliasedXtzs.put(id, xcal);
-        }
-      }
-
-      timezones.add(tz);
-      timezonesMap.put(tz.getTzid(), tz);
-    } catch (final TzException te) {
-      throw te;
-    } catch (final Throwable t) {
-      throw new TzException(t);
+    final LastModified lm = vtz.getLastModified();
+    if (lm!= null) {
+      tz.setLastModified(DateTimeUtil.fromRfcDateTimeUTC(lm.getValue()));
+    } else if (storedDtstamp != null) {
+      tz.setLastModified(DateTimeUtil.fromRfcDateTimeUTC(storedDtstamp));
+    } else {
+      tz.setLastModified(DateTimeUtil.fromRfcDateTimeUTC(dtstamp));
     }
+
+    if (etag != null) {
+      tz.setEtag(etag);
+    } else if (storedDtstamp != null) {
+      tz.setEtag(storedDtstamp);
+    } else {
+      tz.setEtag(dtstamp);
+    }
+
+    final SortedSet<String> aliases = findAliases(id);
+
+    // XXX Need to have list of local names per timezone
+    //String ln = vtz.
+    if (aliases != null) {
+      for (final String a: aliases) {
+        if (tz.getAliases() == null) {
+          tz.setAliases(new ArrayList<>());
+        }
+        tz.getAliases().add(a);
+
+        List<String> aliasedIds = null;
+
+        if (aliasMaps != null) {
+          final TzAlias alias = aliasMaps.byAlias.get(a);
+          if (alias != null) {
+            aliasedIds = alias.getTargetIds();
+          }
+        }
+
+        final VTimeZone avtz = addAlias(a, vtz, aliasedIds);
+
+        cal.getComponents().clear();
+        cal.getComponents().add(avtz);
+
+        xcal = IcalToXcal.fromIcal(cal, null, true);
+
+        aliasedXtzs.put(id, xcal);
+      }
+    }
+
+    timezones.add(tz);
+    timezonesMap.put(tz.getTzid(), tz);
   }
 
-  protected Calendar parseDef(final String caldef) throws TzException {
+  protected Calendar parseDef(final String caldef) {
     try {
       final CalendarBuilder cb =
               new CalendarBuilder(new TimeZoneRegistryNoFetch());
 
-      UnfoldingReader ufrdr = new UnfoldingReader(new StringReader(caldef), true);
+      final UnfoldingReader ufrdr = new UnfoldingReader(new StringReader(caldef), true);
 
       return cb.build(ufrdr);
-    } catch (Throwable t) {
-      throw new TzException(t);
+    } catch (final Throwable t) {
+      throw new RuntimeException(t);
     }
   }
 
-  protected VTimeZone vtzFromCal(final Calendar cal) throws TzException {
-    VTimeZone vtz = (VTimeZone)cal.getComponents().getComponent(Component.VTIMEZONE);
+  protected VTimeZone vtzFromCal(final Calendar cal) {
+    final VTimeZone vtz = (VTimeZone)cal.getComponents()
+                                        .getComponent(Component.VTIMEZONE);
     if (vtz == null) {
-      throw new TzException("Incorrectly stored timezone");
+      throw new RuntimeException("Incorrectly stored timezone");
     }
 
     return vtz;
@@ -431,33 +419,34 @@ public abstract class AbstractCachedData implements Logged, CachedData {
    */
   protected VTimeZone addAlias(final String alias,
                                final VTimeZone vtz,
-                               final List<String> tzids) throws TzException {
+                               final List<String> tzids) {
+    final VTimeZone avtz;
     try {
-      VTimeZone avtz = (VTimeZone)vtz.copy();
+      avtz = (VTimeZone)vtz.copy();
+    } catch (final Throwable t) {
+      throw new RuntimeException(t);
+    }
 
-      TzId tzidProp = avtz.getTimeZoneId();
-      tzidProp.setValue(alias);
+    final TzId tzidProp = avtz.getTimeZoneId();
+    tzidProp.setValue(alias);
 
-      if (tzids != null) {
-        for (String tzid: tzids) {
-          avtz.getProperties().add(new TzidAliasOf(tzid));
-        }
+    if (tzids != null) {
+      for (final String tzid: tzids) {
+        avtz.getProperties().add(new TzidAliasOf(tzid));
       }
+    }
 
 //      aliasedTzs.put(alias, new TimeZone(avtz));
-      aliasedVtzs.put(alias, avtz.toString());
+    aliasedVtzs.put(alias, avtz.toString());
 
-      return avtz;
-    } catch (Throwable t) {
-      throw new TzException(t);
-    }
+    return avtz;
   }
 
   protected String escape(final String val) {
-    StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder();
 
     for (int i = 0; i < val.length(); i++) {
-      char ch = val.charAt(i);
+      final char ch = val.charAt(i);
 
       if ((ch > 61) && (ch < 127)) {
         if (ch == '\\') {
@@ -521,7 +510,7 @@ public abstract class AbstractCachedData implements Logged, CachedData {
    *                   Logged methods
    * ==================================================================== */
 
-  private BwLogger logger = new BwLogger();
+  private final BwLogger logger = new BwLogger();
 
   @Override
   public BwLogger getLogger() {
