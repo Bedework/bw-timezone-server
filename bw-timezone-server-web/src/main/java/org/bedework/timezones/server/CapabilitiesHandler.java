@@ -34,7 +34,18 @@ import javax.servlet.http.HttpServletResponse;
  *
  *   @author Mike Douglass
  */
-public class CapabilitiesHandler extends MethodBase {
+public class
+
+
+
+
+
+
+
+
+
+
+CapabilitiesHandler extends MethodBase {
   /* Define capabilities as static objects */
   static final CapabilitiesType capabilities = new CapabilitiesType();
 

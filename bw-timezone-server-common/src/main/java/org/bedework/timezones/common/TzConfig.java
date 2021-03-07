@@ -19,7 +19,6 @@
 package org.bedework.timezones.common;
 
 import org.bedework.util.config.ConfInfo;
-import org.bedework.util.elasticsearch.IndexProperties;
 import org.bedework.util.jmx.MBeanInfo;
 
 /** This interface defines the various properties we need for a 
@@ -28,11 +27,11 @@ import org.bedework.util.jmx.MBeanInfo;
  * @author Mike Douglass
  */
 @ConfInfo(elementName = "bwtz-confinfo")
-public interface TzConfig extends IndexProperties {
+public interface TzConfig {
   /**
    * @param val the dtstamp
    */
-  void setDtstamp(final String val);
+  void setDtstamp(String val);
 
   /**
    * @return String XML format dtstamp
@@ -43,7 +42,7 @@ public interface TzConfig extends IndexProperties {
   /**
    * @param val version
    */
-  void setVersion(final String val);
+  void setVersion(String val);
 
   /**
    * @return String version
@@ -66,7 +65,7 @@ public interface TzConfig extends IndexProperties {
    *
    * @param val    String
    */
-  void setLeveldbPath(final String val);
+  void setLeveldbPath(String val);
 
   /** Location of the leveldb data.
    *
@@ -91,7 +90,7 @@ public interface TzConfig extends IndexProperties {
    *
    * @param val    boolean
    */
-  void setPrimaryServer(final boolean val);
+  void setPrimaryServer(boolean val);
 
   /** Are we a primary server?
    * @return boolean
@@ -102,7 +101,7 @@ public interface TzConfig extends IndexProperties {
   /**
    * @param val source of the data
    */
-  void setSource(final String val);
+  void setSource(String val);
 
   /**
    * @return source of the data
@@ -121,30 +120,4 @@ public interface TzConfig extends IndexProperties {
    */
   @MBeanInfo("How often we attempt to refresh from the primary - seconds.")
   long getRefreshDelay();
-
-  /** 
-   *
-   * @param val the indexer config location
-   */
-  void setIndexerConfig(String val);
-
-  /** Get the indexer config location
-   *
-   * @return location
-   */
-  @MBeanInfo("indexer config location")
-  String getIndexerConfig();
-
-  /**
-   *
-   * @param val the index name
-   */
-  void setIndexName(String val);
-
-  /** Get the index name
-   *
-   * @return index name
-   */
-  @MBeanInfo("index name")
-  String getIndexName();
 }

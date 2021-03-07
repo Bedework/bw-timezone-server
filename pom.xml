@@ -1,25 +1,25 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.bedework.bw-tzsvr</groupId>
-	<artifactId>bw-timezone-server</artifactId>
-	<version>4.0.8-SNAPSHOT</version>
-	<packaging>pom</packaging>
-	<name>bw-timezone-server</name>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.bedework.bw-tzsvr</groupId>
+  <artifactId>bw-timezone-server</artifactId>
+  <version>4.0.8-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>bw-timezone-server</name>
   <description>A timezone server implmenting tzdist and an experimental timzone converter</description>
   <url>https://github.com/Bedework/bw-timezone-server</url>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<!-- Maven Plugin Versions -->
-		<maven.compiler.plugin.version>2.3.2</maven.compiler.plugin.version>
-		<maven.source.plugin.version>2.1.2</maven.source.plugin.version>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- Maven Plugin Versions -->
+    <maven.compiler.plugin.version>2.3.2</maven.compiler.plugin.version>
+    <maven.source.plugin.version>2.1.2</maven.source.plugin.version>
+    <maven.war.plugin.version>3.3.1</maven.war.plugin.version>
 
-		<!-- Bedework Versions -->
-		<bw-xml.version>4.0.10</bw-xml.version>
-		<bw-util.version>4.0.28-SNAPSHOT</bw-util.version>
+    <!-- Bedework Versions -->
+    <bw-xml.version>4.0.10</bw-xml.version>
+    <bw-util.version>4.0.28-SNAPSHOT</bw-util.version>
     <bw-util-conf.version>4.1.0</bw-util-conf.version>
-    <bw-util-deploy.version>4.0.26</bw-util-deploy.version>
-    <bw-util-index.version>4.1.0</bw-util-index.version>
+    <bw-util-deploy.version>4.0.28-SNAPSHOT</bw-util-deploy.version>
     <bw-util-network.version>4.1.0</bw-util-network.version>
     <bw-util-tz.version>4.1.1-SNAPSHOT</bw-util-tz.version>
     <bw-util2.version>4.0.7-SNAPSHOT</bw-util2.version>
@@ -34,49 +34,50 @@
     <ical4j.version>1.1.4</ical4j.version>
     -->
 
-		<!-- Third Party Library Versions -->
+    <!-- Third Party Library Versions -->
     <http-client.version>4.5.3</http-client.version>
     <http-core.version>4.4.8</http-core.version>
-		<jackson.version>2.10.0</jackson.version>
-		<servlet-api.version>4.0.0</servlet-api.version>
+    <jackson.version>2.10.0</jackson.version>
+    <servlet-api.version>4.0.0</servlet-api.version>
     <java.jaxb.api.version>2.3.0</java.jaxb.api.version>
-		<junit.version>4.13.1</junit.version>
-		<leveldb.version>0.5</leveldb.version>
+    <junit.version>4.13.1</junit.version>
+    <leveldb.version>0.5</leveldb.version>
 
     <!-- For runnable version -->
     <log4j.version>1.2.15</log4j.version>
-	</properties>
+  </properties>
 
-	<organization>
-		<name>Bedework</name>
-		<url>https://github.com/Bedework</url>
-	</organization>
+  <organization>
+    <name>Bedework</name>
+    <url>https://github.com/Bedework</url>
+  </organization>
 
-	<licenses>
-		<license>
-			<name>Apache License Version 2.0</name>
-			<url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
-		</license>
-	</licenses>
+  <licenses>
+    <license>
+      <name>Apache License Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
+    </license>
+  </licenses>
 
-	<scm>
-		<connection>scm:git:git@github.com:Bedework/bw-timezone-server.git</connection>
-		<developerConnection>scm:git:git@github.com:Bedework/bw-timezone-server.git</developerConnection>
-		<url>https://github.com/Bedework/bw-timezone-server</url>
-	  <tag>HEAD</tag>
+  <scm>
+    <connection>scm:git:git@github.com:Bedework/bw-timezone-server.git</connection>
+    <developerConnection>scm:git:git@github.com:Bedework/bw-timezone-server.git</developerConnection>
+    <url>https://github.com/Bedework/bw-timezone-server</url>
+    <tag>HEAD</tag>
   </scm>
 
-	<issueManagement>
-		<system>github</system>
-		<url>https://github.com/Bedework/bw-timezone-server/issues</url>
-	</issueManagement>
+  <issueManagement>
+    <system>github</system>
+    <url>https://github.com/Bedework/bw-timezone-server/issues</url>
+  </issueManagement>
 
-	<modules>
+  <modules>
     <module>bw-timezone-server-tzconvert</module>
-		<module>bw-timezone-server-common</module>
-		<module>bw-timezone-server-war</module>
-		<module>bw-timezone-server-ear</module>
-	</modules>
+    <module>bw-timezone-server-common</module>
+    <module>bw-timezone-server-war</module>
+    <module>bw-timezone-server-ear</module>
+    <module>bw-timezone-server-web</module>
+  </modules>
 
   <developers>
     <developer>
@@ -106,8 +107,8 @@
     </repository>
   </distributionManagement>
 
-	<dependencyManagement>
-		<dependencies>
+  <dependencyManagement>
+    <dependencies>
       <!-- Bedework: Util -->
       <dependency>
         <groupId>org.bedework</groupId>
@@ -119,12 +120,6 @@
         <groupId>org.bedework</groupId>
         <artifactId>bw-util-config</artifactId>
         <version>${bw-util-conf.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.bedework</groupId>
-        <artifactId>bw-util-elasticsearch</artifactId>
-        <version>${bw-util-index.version}</version>
       </dependency>
 
       <dependency>
@@ -150,8 +145,8 @@
         <artifactId>bw-util-servlet</artifactId>
         <version>${bw-util-network.version}</version>
       </dependency>
-      <dependency>
 
+      <dependency>
         <groupId>org.bedework</groupId>
         <artifactId>bw-util-tz</artifactId>
         <version>${bw-util-tz.version}</version>
@@ -163,24 +158,24 @@
         <version>${bw-util2.version}</version>
       </dependency>
 
-			<!-- Bedework: Web Services -->
-			<dependency>
-				<groupId>org.bedework</groupId>
-				<artifactId>bw-xml-icalendar</artifactId>
-				<version>${bw-xml.version}</version>
-			</dependency>
+      <!-- Bedework: Web Services -->
+      <dependency>
+        <groupId>org.bedework</groupId>
+        <artifactId>bw-xml-icalendar</artifactId>
+        <version>${bw-xml.version}</version>
+      </dependency>
 
-			<dependency>
-				<groupId>org.bedework</groupId>
-				<artifactId>bw-xml-tzsvr</artifactId>
-				<version>${bw-xml.version}</version>
-			</dependency>
+      <dependency>
+        <groupId>org.bedework</groupId>
+        <artifactId>bw-xml-tzsvr</artifactId>
+        <version>${bw-xml.version}</version>
+      </dependency>
 
-			<dependency>
-				<groupId>org.bedework</groupId>
-				<artifactId>bw-xml-calws-soap</artifactId>
-				<version>${bw-xml.version}</version>
-			</dependency>
+      <dependency>
+        <groupId>org.bedework</groupId>
+        <artifactId>bw-xml-calws-soap</artifactId>
+        <version>${bw-xml.version}</version>
+      </dependency>
 
       <dependency>
         <groupId>${ical4j.groupId}</groupId>
@@ -214,69 +209,51 @@
         <version>1.6.2</version>
       </dependency>
 
-			<!-- Third Party Libraries -->
+      <!-- Third Party Libraries -->
 
-			<dependency>
-				<groupId>com.fasterxml.jackson.core</groupId>
-				<artifactId>jackson-core</artifactId>
-				<version>${jackson.version}</version>
-			</dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-core</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
 
-			<dependency>
-				<groupId>com.fasterxml.jackson.core</groupId>
-				<artifactId>jackson-databind</artifactId>
-				<version>${jackson.version}</version>
-			</dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
 
-			<dependency>
-				<groupId>com.fasterxml.jackson.core</groupId>
-				<artifactId>jackson-annotations</artifactId>
-				<version>${jackson.version}</version>
-			</dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-annotations</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
 
-			<dependency>
-				<groupId>org.apache.httpcomponents</groupId>
-				<artifactId>httpclient</artifactId>
+      <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpclient</artifactId>
         <version>${http-client.version}</version>
-			</dependency>
+      </dependency>
 
-			<dependency>
-				<groupId>org.apache.httpcomponents</groupId>
-				<artifactId>httpcore</artifactId>
+      <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpcore</artifactId>
         <version>${http-core.version}</version>
-			</dependency>
+      </dependency>
 
-			<dependency>
-				<groupId>javax.servlet</groupId>
-				<artifactId>javax.servlet-api</artifactId>
-				<version>${servlet-api.version}</version>
-				<scope>provided</scope>
-			</dependency>
+      <dependency>
+        <groupId>javax.servlet</groupId>
+        <artifactId>javax.servlet-api</artifactId>
+        <version>${servlet-api.version}</version>
+        <scope>provided</scope>
+      </dependency>
 
-			<dependency>
-				<groupId>asm</groupId>
-				<artifactId>asm</artifactId>
-				<version>${asm.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>asm</groupId>
-				<artifactId>asm-attrs</artifactId>
-				<version>${asm-attrs.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>cglib</groupId>
-				<artifactId>cglib</artifactId>
-				<version>${cglib.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.iq80.leveldb</groupId>
-				<artifactId>leveldb</artifactId>
-				<version>${leveldb.version}</version>
-				<classifier>min</classifier>
-			</dependency>
+      <dependency>
+        <groupId>org.iq80.leveldb</groupId>
+        <artifactId>leveldb</artifactId>
+        <version>${leveldb.version}</version>
+        <classifier>min</classifier>
+      </dependency>
 
       <dependency>
         <groupId>javax.xml.bind</groupId>
@@ -285,81 +262,99 @@
       </dependency>
 
       <!-- Test Dependencies -->
-			<dependency>
-				<groupId>junit</groupId>
-				<artifactId>junit</artifactId>
-				<version>${junit.version}</version>
-				<scope>test</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>${junit.version}</version>
+        <scope>test</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
-	<build>
-		<extensions>
-			<extension>
-				<groupId>org.apache.maven.wagon</groupId>
-				<artifactId>wagon-ssh</artifactId>
-				<version>2.9</version>
-			</extension>
-		</extensions>
-		<plugins>
-			<!-- Specify the compiler options and settings -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>${maven.compiler.plugin.version}</version>
-				<configuration>
-					<showDeprecation>false</showDeprecation>
-					<showWarnings>false</showWarnings>
-				</configuration>
-			</plugin>
-			<!-- Produce source jars during the 'verify' phase -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<version>${maven.source.plugin.version}</version>
-				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>jar</goal>
-							<goal>test-jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+  <build>
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-ssh</artifactId>
+        <version>2.9</version>
+      </extension>
+    </extensions>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-release-plugin</artifactId>
-        <version>2.5</version>
-        <configuration>
-          <autoVersionSubmodules>true</autoVersionSubmodules>
-          <useReleaseProfile>false</useReleaseProfile>
-          <releaseProfiles>release</releaseProfiles>
-        </configuration>
-      </plugin>
+    <pluginManagement>
+      <plugins>
+        <!-- Specify the compiler options and settings -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>${maven.compiler.plugin.version}</version>
+          <configuration>
+            <showDeprecation>false</showDeprecation>
+            <showWarnings>false</showWarnings>
+          </configuration>
+        </plugin>
+        <!-- Produce source jars during the 'verify' phase -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>${maven.source.plugin.version}</version>
+          <executions>
+            <execution>
+              <id>attach-sources</id>
+              <phase>verify</phase>
+              <goals>
+                <goal>jar</goal>
+                <goal>test-jar</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.1.1</version>
-        <configuration>
-          <additionalJOption>-Xdoclint:none</additionalJOption>
-          <failOnError>false</failOnError>
-        </configuration>
-      </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.5</version>
+          <configuration>
+            <autoVersionSubmodules>true</autoVersionSubmodules>
+            <useReleaseProfile>false</useReleaseProfile>
+            <releaseProfiles>release</releaseProfiles>
+          </configuration>
+        </plugin>
 
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>versions-maven-plugin</artifactId>
-        <version>2.3</version>
-        <configuration>
-        </configuration>
-      </plugin>
-		</plugins>
-	</build>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>3.1.1</version>
+          <configuration>
+            <additionalJOption>-Xdoclint:none</additionalJOption>
+            <failOnError>false</failOnError>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>versions-maven-plugin</artifactId>
+          <version>2.3</version>
+          <configuration>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.bedework</groupId>
+          <artifactId>bw-util-maven-deploy-wfmodule</artifactId>
+          <version>${bw-util-deploy.version}</version>
+
+          <executions>
+            <execution>
+              <phase>install</phase>
+              <goals>
+                <goal>bw-deploy-wfmodule</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
 
   <profiles>
     <profile>

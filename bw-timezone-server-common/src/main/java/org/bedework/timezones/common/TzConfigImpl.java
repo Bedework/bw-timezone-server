@@ -47,22 +47,6 @@ public class TzConfigImpl
 
   private long refreshDelay;
 
-  private String indexerURL;
-
-  private boolean embeddedIndexer;
-
-  private boolean httpEnabled;
-
-  private String clusterName;
-
-  private String nodeName;
-
-  private String dataDir;
-
-  private String indexerConfig;
-
-  private String indexName;
-
   /**
    * @param val the dtstamp
    */
@@ -185,86 +169,6 @@ public class TzConfigImpl
     return refreshDelay;
   }
 
-  @Override
-  public void setIndexerURL(final String val) {
-    indexerURL = val;
-  }
-
-  @Override
-  public String getIndexerURL() {
-    return indexerURL;
-  }
-
-  @Override
-  public void setEmbeddedIndexer(final boolean val) {
-    embeddedIndexer = val;
-  }
-
-  @Override
-  public boolean getEmbeddedIndexer() {
-    return embeddedIndexer;
-  }
-
-  @Override
-  public void setHttpEnabled(final boolean val) {
-    httpEnabled = val;
-  }
-
-  @Override
-  public boolean getHttpEnabled() {
-    return httpEnabled;
-  }
-
-  @Override
-  public void setClusterName(final String val) {
-    clusterName = val;
-  }
-
-  @Override
-  public String getClusterName() {
-    return clusterName;
-  }
-
-  @Override
-  public void setNodeName(final String val) {
-    nodeName = val;
-  }
-
-  @Override
-  public String getNodeName() {
-    return nodeName;
-  }
-
-  @Override
-  public void setDataDir(final String val) {
-    dataDir = val;
-  }
-
-  @Override
-  public String getDataDir() {
-    return dataDir;
-  }
-
-  @Override
-  public void setIndexerConfig(final String val) {
-    indexerConfig = val;
-  }
-
-  @Override
-  public String getIndexerConfig() {
-    return indexerConfig;
-  }
-
-  @Override
-  public void setIndexName(final String val) {
-    indexName = val;
-  }
-
-  @Override
-  public String getIndexName() {
-    return indexName;
-  }
-
   /** Add our stuff to the StringBuilder
    *
    * @param ts    ToString for result
@@ -273,14 +177,12 @@ public class TzConfigImpl
   public void toStringSegment(final ToString ts) {
     super.toStringSegment(ts);
 
-    ts.append("indexerURL", getIndexerURL());
-    ts.append("embeddedIndexer", getEmbeddedIndexer());
-    ts.append("httpEnabled", getHttpEnabled());
-    ts.append("clusterName", getClusterName());
-    ts.append("nodeName", getNodeName());
-    ts.append("dataDir", getDataDir());
-    ts.append("indexerConfig", getIndexerConfig());
-    ts.append("indexName", getIndexName());
+    ts.append("dtstamp", getDtstamp());
+    ts.append("version", getVersion());
+    ts.append("primaryUrl", getPrimaryUrl());
+    ts.append("primaryServer", getPrimaryServer());
+    ts.append("tzdataUrl", getTzdataUrl());
+    ts.append("refreshDelay", getRefreshDelay());
   }
 
   /** init copy of the config
@@ -296,10 +198,5 @@ public class TzConfigImpl
     newConf.setRefreshDelay(getRefreshDelay());
 
     ((TzConfigImpl)newConf).setName(getName());
-
-    newConf.setIndexerURL(getIndexerURL());
-    newConf.setEmbeddedIndexer(getEmbeddedIndexer());
-    newConf.setIndexerConfig(getIndexerConfig());
-    newConf.setIndexName(getIndexName());
   }
 }

@@ -157,6 +157,61 @@
           </execution>
         </executions>
       </plugin>
+
+      <plugin>
+        <groupId>org.bedework</groupId>
+        <artifactId>bw-util-maven-deploy-wfmodule</artifactId>
+
+        <configuration>
+          <jarResources>
+            <jarResource>
+              <groupId>org.iq80.leveldb</groupId>
+              <artifactId>leveldb</artifactId>
+              <version>${leveldb.version}</version>
+            </jarResource>
+          </jarResources>
+
+          <moduleName>org.bedework.timezone.server.convert</moduleName>
+
+          <moduleDependencies>
+            <moduleDependency>
+              <name>org.bedework.util.config</name>
+            </moduleDependency>
+
+            <moduleDependency>
+              <name>org.bedework.util.jmx</name>
+            </moduleDependency>
+
+            <moduleDependency>
+              <name>org.bedework.util.misc</name>
+            </moduleDependency>
+
+            <moduleDependency>
+              <name>org.bedework.util.tz</name>
+            </moduleDependency>
+
+            <moduleDependency>
+              <name>org.bedework.util2.calendar</name>
+            </moduleDependency>
+
+            <moduleDependency>
+              <name>org.bedework.xml</name>
+            </moduleDependency>
+
+            <moduleDependency>
+              <name>org.bedework.org.apache.httpcomponents.httpclient</name>
+            </moduleDependency>
+
+            <moduleDependency>
+              <name>org.bedework.org.apache.httpcomponents.httpcore</name>
+            </moduleDependency>
+
+            <moduleDependency>
+              <name>org.bedework.ical4j</name>
+            </moduleDependency>
+          </moduleDependencies>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 </project>
