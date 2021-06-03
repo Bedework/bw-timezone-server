@@ -35,6 +35,7 @@ public class TzAlias extends TzDbentity<TzAlias> {
 
   /** Constructor for jackson
    */
+  @SuppressWarnings("unused")
   public TzAlias() {
     super();
   }
@@ -51,7 +52,7 @@ public class TzAlias extends TzDbentity<TzAlias> {
    *
    * @param val   alias
    */
-  public void setAliasId(String val) {
+  public void setAliasId(final String val) {
     aliasId = val;
   }
 
@@ -79,7 +80,7 @@ public class TzAlias extends TzDbentity<TzAlias> {
    *
    * @param val target ids
    */
-  public void setTargetIds(List<String> val) {
+  public void setTargetIds(final List<String> val) {
     targetIds = val;
   }
 
@@ -105,7 +106,7 @@ public class TzAlias extends TzDbentity<TzAlias> {
       return -1;
     }
 
-    int res = Util.cmpObjval(getAliasId(), that.getAliasId());
+    final int res = Util.cmpObjval(getAliasId(), that.getAliasId());
 
     if (res != 0) {
       return res;
@@ -134,10 +135,10 @@ public class TzAlias extends TzDbentity<TzAlias> {
 
   @Override
   public Object clone() {
-    TzAlias a = new TzAlias(getAliasId());
+    final TzAlias a = new TzAlias(getAliasId());
 
     if (getTargetIds() != null) {
-      for (String s: getTargetIds()) {
+      for (final String s: getTargetIds()) {
         a.addTargetId(s);
       }
     }

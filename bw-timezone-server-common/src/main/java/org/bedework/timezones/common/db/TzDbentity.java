@@ -37,7 +37,7 @@ public class TzDbentity<T> implements Comparable<T>, Serializable {
   private int seq;
 
   /**
-   * @param val
+   * @param val tzid
    */
   public void setId(final long val) {
     id = val;
@@ -54,7 +54,7 @@ public class TzDbentity<T> implements Comparable<T>, Serializable {
    *
    * @param val    int seq
    */
-  public void setSeq(int val) {
+  public void setSeq(final int val) {
     seq = val;
   }
 
@@ -124,7 +124,7 @@ public class TzDbentity<T> implements Comparable<T>, Serializable {
 
   @Override
   public String toString() {
-    ToString ts = new ToString(this);
+    final ToString ts = new ToString(this);
 
     toStringSegment(ts);
 

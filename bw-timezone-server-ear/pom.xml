@@ -215,7 +215,7 @@
           <propsPath>${org.bedework.deployment.properties}</propsPath>
         </configuration>
       </plugin>
-
+<!--
 			<plugin>
 				<groupId>org.bedework</groupId>
 				<artifactId>bw-util-maven-deploy-wfmodule</artifactId>
@@ -234,7 +234,7 @@
 						</moduleDependency>
 					</moduleDependencies>
 				</configuration>
-			</plugin>
+			</plugin> -->
 		</plugins>
 	</build>
 

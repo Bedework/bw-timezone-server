@@ -43,7 +43,7 @@ public class TzDbSpec extends TzDbentity<TzDbSpec> {
   private Set<LocalizedString> displayNames;
 
   /**
-   * @param val
+   * @param val name
    */
   public void setName(final String val) {
     name = val;
@@ -72,7 +72,7 @@ public class TzDbSpec extends TzDbentity<TzDbSpec> {
   }
 
   /**
-   * @param val
+   * @param val dtStamp
    */
   public void setDtstamp(final String val) {
     dtstamp = val;
@@ -87,7 +87,7 @@ public class TzDbSpec extends TzDbentity<TzDbSpec> {
 
   /** Source of the timezone - a url
    *
-   * @param val
+   * @param val source url
    */
   public void setSource(final String val) {
     source = val;
@@ -101,7 +101,7 @@ public class TzDbSpec extends TzDbentity<TzDbSpec> {
   }
 
   /**
-   * @param val
+   * @param val true for active
    */
   public void setActive(final boolean val) {
     active = val;
@@ -115,7 +115,7 @@ public class TzDbSpec extends TzDbentity<TzDbSpec> {
   }
 
   /**
-   * @param val
+   * @param val vtimezone
    */
   public void setVtimezone(final String val) {
     vtimezone = val;
@@ -129,7 +129,7 @@ public class TzDbSpec extends TzDbentity<TzDbSpec> {
   }
 
   /**
-   * @param val
+   * @param val set of localized strings
    */
   public void setDisplayNames(final Set<LocalizedString> val) {
     displayNames = val;
@@ -165,7 +165,7 @@ public class TzDbSpec extends TzDbentity<TzDbSpec> {
 
   @Override
   public int compareTo(final TzDbSpec that) {
-    int res = getName().compareTo(that.getName());
+    final int res = getName().compareTo(that.getName());
 
     if (res != 0) {
       return res;
