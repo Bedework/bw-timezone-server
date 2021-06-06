@@ -30,7 +30,7 @@
     <ical4j.version>3.0.14</ical4j.version>
 
     <!-- Third Party Library Versions -->
-    <http-client.version>4.5.3</http-client.version>
+    <http-client.version>4.5.13</http-client.version>
     <http-core.version>4.4.8</http-core.version>
     <jackson.version>2.11.0</jackson.version>
     <servlet-api.version>4.0.0</servlet-api.version>
