@@ -36,7 +36,7 @@
     <servlet-api.version>4.0.0</servlet-api.version>
     <java.jaxb.api.version>2.3.0</java.jaxb.api.version>
     <junit.version>4.13.1</junit.version>
-    <leveldb.version>0.5</leveldb.version>
+    <leveldb.version>1.2</leveldb.version>
 
     <!-- For runnable version -->
     <log4j.version>2.14.1</log4j.version>
@@ -244,10 +244,9 @@
       </dependency>
 
       <dependency>
-        <groupId>org.iq80.leveldb</groupId>
+        <groupId>io.github.pcmind</groupId>
         <artifactId>leveldb</artifactId>
         <version>${leveldb.version}</version>
-        <classifier>min</classifier>
       </dependency>
 
       <dependency>
