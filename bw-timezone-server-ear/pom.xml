@@ -215,26 +215,6 @@
           <propsPath>${org.bedework.deployment.properties}</propsPath>
         </configuration>
       </plugin>
-<!--
-			<plugin>
-				<groupId>org.bedework</groupId>
-				<artifactId>bw-util-maven-deploy-wfmodule</artifactId>
-
-				<configuration>
-					<moduleName>org.bedework.timezone.server.ear</moduleName>
-					<noArtifact>true</noArtifact>
-
-					<moduleDependencies>
-						<moduleDependency>
-							<name>org.bedework.timezone.server.web</name>
-						</moduleDependency>
-
-						<moduleDependency>
-							<name>wildflyee.api</name>
-						</moduleDependency>
-					</moduleDependencies>
-				</configuration>
-			</plugin> -->
 		</plugins>
 	</build>
 

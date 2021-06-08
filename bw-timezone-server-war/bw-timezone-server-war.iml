@@ -24,12 +24,12 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="bw-timezone-server-common" scope="PROVIDED" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-config:4.1.1" level="project" />
+    <orderEntry type="library" name="Maven: org.bedework:bw-util-config:4.1.3" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-xml:4.0.28" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-jmx:4.1.1" level="project" />
+    <orderEntry type="library" name="Maven: org.bedework:bw-util-jmx:4.1.3" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-misc:4.0.28" level="project" />
     <orderEntry type="library" name="Maven: org.apache.commons:commons-text:1.7" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.bedework:bw-util2-calendar:4.0.7" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: org.bedework:bw-util2-calendar:4.0.8" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: io.github.pcmind:leveldb:1.2" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: io.github.pcmind:leveldb-api:1.2" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: com.google.guava:guava:29.0-jre" level="project" />
@@ -47,10 +47,10 @@
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.apache.logging.log4j:log4j-slf4j-impl:2.14.1" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.slf4j:slf4j-api:1.7.25" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-logging:5.0.0" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-servlet:4.1.2" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-tz:4.1.1" level="project" />
+    <orderEntry type="library" name="Maven: org.bedework:bw-util-servlet:4.1.3" level="project" />
+    <orderEntry type="library" name="Maven: org.bedework:bw-util-tz:4.1.2" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-caching:4.0.28" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-http:4.1.2" level="project" />
+    <orderEntry type="library" name="Maven: org.bedework:bw-util-http:4.1.3" level="project" />
     <orderEntry type="library" name="Maven: org.apache.commons:commons-lang3:3.8.1" level="project" />
     <orderEntry type="library" name="Maven: com.sun.mail:javax.mail:1.6.2" level="project" />
     <orderEntry type="library" name="Maven: javax.activation:activation:1.1" level="project" />
