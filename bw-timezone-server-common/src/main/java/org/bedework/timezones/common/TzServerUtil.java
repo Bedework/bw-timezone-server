@@ -19,7 +19,7 @@
 package org.bedework.timezones.common;
 
 import org.bedework.timezones.common.Differ.DiffListEntry;
-import org.bedework.timezones.common.leveldb.LdbCachedData;
+import org.bedework.timezones.common.h2db.H2dbCachedData;
 import org.bedework.util.calendar.XcalUtil;
 import org.bedework.util.jmx.ConfigHolder;
 import org.bedework.util.logging.BwLogger;
@@ -812,7 +812,7 @@ public class TzServerUtil {
     }
 
     try {
-      cache = new LdbCachedData(cfg, clear);
+      cache = new H2dbCachedData(cfg, clear);
     } catch (final TzException te) {
       logger.error(te);
       cache = null;

@@ -30,7 +30,7 @@ import java.io.Serializable;
  *
  * @param <T>
  */
-public class TzDbentity<T> implements Comparable<T>, Serializable {
+public class TzDbentity<T extends TzDbentity> implements Comparable<T>, Serializable {
   private long id = -1;
 
   /* db version number */
@@ -115,6 +115,10 @@ public class TzDbentity<T> implements Comparable<T>, Serializable {
   @SuppressWarnings("unchecked")
   @Override
   public boolean equals(final Object obj) {
+    if (!(obj instanceof TzDbentity)) {
+      return false;
+    }
+
     if (this == obj) {
       return true;
     }

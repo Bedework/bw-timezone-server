@@ -37,6 +37,7 @@
     <java.jaxb.api.version>2.3.0</java.jaxb.api.version>
     <junit.version>4.13.1</junit.version>
     <leveldb.version>1.2</leveldb.version>
+    <h2.version>1.4.190</h2.version>
 
     <!-- For runnable version -->
     <log4j.version>2.14.1</log4j.version>
@@ -241,6 +242,12 @@
         <artifactId>javax.servlet-api</artifactId>
         <version>${servlet-api.version}</version>
         <scope>provided</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>com.h2database</groupId>
+        <artifactId>h2</artifactId>
+        <version>${h2.version}</version>
       </dependency>
 
       <dependency>
