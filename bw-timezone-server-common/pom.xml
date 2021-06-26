@@ -56,11 +56,6 @@
 		<!-- Third Party Libraries -->
 
 		<dependency>
-			<groupId>io.github.pcmind</groupId>
-			<artifactId>leveldb</artifactId>
-		</dependency>
-
-		<dependency>
       <groupId>${ical4j.groupId}</groupId>
       <artifactId>${ical4j.artifactId}</artifactId>
 		</dependency>

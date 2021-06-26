@@ -133,7 +133,7 @@ public abstract class AbstractDb extends AbstractCachedData {
 
   /**
    *
-   * @param clear remove all data from leveldb first
+   * @param clear remove all data from db first
    * @throws TzException on fatal error
    */
   protected void initData(final boolean clear) throws TzException {

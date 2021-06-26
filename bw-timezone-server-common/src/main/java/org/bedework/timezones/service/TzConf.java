@@ -81,13 +81,13 @@ public class TzConf extends ConfBase<TzConfigImpl> implements TzConfMBean, Confi
   }
 
   @Override
-  public void setLeveldbPath(final String val) {
-    getConfig().setLeveldbPath(val);
+  public void setDbPath(final String val) {
+    getConfig().setDbPath(val);
   }
 
   @Override
-  public String getLeveldbPath() {
-    return getConfig().getLeveldbPath();
+  public String getDbPath() {
+    return getConfig().getDbPath();
   }
 
   @Override

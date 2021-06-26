@@ -40,7 +40,7 @@ import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
-/** Cached timezone data in a leveldb database.
+/** Cached timezone data in an h2 database.
  *
  * @author douglm
  */
@@ -62,7 +62,7 @@ public class H2dbCachedData extends AbstractDb {
    * zipped data.
    *
    * @param cfg the configuration
-   * @param clear remove all data from leveldb first
+   * @param clear remove all data from db first
    * @throws TzException on fatal error
    */
   public H2dbCachedData(final TzConfig cfg,
@@ -408,7 +408,7 @@ public class H2dbCachedData extends AbstractDb {
     }
 
     try {
-      dbPath = cfg.getLeveldbPath();
+      dbPath = cfg.getDbPath();
 
       if (debug()) {
         debug("Try to open db at " + dbPath);

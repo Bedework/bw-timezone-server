@@ -61,18 +61,18 @@ public interface TzConfig {
   @MBeanInfo("Location of the primary data.")
   String getTzdataUrl();
 
-  /** Location of the leveldb data.
+  /** Location of the db data.
    *
    * @param val    String
    */
-  void setLeveldbPath(String val);
+  void setDbPath(String val);
 
-  /** Location of the leveldb data.
+  /** Location of the db data.
    *
    * @return String, null for unset
    */
-  @MBeanInfo("Location of the leveldb data - a directory. If relative will be in config dir")
-  String getLeveldbPath();
+  @MBeanInfo("Location of the db data - a directory. If relative will be in config dir")
+  String getDbPath();
 
   /** Primary url
    *

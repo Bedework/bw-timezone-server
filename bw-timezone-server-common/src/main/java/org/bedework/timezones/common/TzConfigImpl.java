@@ -43,7 +43,7 @@ public class TzConfigImpl
 
   private String tzdataUrl;
 
-  private String leveldbPath;
+  private String dbPath;
 
   private long refreshDelay;
 
@@ -137,20 +137,20 @@ public class TzConfigImpl
     return tzdataUrl;
   }
 
-  /** Location of the leveldb data.
+  /** Location of the db data.
    *
    * @param val    String
    */
-  public void setLeveldbPath(final String val) {
-    leveldbPath = val;
+  public void setDbPath(final String val) {
+    dbPath = val;
   }
 
-  /** Location of the leveldb data.
+  /** Location of the db data.
    *
    * @return String, null for unset
    */
-  public String getLeveldbPath() {
-    return leveldbPath;
+  public String getDbPath() {
+    return dbPath;
   }
 
   /** Refresh delay - seconds
