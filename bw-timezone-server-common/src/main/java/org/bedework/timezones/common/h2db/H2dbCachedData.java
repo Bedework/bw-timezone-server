@@ -97,14 +97,15 @@ public class H2dbCachedData extends AbstractDb {
   public void addTzAlias(final TzAlias val) throws TzException {
     final Connection conn = getDb();
 
-    try (final var stmt = conn.prepareCall(
+    try (final var stmt = conn.prepareStatement(
             "insert into " + aliasTable +
-                    " values(@id, @value)")) {
-      stmt.setString("id", val.getAliasId());
+                    " values(?, ?)")) {
 
       final Blob b = conn.createBlob();
       b.setBytes(0,bytesJson(val));
-      stmt.setBlob("value", b);
+
+      stmt.setString(1, val.getAliasId());
+      stmt.setBlob(2, b);
 
       stmt.executeUpdate();
     } catch (final Throwable t) {
@@ -118,14 +119,15 @@ public class H2dbCachedData extends AbstractDb {
   public void putTzAlias(final TzAlias val) throws TzException {
     final Connection conn = getDb();
 
-    try (final var stmt = conn.prepareCall(
+    try (final var stmt = conn.prepareStatement(
             "update " + aliasTable +
-                    " set value=@value" +
-                    " where id=@id")) {
+                    " set jsonval=?" +
+                    " where id=?")) {
       final Blob b = conn.createBlob();
-      b.setBytes(0,bytesJson(val));
-      stmt.setBlob("value", b);
-      stmt.setString("id", val.getAliasId());
+      b.setBytes(1, bytesJson(val));
+
+      stmt.setBlob(1, b);
+      stmt.setString(2, val.getAliasId());
 
       stmt.executeUpdate();
     } catch (final Throwable t) {
@@ -139,10 +141,10 @@ public class H2dbCachedData extends AbstractDb {
   public void removeTzAlias(final TzAlias val) throws TzException {
     final Connection conn = getDb();
 
-    try (final var stmt = conn.prepareCall(
+    try (final var stmt = conn.prepareStatement(
             "delete from " + aliasTable +
-                    " where id=@id")) {
-      stmt.setString("id", val.getAliasId());
+                    " where id=?")) {
+      stmt.setString(1, val.getAliasId());
 
       stmt.executeUpdate();
     } catch (final Throwable t) {
@@ -156,10 +158,10 @@ public class H2dbCachedData extends AbstractDb {
   public TzAlias getTzAlias(final String val) throws TzException {
     final Connection conn = getDb();
 
-    try (final var stmt = conn.prepareCall(
-            "select from " + aliasTable +
-                    " where id=@id")) {
-      stmt.setString("id", val);
+    try (final var stmt = conn.prepareStatement(
+            "select jsonval from " + aliasTable +
+                    " where id=?")) {
+      stmt.setString(1, val);
 
       try (final ResultSet rs = stmt.executeQuery()) {
         if (!rs.next()) {
@@ -167,7 +169,7 @@ public class H2dbCachedData extends AbstractDb {
         }
 
         final TzAlias alias =
-                getJson(rs.getBlob("value").getBinaryStream(),
+                getJson(rs.getBlob("jsonval").getBinaryStream(),
                             TzAlias.class);
         if (rs.next()) {
           throw new TzException("More than one result for fetch alias");
@@ -188,6 +190,7 @@ public class H2dbCachedData extends AbstractDb {
     final Class<T> type;
     ResultSet rs;
     CallableStatement stmt;
+    InputStream nextValue;
 
     H2Iterator(final String table,
                final Class<T> type) {
@@ -198,7 +201,7 @@ public class H2dbCachedData extends AbstractDb {
         final Connection conn = getDb();
 
         stmt = conn.prepareCall(
-                "select id, value from " + table);
+                "select id, jsonval from " + table);
 
         rs = stmt.executeQuery();
       } catch (final Throwable t) {
@@ -224,7 +227,16 @@ public class H2dbCachedData extends AbstractDb {
     @Override
     public boolean hasNext() {
       try {
-        return (rs != null) && rs.next();
+        if (nextValue != null) {
+          return true;
+        }
+
+        if (!rs.next()) {
+          return false;
+        }
+
+        nextValue = rs.getBlob("jsonval").getBinaryStream();
+        return (rs != null) && !rs.isAfterLast();
       } catch (final SQLException se) {
         throw new RuntimeException(se);
       }
@@ -233,13 +245,22 @@ public class H2dbCachedData extends AbstractDb {
     @Override
     public T next() {
       try {
-        if (!rs.next()) {
-          return null;
+        if (nextValue == null) {
+          if (!rs.next()) {
+            return null;
+          }
+          nextValue = rs.getBlob("jsonval")
+                        .getBinaryStream();
+          if (nextValue == null) {
+            return null;
+          }
         }
 
-        return getJson(
-                rs.getBlob("value").getBinaryStream(),
-                type);
+        final T res = getJson(nextValue,
+                              type);
+        nextValue = null;
+
+        return res;
       } catch (final Throwable t) {
         throw new RuntimeException(t);
       }
@@ -261,14 +282,15 @@ public class H2dbCachedData extends AbstractDb {
   public void addTzSpec(final TzDbSpec val) throws TzException {
     final Connection conn = getDb();
 
-    try (final var stmt = conn.prepareCall(
+    try (final var stmt = conn.prepareStatement(
             "insert into " + timezoneSpecTable +
-                    " values(@id, @value)")) {
-      stmt.setString("id", val.getName());
+                    " values(?, ?)")) {
 
       final Blob b = conn.createBlob();
       b.setBytes(1, bytesJson(val));
-      stmt.setBlob("value", b);
+
+      stmt.setString(1, val.getName());
+      stmt.setBlob(2, b);
 
       stmt.executeUpdate();
     } catch (final Throwable t) {
@@ -282,14 +304,14 @@ public class H2dbCachedData extends AbstractDb {
   public void putTzSpec(final TzDbSpec val) throws TzException {
     final Connection conn = getDb();
 
-    try (final var stmt = conn.prepareCall(
+    try (final var stmt = conn.prepareStatement(
             "update " + timezoneSpecTable +
-                    " set value=@value" +
-                    " where id=@id")) {
+                    " set jsonval=?" +
+                    " where id=?")) {
       final Blob b = conn.createBlob();
       b.setBytes(1, bytesJson(val));
-      stmt.setBlob("value", b);
-      stmt.setString("id", val.getName());
+      stmt.setBlob(1, b);
+      stmt.setString(2, val.getName());
 
       stmt.executeUpdate();
     } catch (final Throwable t) {
@@ -303,10 +325,10 @@ public class H2dbCachedData extends AbstractDb {
   protected TzDbSpec getSpec(final String id) throws TzException {
     final Connection conn = getDb();
 
-    try (final var stmt = conn.prepareCall(
-            "select from " + timezoneSpecTable +
-                    " where id=@id")) {
-      stmt.setString("id", id);
+    try (final var stmt = conn.prepareStatement(
+            "select jsonval from " + timezoneSpecTable +
+                    " where id=?")) {
+      stmt.setString(1, id);
 
       try (final ResultSet rs = stmt.executeQuery()) {
         if (!rs.next()) {
@@ -314,7 +336,7 @@ public class H2dbCachedData extends AbstractDb {
         }
 
         final TzDbSpec spec =
-                getJson(rs.getBlob("value").getBinaryStream(),
+                getJson(rs.getBlob("jsonval").getBinaryStream(),
                         TzDbSpec.class);
         if (rs.next()) {
           throw new TzException("More than one result for fetch tzspec");
@@ -362,12 +384,12 @@ public class H2dbCachedData extends AbstractDb {
 
       stmt.executeUpdate("CREATE TABLE " + timezoneSpecTable +
               "(id VARCHAR(255), " +
-              " value BLOB, " +
+              " jsonval BLOB, " +
               " PRIMARY KEY (id))");
 
       stmt.executeUpdate("CREATE TABLE " + aliasTable +
               "(id VARCHAR(255), " +
-              " value BLOB, " +
+              " jsonval BLOB, " +
               " PRIMARY KEY (id))");
     } catch (final Throwable t) {
       // Always bad.

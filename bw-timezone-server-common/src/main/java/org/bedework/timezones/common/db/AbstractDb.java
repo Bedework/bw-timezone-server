@@ -714,7 +714,11 @@ public abstract class AbstractDb extends AbstractCachedData {
 
         // XXX Localized names?
 
-        putTzSpec(dbspec);
+        if (dle.add) {
+          addTzSpec(dbspec);
+        } else {
+          putTzSpec(dbspec);
+        }
       }
 
       if (Util.isEmpty(dle.aliases)) {
@@ -863,7 +867,7 @@ public abstract class AbstractDb extends AbstractCachedData {
         spec.setEtag(cachedData.getDtstamp());
         spec.setActive(true);
 
-        putTzSpec(spec);
+        addTzSpec(spec);
 
         ct++;
         if (debug() && ((ct%25) == 0)) {

@@ -30,6 +30,8 @@ import net.fortuna.ical4j.model.property.Version;
 import java.io.File;
 import java.io.FileReader;
 import java.io.LineNumberReader;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -83,7 +85,7 @@ public class FileCachedData extends AbstractCachedData {
       final long smillis = System.currentTimeMillis();
 
       /* ======================== First get the data file =================== */
-      final File f = getdata();
+      final File dataDir = getdata();
 
       TzServerUtil.lastDataFetch = System.currentTimeMillis();
 
@@ -93,7 +95,7 @@ public class FileCachedData extends AbstractCachedData {
 
       final Properties info = new Properties();
 
-      info.load(getFileRdr(f, "info.properties"));
+      info.load(getFileRdr(dataDir, "info.properties"));
 
       dtstamp = XcalUtil.getXmlFormatDateTime(info.getProperty(
               "buildTime"));
@@ -105,7 +107,7 @@ public class FileCachedData extends AbstractCachedData {
 
       /* ===================== Rebuild the alias maps ======================= */
 
-      aliasMaps = buildAliasMaps(f);
+      aliasMaps = buildAliasMaps(dataDir);
 
       /* ===================== All tzs into the table ======================= */
 
@@ -131,7 +133,7 @@ public class FileCachedData extends AbstractCachedData {
    *
    * @param parent - root directory
    * @return mapped aliases
-   * @throws TzException
+   * @throws TzException on fatal error
    */
   private AliasMaps buildAliasMaps(final File parent) throws TzException {
     try {
@@ -168,12 +170,8 @@ public class FileCachedData extends AbstractCachedData {
 
           alias.addTargetId(s);
 
-          SortedSet<String> as = maps.byTzid.get(s);
-
-          if (as == null) {
-            as = new TreeSet<>();
-            maps.byTzid.put(s, as);
-          }
+          final SortedSet<String> as = maps.byTzid
+                  .computeIfAbsent(s, k -> new TreeSet<>());
 
           as.add(aliasId);
         }
@@ -198,7 +196,9 @@ public class FileCachedData extends AbstractCachedData {
     try {
       resetTzs();
 
-      final TzFetcher tzFetcher = new FileTzFetcher(cfg.getTzdataUrl());
+      final Path dataPath = Paths.get(cfg.getTzdataUrl(),"zoneinfo");
+      final TzFetcher tzFetcher =
+              new FileTzFetcher(dataPath.toString());
 
       for (final String id: tzFetcher.getTzids()) {
         final Calendar cal = new Calendar();
@@ -207,7 +207,7 @@ public class FileCachedData extends AbstractCachedData {
 
         processSpec(id, cal, null, dtstamp);
       }
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new TzException(t);
     }
   }
@@ -215,7 +215,7 @@ public class FileCachedData extends AbstractCachedData {
   /** Return the File object which must represent a directory.
    *
    * @return File
-   * @throws org.bedework.timezones.common.TzException
+   * @throws TzException on fatal error
    */
   private File getdata() throws TzException {
     try {

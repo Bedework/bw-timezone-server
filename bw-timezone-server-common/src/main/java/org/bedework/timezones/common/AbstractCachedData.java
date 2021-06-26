@@ -335,7 +335,7 @@ public abstract class AbstractCachedData implements Logged, CachedData {
 
     final LastModified lm = vtz.getLastModified();
     if (lm!= null) {
-      tz.setLastModified(DateTimeUtil.fromRfcDateTimeUTC(lm.getValue()));
+      tz.setLastModified(DateTimeUtil.fromISODateTimeUTC(lm.getValue()));
     } else if (storedDtstamp != null) {
       tz.setLastModified(DateTimeUtil.fromRfcDateTimeUTC(storedDtstamp));
     } else {
