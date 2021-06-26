@@ -29,7 +29,6 @@ import net.fortuna.ical4j.model.property.Version;
 
 import java.io.File;
 import java.io.FileReader;
-import java.io.LineNumberReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -48,7 +47,7 @@ public class FileCachedData extends AbstractCachedData {
 
   /**
    * @param cfg configuration file
-   * @throws TzException
+   * @throws TzException on fatal error
    */
   public FileCachedData(final TzConfig cfg) throws TzException {
     super(cfg, "File");
@@ -56,11 +55,11 @@ public class FileCachedData extends AbstractCachedData {
   }
 
   @Override
-  public void stop() throws TzException {
+  public void stop() {
   }
 
   @Override
-  public String getSource() throws TzException {
+  public String getSource() {
     return source;
   }
 
@@ -71,12 +70,12 @@ public class FileCachedData extends AbstractCachedData {
 
   @Override
   public void updateData(final String dtstamp,
-                         final List<DiffListEntry> dles) throws TzException {
+                         final List<DiffListEntry> dles) {
     // XXX ??
   }
 
   @Override
-  public List<String> findIds(final String val) throws TzException {
+  public List<String> findIds(final String val) {
     return new ArrayList<>();
   }
 
@@ -231,17 +230,6 @@ public class FileCachedData extends AbstractCachedData {
       }
 
       return f;
-    } catch (final TzException tze) {
-      throw tze;
-    } catch (final Throwable t) {
-      throw new TzException(t);
-    }
-  }
-
-  private LineNumberReader getFileLnr(final File parent,
-                                      final String name) throws TzException {
-    try {
-      return new LineNumberReader(getFileRdr(parent, name));
     } catch (final TzException tze) {
       throw tze;
     } catch (final Throwable t) {

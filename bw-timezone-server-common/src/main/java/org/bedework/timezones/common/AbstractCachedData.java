@@ -39,7 +39,6 @@ import net.fortuna.ical4j.model.property.TzId;
 import net.fortuna.ical4j.model.property.TzidAliasOf;
 
 import java.io.StringReader;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -55,9 +54,6 @@ import java.util.TreeSet;
  */
 public abstract class AbstractCachedData implements Logged, CachedData {
   protected String msgPrefix;
-
-  /** When we were created for debugging */
-  protected Timestamp objTimestamp;
 
   /** XML formatted UTC dtstamp (i.e. separators) for the data */
   protected String dtstamp;
@@ -102,9 +98,9 @@ public abstract class AbstractCachedData implements Logged, CachedData {
   private Map<String, TimezoneType> timezonesMap;
 
   /**
-   * @param cfg
+   * @param cfg our config
    * @param msgPrefix - for messages
-   * @throws TzException
+   * @throws TzException on fatal error
    */
   public AbstractCachedData(final TzConfig cfg,
                             final String msgPrefix) throws TzException {
@@ -130,9 +126,9 @@ public abstract class AbstractCachedData implements Logged, CachedData {
   }
 
   /** Find tz identifiers or alias names that (partially) match the given value
-   * @param val
+   * @param val pattern to match
    * @return list of strings - never null
-   * @throws TzException
+   * @throws TzException on fatal error
    */
   public abstract List<String> findIds(String val) throws TzException;
 

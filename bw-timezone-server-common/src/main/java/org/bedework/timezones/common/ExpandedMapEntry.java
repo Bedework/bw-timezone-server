@@ -26,8 +26,8 @@ import org.bedework.util.timezones.model.ExpandedTimezoneType;
  * @author douglm
  */
 public class ExpandedMapEntry {
-  private String etag;
-  private ExpandedTimezoneType tzs;
+  private final String etag;
+  private final ExpandedTimezoneType tzs;
 
   /**
    * @param etag
@@ -55,7 +55,7 @@ public class ExpandedMapEntry {
 
   @Override
   public String toString() {
-    ToString ts = new ToString(this);
+    final ToString ts = new ToString(this);
 
     ts.append("etag=", getEtag());
     ts.newLine();

@@ -37,25 +37,25 @@ import java.util.SortedSet;
 public interface CachedData extends Serializable {
   /** Stop any running threads.
    *
-   * @throws TzException
+   * @throws TzException on fatal error
    */
   void stop() throws TzException;
 
   /**
    * @return String source information for data.
-   * @throws TzException
+   * @throws TzException on fatal error
    */
   String getSource() throws TzException;
 
   /**
    * @return stats for the module
-   * @throws TzException
+   * @throws TzException on fatal error
    */
   List<Stat> getStats() throws TzException;
 
   /** Update from primary source if any.
    *
-   * @throws TzException
+   * @throws TzException on fatal error
    */
   void checkData() throws TzException;
 
@@ -64,14 +64,14 @@ public interface CachedData extends Serializable {
    *
    * @param dtstamp lastmod for change
    * @param dles diff list
-   * @throws TzException
+   * @throws TzException on fatal error
    */
   void updateData(String dtstamp,
                   List<DiffListEntry> dles) throws TzException;
 
   /**
    * @return XML formatted UTC dateTime
-   * @throws TzException
+   * @throws TzException on fatal error
    */
   String getDtstamp() throws TzException;
 
@@ -79,34 +79,34 @@ public interface CachedData extends Serializable {
    *
    * @param val alias
    * @return aliased name(s) or null
-   * @throws TzException
+   * @throws TzException on fatal error
    */
   @SuppressWarnings("UnusedDeclaration")
   TzAlias fromAlias(String val) throws TzException;
 
   /**
    * @return String value of aliases file.
-   * @throws TzException
+   * @throws TzException on fatal error
    */
   String getAliasesStr() throws TzException;
 
   /**
    * @param tzid for which we want aliases
    * @return list of aliases or null
-   * @throws TzException
+   * @throws TzException on fatal error
    */
   SortedSet<String> findAliases(String tzid) throws TzException;
 
   /**
    * @return namelist or null
-   * @throws TzException
+   * @throws TzException on fatal error
    */
   SortedSet<String> getNameList() throws TzException;
 
   /**
    * @param key to expanded map
    * @param tzs entries from map
-   * @throws TzException
+   * @throws TzException on fatal error
    */
   void setExpanded(ExpandedMapEntryKey key,
                    ExpandedMapEntry tzs) throws TzException;
@@ -114,7 +114,7 @@ public interface CachedData extends Serializable {
   /**
    * @param key to expanded map
    * @return expanded or null
-   * @throws TzException
+   * @throws TzException on fatal error
    */
   ExpandedMapEntry getExpanded(ExpandedMapEntryKey key) throws TzException;
 
@@ -122,14 +122,14 @@ public interface CachedData extends Serializable {
    *
    * @param name tzid
    * @return cached spec or null.
-   * @throws TzException
+   * @throws TzException on fatal error
    */
-  String getCachedVtz(final String name) throws TzException;
+  String getCachedVtz(String name) throws TzException;
 
   /** Get all cached VTIMEZONE specifications
    *
    * @return cached specs or null.
-   * @throws TzException
+   * @throws TzException on fatal error
    */
   Collection<String> getAllCachedVtzs() throws TzException;
 
@@ -137,15 +137,15 @@ public interface CachedData extends Serializable {
    *
    * @param tzid the id
    * @return TimeZone with id or null
-   * @throws TzException
+   * @throws TzException on fatal error
    */
-  TimeZone getTimeZone(final String tzid) throws TzException;
+  TimeZone getTimeZone(String tzid) throws TzException;
 
   /* * Get an aliased timezone object from the server given the id.
    *
    * @param tzid
    * @return TimeZone with id or null
-   * @throws TzException
+   * @throws TzException on fatal error
    * /
   TimeZone getAliasedTimeZone(final String tzid) throws TzException;
   */
@@ -154,45 +154,45 @@ public interface CachedData extends Serializable {
    *
    * @param tzid the id
    * @return IcalendarType with id or null
-   * @throws TzException
+   * @throws TzException on fatal error
    */
-  IcalendarType getXTimeZone(final String tzid) throws TzException;
+  IcalendarType getXTimeZone(String tzid) throws TzException;
 
   /** Get an aliased timezone object from the server given the id.
    *
    * @param tzid the id
    * @return IcalendarType with id or null
-   * @throws TzException
+   * @throws TzException on fatal error
    */
   @SuppressWarnings("UnusedDeclaration")
-  IcalendarType getAliasedXTimeZone(final String tzid) throws TzException;
+  IcalendarType getAliasedXTimeZone(String tzid) throws TzException;
 
   /** Get an aliased cached VTIMEZONE specifications
    *
    * @param name tzid
    * @return cached spec or null.
-   * @throws TzException
+   * @throws TzException on fatal error
    */
-  String getAliasedCachedVtz(final String name) throws TzException;
+  String getAliasedCachedVtz(String name) throws TzException;
 
   /**
    * @param tzids - to fetch
    * @return list of summary info
-   * @throws TzException
+   * @throws TzException on fatal error
    */
   List<TimezoneType> getTimezones(String[] tzids) throws TzException;
 
   /**
    * @param changedSince - null or dtstamp value
    * @return list of summary info
-   * @throws TzException
+   * @throws TzException on fatal error
    */
   List<TimezoneType> getTimezones(String changedSince) throws TzException;
 
   /**
    * @param name to be partially matched
    * @return list of matching summary info
-   * @throws TzException
+   * @throws TzException on fatal error
    */
   List<TimezoneType> findTimezones(String name) throws TzException;
 }

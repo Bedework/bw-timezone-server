@@ -93,7 +93,7 @@ public class Differ implements Logged {
      * @return short form.
      */
     public String toShortString() {
-      StringBuilder sb = new StringBuilder(getClass().getSimpleName()).append("{");
+      final StringBuilder sb = new StringBuilder(getClass().getSimpleName()).append("{");
 
       toStringSegment(sb, false, "  ");
 
@@ -109,29 +109,29 @@ public class Differ implements Logged {
 
   /** Compares the new set of data with the supplied current set of data.
    *
-   * @param newTzdata
-   * @param currentTzdata
+   * @param newTzdata new set
+   * @param currentTzdata current set
    * @return possibly empty list - never null.
-   * @throws TzException
+   * @throws TzException on fatal error
    */
   public List<DiffListEntry> compare(final CachedData newTzdata,
                                      final CachedData currentTzdata) throws TzException {
-    List<DiffListEntry> res = new ArrayList<DiffListEntry>();
+    final List<DiffListEntry> res = new ArrayList<>();
 
-    SortedSet<String> newNames = newTzdata.getNameList();
+    final SortedSet<String> newNames = newTzdata.getNameList();
 
-    NameChanges nc = getNameChanges(newNames, currentTzdata.getNameList());
+    final NameChanges nc = getNameChanges(newNames, currentTzdata.getNameList());
 
     if (!nc.deletedNames.isEmpty()) {
       warn("Following ids appear to have been deleted");
-      for (String id: nc.deletedNames) {
+      for (final String id: nc.deletedNames) {
         warn("   " + id);
       }
     }
 
     if (debug()) {
       debug("Following ids appear to have been added");
-      for (String id: nc.addedNames) {
+      for (final String id: nc.addedNames) {
         debug("   " + id);
       }
     }
@@ -140,12 +140,12 @@ public class Differ implements Logged {
      * it's changed.
      */
 
-    XmlIcalCompare comp = new XmlIcalCompare(XmlIcalCompare.defaultSkipList,
-                                             null); // Shouldn't need any tzs
+    final XmlIcalCompare comp = new XmlIcalCompare(XmlIcalCompare.defaultSkipList,
+                                                   null); // Shouldn't need any tzs
 
-    for (String tzid: newNames) {
+    for (final String tzid: newNames) {
       if (nc.addedNames.contains(tzid)) {
-        DiffListEntry dle = new DiffListEntry();
+        final DiffListEntry dle = new DiffListEntry();
 
         dle.tzid = tzid;
         dle.add = true;
@@ -157,7 +157,7 @@ public class Differ implements Logged {
       }
 
       if (nc.deletedNames.contains(tzid)) {
-        DiffListEntry dle = new DiffListEntry();
+        final DiffListEntry dle = new DiffListEntry();
 
         dle.tzid = tzid;
         dle.deleted = true;
@@ -170,10 +170,10 @@ public class Differ implements Logged {
 
       /* compare */
 
-      IcalendarType newXcal = newTzdata.getXTimeZone(tzid);
-      IcalendarType currentXcal = currentTzdata.getXTimeZone(tzid);
+      final IcalendarType newXcal = newTzdata.getXTimeZone(tzid);
+      final IcalendarType currentXcal = currentTzdata.getXTimeZone(tzid);
 
-      ComponentSelectionType cst = comp.diff(newXcal, currentXcal);
+      final ComponentSelectionType cst = comp.diff(newXcal, currentXcal);
 
       if (cst == null) {
         continue;
@@ -183,7 +183,7 @@ public class Differ implements Logged {
         debug("Adding " + tzid);
       }
 
-      DiffListEntry dle = new DiffListEntry();
+      final DiffListEntry dle = new DiffListEntry();
 
       dle.tzid = tzid;
       dle.tzSpec = newTzdata.getCachedVtz(tzid);
@@ -203,10 +203,10 @@ public class Differ implements Logged {
 
   private NameChanges getNameChanges(final SortedSet<String> newList,
                                      final SortedSet<String> currentList) {
-    NameChanges nc = new NameChanges();
+    final NameChanges nc = new NameChanges();
 
-    Iterator<String> nit = newList.iterator();
-    Iterator<String> cit = currentList.iterator();
+    final Iterator<String> nit = newList.iterator();
+    final Iterator<String> cit = currentList.iterator();
     String nid = nit.next();
     String cid = cit.next();
 
@@ -227,7 +227,7 @@ public class Differ implements Logged {
           break test;
         }
 
-        int cmp = nid.compareTo(cid);
+        final int cmp = nid.compareTo(cid);
 
         if (cmp == 0) {
           advanceNew = true;
@@ -271,7 +271,7 @@ public class Differ implements Logged {
    *                   Logged methods
    * ==================================================================== */
 
-  private BwLogger logger = new BwLogger();
+  private final BwLogger logger = new BwLogger();
 
   @Override
   public BwLogger getLogger() {
