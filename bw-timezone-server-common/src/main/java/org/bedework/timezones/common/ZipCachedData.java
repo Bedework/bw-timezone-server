@@ -19,7 +19,6 @@
 package org.bedework.timezones.common;
 
 import org.bedework.timezones.common.Differ.DiffListEntry;
-import org.bedework.timezones.common.db.TzAlias;
 import org.bedework.util.calendar.XcalUtil;
 
 import org.apache.http.HttpResponse;
@@ -164,48 +163,36 @@ public class ZipCachedData  extends AbstractCachedData {
    */
   private AliasMaps buildAliasMaps(final ZipFile tzDefsZipFile) throws TzException {
     try {
-      ZipEntry ze = tzDefsZipFile.getEntry("aliases.txt");
+      final ZipEntry ze = tzDefsZipFile.getEntry("aliases.txt");
 
-      AliasMaps maps = new AliasMaps();
+      final AliasMaps maps = new AliasMaps();
       maps.aliasesStr = entryToString(ze);
 
       maps.byTzid = new HashMap<>();
       maps.byAlias = new HashMap<>();
       maps.aliases = new Properties();
 
-      StringReader sr = new StringReader(maps.aliasesStr);
+      final StringReader sr = new StringReader(maps.aliasesStr);
 
       maps.aliases.load(sr);
 
-      for (String a: maps.aliases.stringPropertyNames()) {
-        String val = maps.aliases.getProperty(a);
+      for (final String aliasId: maps.aliases.stringPropertyNames()) {
+        final String val = maps.aliases.getProperty(aliasId);
 
         if (val == null) {
           continue;
         }
 
-        String[] vals = val.split(",");
+        final SortedSet<String> as = maps.byTzid
+                .computeIfAbsent(val, k -> new TreeSet<>());
 
-        TzAlias ta = new TzAlias(a);
+        as.add(aliasId);
 
-        for (String id: vals) {
-          ta.addTargetId(id);
-
-          SortedSet<String> as = maps.byTzid.get(id);
-
-          if (as == null) {
-            as = new TreeSet<>();
-            maps.byTzid.put(id, as);
-          }
-
-          as.add(a);
-        }
-
-        maps.byAlias.put(a, ta);
+        maps.byAlias.put(aliasId, val);
       }
 
       return maps;
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new TzException(t);
     }
   }

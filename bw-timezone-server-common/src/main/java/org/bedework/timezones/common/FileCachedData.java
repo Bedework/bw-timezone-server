@@ -19,7 +19,6 @@
 package org.bedework.timezones.common;
 
 import org.bedework.timezones.common.Differ.DiffListEntry;
-import org.bedework.timezones.common.db.TzAlias;
 import org.bedework.util.calendar.XcalUtil;
 import org.bedework.util.timezones.FileTzFetcher;
 import org.bedework.util.timezones.TzFetcher;
@@ -153,34 +152,17 @@ public class FileCachedData extends AbstractCachedData {
           continue;
         }
 
-        final String[] vals = val.split(",");
+        final SortedSet<String> as = maps.byTzid
+                .computeIfAbsent(val, k -> new TreeSet<>());
 
-        final TzAlias alias = new TzAlias(aliasId);
-
-        final StringBuilder ids = new StringBuilder();
-        String delim = "";
-
-        for (final String s: vals) {
-          ids.append(delim);
-
-          final String id = escape(s);
-          ids.append(id);
-          delim=",";
-
-          alias.addTargetId(s);
-
-          final SortedSet<String> as = maps.byTzid
-                  .computeIfAbsent(s, k -> new TreeSet<>());
-
-          as.add(aliasId);
-        }
+        as.add(aliasId);
 
         aliasStr.append(escape(aliasId));
         aliasStr.append('=');
-        aliasStr.append(ids.toString());
+        aliasStr.append(escape(val));
         aliasStr.append('\n');
 
-        maps.byAlias.put(aliasId, alias);
+        maps.byAlias.put(aliasId, val);
       }
 
       maps.aliasesStr = aliasStr.toString();

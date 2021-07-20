@@ -101,8 +101,12 @@ public class H2dbCachedData extends AbstractDb {
             "insert into " + aliasTable +
                     " values(?, ?)")) {
 
+      if (debug()) {
+        debug("Adding alias: " + val);
+      }
+
       final Blob b = conn.createBlob();
-      b.setBytes(0,bytesJson(val));
+      b.setBytes(0, bytesJson(val));
 
       stmt.setString(1, val.getAliasId());
       stmt.setBlob(2, b);

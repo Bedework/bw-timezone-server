@@ -49,7 +49,7 @@ public class GetMethod extends MethodBase {
   }
 
   /**
-   * @throws ServletException
+   * @throws ServletException on fatal error
    */
   public GetMethod() throws ServletException {
     super();
@@ -77,6 +77,11 @@ public class GetMethod extends MethodBase {
   private static final String capabilitiesEl = "capabilities";
   private static final String zonesEl = "zones";
   private static final String observancesEl = "observances";
+
+  // Extras - non-standard
+  private static final String aliasesEl = "aliases";
+  private static final String statsEl = "stats";
+  private static final String infoEl = "info";
 
   // TODO - fix stylesheets to parse json from list
   private static final String namesReqPar = "names";
@@ -111,6 +116,21 @@ public class GetMethod extends MethodBase {
         return;
       }
 
+      if (el0.equals(aliasesEl)) {
+        doAliases(resp);
+        return;
+      }
+
+      if (el0.equals(statsEl)) {
+        doStats(resp);
+        return;
+      }
+
+      if (el0.equals(infoEl)) {
+        doInfo(resp);
+        return;
+      }
+
       final int dataPrefixElements = dataPrefixElements(ruri);
 
       final String el = ruri.getPathElement(dataPrefixElements);
@@ -120,7 +140,7 @@ public class GetMethod extends MethodBase {
       }
 
       if (el.equals(zonesEl)) {
-        doZones(req,resp, ruri, dataPrefixElements);
+        doZones(req, resp, ruri, dataPrefixElements);
         return;
       }
 
@@ -141,48 +161,12 @@ public class GetMethod extends MethodBase {
     return 0;
   }
 
-  /** Handle pre-rest action parameter style. For backward compatibility
-   * with deployed clients.
-   *
-   * @param req http request
-   * @param resp http response
-   * @param action non-null action parameter
-   * @throws ServletException
-   */
-  private void doAction(final HttpServletRequest req,
-                       final HttpServletResponse resp,
-                       final String action) throws ServletException {
-    if ("capabilities".equals(action)) {
-      capabilities.doMethod(req, resp);
-      return;
-    }
-
-    if ("list".equals(action)) {
-      lists.doMethod(req, resp);
-      return;
-    }
-
-    if ("expand".equals(action)) {
-      doExpand(req,resp, null, 0);
-      return;
-    }
-
-    if ("get".equals(action)) {
-      tzids.doMethod(req, resp);
-      return;
-    }
-
-    if ("find".equals(action)) {
-      doFind(req, resp, req.getParameter("name"));
-    }
-  }
-
   private void doZones(final HttpServletRequest req,
                        final HttpServletResponse resp,
                        final ResourceUri ruri,
                        final int dataPrefixSize) throws ServletException {
     if (req.getParameter("pattern") != null) {
-      doFind(req, resp, req.getParameter("pattern"));
+      doFind(resp, req.getParameter("pattern"));
       return;
     }
 
@@ -203,8 +187,7 @@ public class GetMethod extends MethodBase {
     doExpand(req, resp, tzid.substring(0, len));
   }
 
-  private void doFind(final HttpServletRequest req,
-                      final HttpServletResponse resp,
+  private void doFind(final HttpServletResponse resp,
                       final String pattern) throws ServletException {
     try {
       if (pattern == null) {
@@ -327,13 +310,13 @@ public class GetMethod extends MethodBase {
       resp.setContentType("text/plain; charset=UTF-8");
       resp.setHeader("ETag", util.getEtag());
 
-      Writer wtr = resp.getWriter();
+      final Writer wtr = resp.getWriter();
 
-      for (String s: util.getNames()) {
+      for (final String s: util.getNames()) {
         wtr.write(s);
         wtr.write("\n");
       }
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new ServletException(t);
     }
   }
@@ -341,7 +324,7 @@ public class GetMethod extends MethodBase {
   private void doStats(final HttpServletResponse resp) throws ServletException {
     try {
       resp.setContentType("text/html; charset=UTF-8");
-      Writer wtr = resp.getWriter();
+      final Writer wtr = resp.getWriter();
 
       wtr.write("<html>\r\n");
       wtr.write("  <head>\r\n");
@@ -361,7 +344,7 @@ public class GetMethod extends MethodBase {
                 "cellspacing=\"0\"" +
                 " cellpadding=\"4\">\r\n");
 
-      for (Stat s: TzServerUtil.getStats()) {
+      for (final Stat s: TzServerUtil.getStats()) {
         statLine(wtr, s.getName(), s.getValue1(), s.getValue2());
       }
 
@@ -370,9 +353,9 @@ public class GetMethod extends MethodBase {
       /* Could use a footer */
       wtr.write("</body>\r\n");
       wtr.write("</html>\r\n");
-    } catch (ServletException se) {
+    } catch (final ServletException se) {
       throw se;
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new ServletException(t);
     }
   }
@@ -382,10 +365,10 @@ public class GetMethod extends MethodBase {
       resp.setHeader("ETag", util.getEtag());
       resp.setContentType("text/plain; charset=UTF-8");
 
-      Writer wtr = resp.getWriter();
+      final Writer wtr = resp.getWriter();
 
       wtr.write(util.getAliasesStr());
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new ServletException(t);
     }
   }
@@ -417,7 +400,7 @@ public class GetMethod extends MethodBase {
       resp.setHeader("ETag", util.getEtag());
       resp.setContentType("text/html; charset=UTF-8");
 
-      Writer wtr = resp.getWriter();
+      final Writer wtr = resp.getWriter();
 
       wtr.write("<html>\r\n");
       wtr.write("  <head>\r\n");
@@ -444,9 +427,9 @@ public class GetMethod extends MethodBase {
       /* Could use a footer */
       wtr.write("</body>\r\n");
       wtr.write("</html>\r\n");
-    } catch (ServletException se) {
+    } catch (final ServletException se) {
       throw se;
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new ServletException(t);
     }
   }
@@ -484,9 +467,11 @@ public class GetMethod extends MethodBase {
     if (millis == null) {
       wtr.write("&nbsp;");
     } else {
-      String s = millis;
-      while (s.length() < 4) {
-        s = "0" + s;
+      final String s;
+      if (millis.length() < 4) {
+        s = "0000".substring(millis.length()) + millis;
+      } else {
+        s = millis;
       }
 
       wtr.write(s.substring(0, s.length() - 3));
@@ -507,20 +492,20 @@ public class GetMethod extends MethodBase {
                          final String fromTzid,
                          final String toTzid) throws ServletException {
     try {
-      Writer wtr = resp.getWriter();
+      final Writer wtr = resp.getWriter();
 
-      String cnvDdateTime = util.convertDateTime(dateTime,
-                                                 fromTzid,
-                                                 toTzid);
+      final String cnvDdateTime = util.convertDateTime(dateTime,
+                                                       fromTzid,
+                                                       toTzid);
 
       if (cnvDdateTime != null) {
         wtr.write(cnvDdateTime);
       } else {
         resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
       }
-    } catch (ServletException se) {
+    } catch (final ServletException se) {
       throw se;
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new ServletException(t);
     }
   }
@@ -529,18 +514,18 @@ public class GetMethod extends MethodBase {
                        final String dateTime,
                        final String fromTzid) throws ServletException {
     try {
-      Writer wtr = resp.getWriter();
+      final Writer wtr = resp.getWriter();
 
-      String cnvDdateTime = util.getUtc(dateTime, fromTzid);
+      final String cnvDdateTime = util.getUtc(dateTime, fromTzid);
 
       if (cnvDdateTime != null) {
         wtr.write(cnvDdateTime);
       } else {
         resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
       }
-    } catch (ServletException se) {
+    } catch (final ServletException se) {
       throw se;
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new ServletException(t);
     }
   }
@@ -549,7 +534,7 @@ public class GetMethod extends MethodBase {
   private boolean ifNoneMatchTest(final HttpServletRequest req,
                                   final HttpServletResponse resp) throws ServletException {
     try {
-      String inEtag = req.getHeader("If-None-Match");
+      final String inEtag = req.getHeader("If-None-Match");
 
       if (inEtag == null) {
         return false;
@@ -561,7 +546,7 @@ public class GetMethod extends MethodBase {
 
       resp.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
       return true;
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new ServletException(t);
     }
   }

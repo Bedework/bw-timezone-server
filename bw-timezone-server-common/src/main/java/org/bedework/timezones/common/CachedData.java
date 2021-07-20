@@ -19,7 +19,6 @@
 package org.bedework.timezones.common;
 
 import org.bedework.timezones.common.Differ.DiffListEntry;
-import org.bedework.timezones.common.db.TzAlias;
 import org.bedework.util.timezones.model.TimezoneType;
 
 import ietf.params.xml.ns.icalendar_2.IcalendarType;
@@ -78,11 +77,10 @@ public interface CachedData extends Serializable {
   /** Given an alias return the tzid for that alias
    *
    * @param val alias
-   * @return aliased name(s) or null
-   * @throws TzException on fatal error
+   * @return aliased name or null
    */
   @SuppressWarnings("UnusedDeclaration")
-  TzAlias fromAlias(String val) throws TzException;
+  String fromAlias(String val);
 
   /**
    * @return String value of aliases file.

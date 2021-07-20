@@ -18,7 +18,6 @@
 */
 package org.bedework.timezones.common;
 
-import org.bedework.timezones.common.db.TzAlias;
 import org.bedework.util.caching.FlushMap;
 import org.bedework.util.calendar.IcalToXcal;
 import org.bedework.util.logging.BwLogger;
@@ -83,10 +82,11 @@ public abstract class AbstractCachedData implements Logged, CachedData {
     /** */
     public Properties aliases;
 
-    /** */
+    /** key is tzid, val is list of alias ids */
     public Map<String, SortedSet<String>> byTzid;
-    /** */
-    public Map<String, TzAlias> byAlias;
+
+    /** key is alias, value is target id */
+    public Map<String, String> byAlias;
   }
 
   protected AliasMaps aliasMaps;
@@ -142,7 +142,7 @@ public abstract class AbstractCachedData implements Logged, CachedData {
   }
 
   @Override
-  public TzAlias fromAlias(final String val) {
+  public String fromAlias(final String val) {
     return aliasMaps.byAlias.get(val);
   }
 
@@ -325,11 +325,46 @@ public abstract class AbstractCachedData implements Logged, CachedData {
     xtzs.put(id, xcal);
 
     /* ================== Build summary info ======================== */
+    final TimezoneType tz = getTzType(id, vtz.getLastModified(),
+                                      etag, storedDtstamp);
+
+    final SortedSet<String> aliases = findAliases(id);
+
+    // XXX Need to have list of local names per timezone
+    //String ln = vtz.
+    if (aliases != null) {
+      for (final String a: aliases) {
+        if (tz.getAliases() == null) {
+          tz.setAliases(new ArrayList<>());
+        }
+        tz.getAliases().add(a);
+
+        final VTimeZone avtz = addAlias(a, vtz);
+        vtzs.put(a, avtz.toString());
+        timezones.add(getTzType(a, avtz.getLastModified(),
+                                etag, storedDtstamp));
+
+        cal.getComponents().clear();
+        cal.getComponents().add(avtz);
+
+        xcal = IcalToXcal.fromIcal(cal, null, true);
+
+        aliasedXtzs.put(id, xcal);
+      }
+    }
+
+    timezones.add(tz);
+    timezonesMap.put(tz.getTzid(), tz);
+  }
+
+  private TimezoneType getTzType(final String id,
+                                 final LastModified lm,
+                                 final String etag,
+                                 final String storedDtstamp) {
     final TimezoneType tz = new TimezoneType();
 
     tz.setTzid(id);
 
-    final LastModified lm = vtz.getLastModified();
     if (lm!= null) {
       tz.setLastModified(DateTimeUtil.fromISODateTimeUTC(lm.getValue()));
     } else if (storedDtstamp != null) {
@@ -346,39 +381,7 @@ public abstract class AbstractCachedData implements Logged, CachedData {
       tz.setEtag(dtstamp);
     }
 
-    final SortedSet<String> aliases = findAliases(id);
-
-    // XXX Need to have list of local names per timezone
-    //String ln = vtz.
-    if (aliases != null) {
-      for (final String a: aliases) {
-        if (tz.getAliases() == null) {
-          tz.setAliases(new ArrayList<>());
-        }
-        tz.getAliases().add(a);
-
-        List<String> aliasedIds = null;
-
-        if (aliasMaps != null) {
-          final TzAlias alias = aliasMaps.byAlias.get(a);
-          if (alias != null) {
-            aliasedIds = alias.getTargetIds();
-          }
-        }
-
-        final VTimeZone avtz = addAlias(a, vtz, aliasedIds);
-
-        cal.getComponents().clear();
-        cal.getComponents().add(avtz);
-
-        xcal = IcalToXcal.fromIcal(cal, null, true);
-
-        aliasedXtzs.put(id, xcal);
-      }
-    }
-
-    timezones.add(tz);
-    timezonesMap.put(tz.getTzid(), tz);
+    return tz;
   }
 
   protected Calendar parseDef(final String caldef) {
@@ -414,8 +417,7 @@ public abstract class AbstractCachedData implements Logged, CachedData {
    * add it and the string version to the alias table.
    */
   protected VTimeZone addAlias(final String alias,
-                               final VTimeZone vtz,
-                               final List<String> tzids) {
+                               final VTimeZone vtz) {
     final VTimeZone avtz;
     try {
       avtz = (VTimeZone)vtz.copy();
@@ -424,13 +426,10 @@ public abstract class AbstractCachedData implements Logged, CachedData {
     }
 
     final TzId tzidProp = avtz.getTimeZoneId();
+    final String aliasedTo = tzidProp.getValue();
     tzidProp.setValue(alias);
 
-    if (tzids != null) {
-      for (final String tzid: tzids) {
-        avtz.getProperties().add(new TzidAliasOf(tzid));
-      }
-    }
+    avtz.getProperties().add(new TzidAliasOf(aliasedTo));
 
 //      aliasedTzs.put(alias, new TimeZone(avtz));
     aliasedVtzs.put(alias, avtz.toString());

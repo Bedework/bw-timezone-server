@@ -21,9 +21,6 @@ package org.bedework.timezones.common.db;
 import org.bedework.util.misc.ToString;
 import org.bedework.util.misc.Util;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  *.
  *  @version 1.0
@@ -31,7 +28,7 @@ import java.util.List;
 public class TzAlias extends TzDbentity<TzAlias> {
   private String aliasId;
 
-  private List<String> targetIds;
+  private String targetId;
 
   /** Constructor for jackson
    */
@@ -42,18 +39,12 @@ public class TzAlias extends TzDbentity<TzAlias> {
 
   /** Constructor
    */
-  public TzAlias(final String aliasId) {
+  public TzAlias(final String aliasId,
+                 final String targetId) {
     super();
 
     this.aliasId = aliasId;
-  }
-
-  /** set the alias - this should be unique.
-   *
-   * @param val   alias
-   */
-  public void setAliasId(final String val) {
-    aliasId = val;
+    this.targetId = targetId;
   }
 
   /** Get the alias - this should be unique.
@@ -64,32 +55,20 @@ public class TzAlias extends TzDbentity<TzAlias> {
     return aliasId;
   }
 
-  /** Add a target id
+  /** set the target id
    *
-   * @param val    String targetId
+   * @param val target id
    */
-  public void addTargetId(final String val) {
-    if (targetIds == null) {
-      targetIds = new ArrayList<>();
-    }
-
-    targetIds.add(val);
+  public void setTargetId(final String val) {
+    targetId = val;
   }
 
-  /** set the target ids
+  /** Get the targetId
    *
-   * @param val target ids
+   *  @return String
    */
-  public void setTargetIds(final List<String> val) {
-    targetIds = val;
-  }
-
-  /** Get the targetIds
-   *
-   *  @return list String
-   */
-  public List<String> getTargetIds() {
-    return targetIds;
+  public String getTargetId() {
+    return targetId;
   }
 
   /* ====================================================================
@@ -112,15 +91,15 @@ public class TzAlias extends TzDbentity<TzAlias> {
       return res;
     }
 
-    return Util.cmpObjval(getTargetIds(), that.getTargetIds());
+    return Util.cmpObjval(getTargetId(), that.getTargetId());
   }
 
   @Override
   public int hashCode() {
     int hc = 7 * getAliasId().hashCode();
 
-    if (getTargetIds() != null) {
-      hc *= getTargetIds().hashCode();
+    if (getTargetId() != null) {
+      hc *= getTargetId().hashCode();
     }
 
     return hc;
@@ -130,19 +109,12 @@ public class TzAlias extends TzDbentity<TzAlias> {
   protected void toStringSegment(final ToString ts) {
     super.toStringSegment(ts);
     ts.append("aliasId", getAliasId());
-    ts.append("targetIds", getTargetIds());
+    ts.append("targetId", getTargetId());
   }
 
   @Override
   public Object clone() {
-    final TzAlias a = new TzAlias(getAliasId());
-
-    if (getTargetIds() != null) {
-      for (final String s: getTargetIds()) {
-        a.addTargetId(s);
-      }
-    }
-
-    return a;
+    return new TzAlias(getAliasId(),
+                       getTargetId());
   }
 }

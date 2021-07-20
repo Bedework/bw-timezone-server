@@ -82,7 +82,7 @@ public abstract class MethodBase implements Logged {
   protected TzServerUtil util;
 
   /**
-   * @throws ServletException
+   * @throws ServletException on fatal error
    */
   public MethodBase() throws ServletException {
     try {
@@ -97,7 +97,7 @@ public abstract class MethodBase implements Logged {
       mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
       util = TzServerUtil.getInstance();
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new ServletException(t);
     }
   }

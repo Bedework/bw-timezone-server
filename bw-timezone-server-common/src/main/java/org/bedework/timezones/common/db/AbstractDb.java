@@ -281,7 +281,7 @@ public abstract class AbstractDb extends AbstractCachedData {
 
       final List<TzAlias> as = findTzAliases(val);
       for (final TzAlias a: as) {
-        ids.addAll(a.getTargetIds());
+        ids.add(a.getTargetId());
       }
 
       return ids;
@@ -516,7 +516,14 @@ public abstract class AbstractDb extends AbstractCachedData {
        * If dbspec is null it's an add.
        */
 
-      final AliasMaps amaps = buildAliasMaps();
+      /* Something is wrong here -
+         If we are updating from a primary we don't need to use
+         alias maps - the tz def should have an aliased to
+         property. The alias maps should only be used when we are the
+         primary
+       */
+
+      // final AliasMaps amaps = buildAliasMaps();
 
       try {
         open();
@@ -574,12 +581,13 @@ public abstract class AbstractDb extends AbstractCachedData {
             putTzSpec(entry.dbspec);
           }
 
-          /* Get all aliases for this id */
+          /* don't do this for the moment
+          /* Get all aliases for this id * /
           final SortedSet<String> aliases = amaps.byTzid.get(entry.id);
 
           if (!Util.isEmpty(entry.sum.getAliases())) {
             for (final String a : entry.sum.getAliases()) {
-              TzAlias tza = amaps.byAlias.get(a);
+              final String targetId = amaps.byAlias.get(a);
 
               if (tza == null) {
                 tza = new TzAlias(a);
@@ -587,9 +595,9 @@ public abstract class AbstractDb extends AbstractCachedData {
 
               tza.addTargetId(entry.id);
 
-              putTzAlias(tza);
+              putTzAlias(new TzAlias());
 
-              /* We've seen this alias. Remove from the list */
+              /* We've seen this alias. Remove from the list * /
               if (aliases != null) {
                 aliases.remove(a);
               }
@@ -597,12 +605,12 @@ public abstract class AbstractDb extends AbstractCachedData {
           }
 
           if (aliases != null) {
-            /* remaining aliases should be deleted */
+            /* remaining aliases should be deleted * /
             for (final String alias: aliases) {
               final TzAlias tza = getTzAlias(alias);
               removeTzAlias(tza);
             }
-          }
+          } */
         }
       } finally {
         close();
@@ -641,34 +649,22 @@ public abstract class AbstractDb extends AbstractCachedData {
           final TzAlias alias = it.next();
 
           final String aliasId = alias.getAliasId();
-          final StringBuilder ids = new StringBuilder();
-          String delim = "";
 
-          for (final String s: alias.getTargetIds()) {
-            ids.append(delim);
+          final String targetId = alias.getTargetId();
 
-            final String id = escape(s);
-            ids.append(id);
-            delim=",";
+          final SortedSet<String> as = maps.byTzid
+                  .computeIfAbsent(targetId, k -> new TreeSet<>());
 
-            SortedSet<String> as = maps.byTzid.get(id);
-
-            if (as == null) {
-              as = new TreeSet<>();
-              maps.byTzid.put(id, as);
-            }
-
-            as.add(aliasId);
-          }
+          as.add(aliasId);
 
           aliasStr.append(escape(aliasId));
           aliasStr.append('=');
-          aliasStr.append(ids.toString());
+          aliasStr.append(escape(targetId));
           aliasStr.append('\n');
 
-          maps.aliases.setProperty(aliasId, ids.toString());
+          maps.aliases.setProperty(aliasId, targetId);
 
-          maps.byAlias.put(aliasId, alias);
+          maps.byAlias.put(aliasId, targetId);
         }
       }
 
@@ -725,6 +721,7 @@ public abstract class AbstractDb extends AbstractCachedData {
         return;
       }
 
+      /* I don't think we shoudl be doing this...
       final SortedSet<String> aliases = amaps.byTzid.get(id);
 
       for (final String a: dle.aliases) {
@@ -732,7 +729,7 @@ public abstract class AbstractDb extends AbstractCachedData {
         final boolean adding;
 
         if (alias == null) {
-          alias = new TzAlias(a);
+          alias = new TzAlias(a, id);
           adding = true;
         } else {
           adding = false;
@@ -749,11 +746,12 @@ public abstract class AbstractDb extends AbstractCachedData {
         aliases.remove(a);
       }
 
-      /* remaining aliases should be deleted */
+      /* remaining aliases should be deleted * /
       for (final String alias: aliases) {
         final TzAlias tza = getTzAlias(alias);
         removeTzAlias(tza);
       }
+      */
     } catch (final TzException tze) {
       throw tze;
     } catch (final Throwable t) {
@@ -836,6 +834,7 @@ public abstract class AbstractDb extends AbstractCachedData {
       int ct = 0;
 
       for (final TimezoneType tz: tzs) {
+        /*
         if (tz.getAliases() != null) {
           for (final String a: tz.getAliases()) {
             TzAlias alias = getTzAlias(a);
@@ -848,7 +847,7 @@ public abstract class AbstractDb extends AbstractCachedData {
 
             putTzAlias(alias);
           }
-        }
+        }*/
 
         final TzDbSpec spec = new TzDbSpec();
 
