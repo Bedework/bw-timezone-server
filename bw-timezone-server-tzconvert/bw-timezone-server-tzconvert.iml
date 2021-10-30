@@ -26,7 +26,7 @@
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-core:2.11.0" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-databind:2.11.0" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.11.0" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util2-calendar:4.0.11" level="project" />
+    <orderEntry type="library" name="Maven: org.bedework:bw-util2-calendar:4.0.12" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-xml-calws-soap:4.0.10" level="project" />
     <orderEntry type="library" name="Maven: javax.jws:javax.jws-api:1.1" level="project" />
     <orderEntry type="library" name="Maven: javax.xml.ws:jaxws-api:2.3.1" level="project" />
