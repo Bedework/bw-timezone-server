@@ -12,6 +12,7 @@
 
 	<dependencies>
 		<!-- Internal Project Dependencies -->
+		<!--
 		<dependency>
       <groupId>${project.groupId}</groupId>
 			<artifactId>bw-timezone-server-common</artifactId>
@@ -47,7 +48,7 @@
       <groupId>org.bedework</groupId>
       <artifactId>bw-util-tz</artifactId>
     </dependency>
-		<!-- Bedework: Web Services -->
+		< ! - - Bedework: Web Services - - >
 		<dependency>
 			<groupId>org.bedework</groupId>
 			<artifactId>bw-xml-icalendar</artifactId>
@@ -66,7 +67,7 @@
 			<scope>provided</scope>
 		</dependency>
 
- 		<!-- Third Party Libraries -->
+ 		< ! - - Third Party Libraries - - >
 
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
@@ -110,13 +111,14 @@
 			<scope>provided</scope>
 		</dependency>
 
-		<!-- Test Dependencies -->
+		< ! - - Test Dependencies - - >
 
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
+		-->
 	</dependencies>
 
   <build>
@@ -128,12 +130,14 @@
 
         <configuration>
           <packagingExcludes>WEB-INF/lib/*.jar</packagingExcludes>
+					<!--
           <archive>
             <manifest>
               <addClasspath>true</addClasspath>
               <classpathPrefix>lib/</classpathPrefix>
             </manifest>
           </archive>
+          -->
         </configuration>
       </plugin>
     </plugins>
