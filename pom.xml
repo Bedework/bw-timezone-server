@@ -39,7 +39,7 @@
     <h2.version>1.4.190</h2.version>
 
     <!-- For runnable version -->
-    <log4j.version>2.15.0</log4j.version>
+    <log4j.version>2.16.0</log4j.version>
   </properties>
 
   <organization>
