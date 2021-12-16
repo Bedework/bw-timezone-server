@@ -21,11 +21,11 @@
     <orderEntry type="library" scope="PROVIDED" name="Maven: javax.xml.bind:jaxb-api:2.3.0" level="project" />
     <orderEntry type="module" module-name="bw-timezone-server-tzconvert" scope="PROVIDED" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.bedework:bw-util-args:4.0.31" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.apache.logging.log4j:log4j-api:2.14.1" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.apache.logging.log4j:log4j-core:2.14.1" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: org.apache.logging.log4j:log4j-api:2.16.0" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: org.apache.logging.log4j:log4j-core:2.16.0" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.apache.logging.log4j:log4j-slf4j-impl:2.14.1" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.slf4j:slf4j-api:1.7.25" level="project" />
-    <orderEntry type="library" name="Maven: org.bedework:bw-util-logging:5.0.0" level="project" />
+    <orderEntry type="module" module-name="bw-util-logging" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-servlet:4.1.4" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-tz:4.1.4" level="project" />
     <orderEntry type="library" name="Maven: org.bedework:bw-util-caching:4.0.31" level="project" />
