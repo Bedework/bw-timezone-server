@@ -164,7 +164,7 @@
 							<groupId>${project.groupId}</groupId>
 							<artifactId>bw-timezone-server-war</artifactId>
 							<contextRoot>/tzsvr</contextRoot>
-							<bundleFileName>bw-timezone-server.war</bundleFileName>
+							<bundleFileName>bw-timezone-server-${project.version}.war</bundleFileName>
 						</webModule>
 						<!--
 						<jarModule>
