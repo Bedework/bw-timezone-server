@@ -3,11 +3,11 @@
 	<parent>
 		<groupId>org.bedework.bw-tzsvr</groupId>
 		<artifactId>bw-timezone-server</artifactId>
-		<version>4.0.14-SNAPSHOT</version>
-		<relativePath>../pom.xml</relativePath>
+		<version>5.0.0-SNAPSHOT</version>
 	</parent>
+
 	<artifactId>bw-timezone-server-tzconvert</artifactId>
-	<name>bw-timezone-server-tzconvert</name>
+  <name>Bedework: Experimental timezone converter</name>
 
 	<dependencies>
     <!-- Bedework: Util -->
@@ -25,10 +25,12 @@
       <groupId>org.bedework</groupId>
       <artifactId>bw-util-jmx</artifactId>
     </dependency>
+
     <dependency>
       <groupId>org.bedework</groupId>
       <artifactId>bw-util-misc</artifactId>
     </dependency>
+
     <dependency>
       <groupId>org.bedework</groupId>
       <artifactId>bw-util-tz</artifactId>
@@ -70,26 +72,22 @@
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-api</artifactId>
-      <version>${log4j.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-core</artifactId>
-      <version>${log4j.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j-impl</artifactId>
-      <version>2.14.1</version>
     </dependency>
 
 		<!-- Test Dependencies -->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<scope>test</scope>
 		</dependency>
 	</dependencies>
 

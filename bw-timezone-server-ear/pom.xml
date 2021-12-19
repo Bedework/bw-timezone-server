@@ -3,12 +3,12 @@
 	<parent>
 		<groupId>org.bedework.bw-tzsvr</groupId>
 		<artifactId>bw-timezone-server</artifactId>
-		<version>4.0.14-SNAPSHOT</version>
-		<relativePath>../pom.xml</relativePath>
+		<version>5.0.0-SNAPSHOT</version>
 	</parent>
+
 	<artifactId>bw-timezone-server-ear</artifactId>
 	<packaging>ear</packaging>
-	<name>bw-timezone-server-ear</name>
+	<name>Bedework: timezone server ear</name>
 
 	<dependencies>
 		<!-- Project Dependencies -->
@@ -155,22 +155,16 @@
 		<finalName>bw-timezone-server-${project.version}</finalName>
 		<plugins>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-ear-plugin</artifactId>
-        <version>2.10</version>
+
 				<configuration>
 					<!-- Exclude eclipse generated application.xml during mvn package -->
-					<earSourceExcludes>**/application.xml</earSourceExcludes>
-					<defaultLibBundleDir>lib</defaultLibBundleDir>
-          <skinnyWars>true</skinnyWars>
-					<!-- use maven generated application.xml instead -->
-					<generateApplicationXml>true</generateApplicationXml>
-          <unpackTypes>sar,rar,war</unpackTypes>
 					<modules>
 						<webModule>
 							<groupId>${project.groupId}</groupId>
 							<artifactId>bw-timezone-server-war</artifactId>
 							<contextRoot>/tzsvr</contextRoot>
+							<bundleFileName>bw-timezone-server.war</bundleFileName>
 						</webModule>
 						<!--
 						<jarModule>
@@ -189,22 +183,10 @@
       <plugin>
         <groupId>org.bedework</groupId>
         <artifactId>bw-util-maven-deploy</artifactId>
-        <version>${bw-util-deploy.version}</version>
-        <executions>
-          <execution>
-            <phase>install</phase>
-            <goals>
-              <goal>bw-deploy</goal>
-            </goals>
-          </execution>
-        </executions>
         <configuration>
-          <checkonly>${org.bedework.deploy.checkonly}</checkonly>
-          <noversion>true</noversion>
-          <delete>true</delete>
           <earName>bw-timezone-server</earName>
-          <baseDirPath>${project.basedir}/../..</baseDirPath>
-          <propsPath>${org.bedework.deployment.properties}</propsPath>
+					<baseDirPath>${project.basedir}/../..</baseDirPath>
+					<propsPath>${org.bedework.deployment.properties}</propsPath>
         </configuration>
       </plugin>
 		</plugins>
