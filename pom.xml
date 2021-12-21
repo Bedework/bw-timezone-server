@@ -16,6 +16,13 @@
   <description>A timezone server implementing tzdist and an experimental timezone converter</description>
   <url>https://github.com/Bedework/bw-timezone-server</url>
 
+  <scm>
+    <connection>scm:git:git@github.com:Bedework/bw-timezone-server.git</connection>
+    <developerConnection>scm:git:git@github.com:Bedework/bw-timezone-server.git</developerConnection>
+    <url>https://github.com/Bedework/bw-timezone-server</url>
+    <tag>HEAD</tag>
+  </scm>
+
   <modules>
     <module>bw-timezone-server-tzconvert</module>
     <module>bw-timezone-server-common</module>
