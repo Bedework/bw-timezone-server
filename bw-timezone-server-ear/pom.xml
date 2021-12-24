@@ -177,6 +177,11 @@
             </jarModule>
             -->
 					</modules>
+					<archive>
+						<manifestEntries>
+							<Dependencies>org.bedework.timezone.server.ear</Dependencies>
+						</manifestEntries>
+					</archive>
 				</configuration>
 			</plugin>
       
