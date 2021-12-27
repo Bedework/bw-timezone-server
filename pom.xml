@@ -29,5 +29,6 @@
     <module>bw-timezone-server-war</module>
     <module>bw-timezone-server-ear</module>
     <module>bw-timezone-server-web</module>
+    <module>bw-timezone-server-data</module>
   </modules>
 </project>
