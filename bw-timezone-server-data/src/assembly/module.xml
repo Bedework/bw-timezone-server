@@ -6,7 +6,9 @@
   <formats>
     <format>zip</format>
   </formats>
-  <baseDirectory>tzsvr</baseDirectory>
+
+  <includeBaseDirectory>false</includeBaseDirectory>
+
   <fileSets>
     <fileSet>
       <directory>${basedir}/src/main/resources</directory>

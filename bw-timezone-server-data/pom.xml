@@ -12,6 +12,7 @@
 
   <artifactId>bw-timezone-server-data</artifactId>
   <name>Bedework timezone server: initial data package</name>
+  <packaging>pom</packaging>
 
   <build>
     <plugins>
