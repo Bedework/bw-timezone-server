@@ -12,20 +12,7 @@
   <artifactId>bw-wf-timezone-server-feature-pack</artifactId>
   <packaging>pom</packaging>
 
-  <properties>
-    <org.wildfly.galleon-plugins.version>5.2.6.Final</org.wildfly.galleon-plugins.version>
-
-    <resourcesDir>${project.basedir}/src/main/resources</resourcesDir>
-  </properties>
-
   <dependencies>
-    <!-- Wildfly dependencies for build -->
-
-    <dependency>
-      <groupId>org.wildfly.galleon-plugins</groupId>
-      <artifactId>wildfly-galleon-maven-plugin</artifactId>
-      <version>${org.wildfly.galleon-plugins.version}</version>
-    </dependency>
     <!-- Feature pack(s) -->
 
     <dependency>
@@ -34,36 +21,13 @@
       <type>pom</type>
     </dependency>
 
-
-    <!-- ============ bw-timezone-server =========== -->
-
-    <!--
-    <dependency>
-      <groupId>org.bedework.bw-tzsvr</groupId>
-      <artifactId>bw-timezone-server-common</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.bedework.bw-tzsvr</groupId>
-      <artifactId>bw-timezone-server-data</artifactId>
-      <type>zip</type>
-    </dependency>
-
-    <dependency>
-      <groupId>org.bedework.bw-tzsvr</groupId>
-      <artifactId>bw-timezone-server-tzconvert</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.bedework.bw-tzsvr</groupId>
-      <artifactId>bw-timezone-server-web</artifactId>
-    </dependency>-->
-
     <dependency>
       <groupId>org.bedework</groupId>
       <artifactId>bw-wf-xml-feature-pack</artifactId>
       <type>pom</type>
     </dependency>
+
+    <!-- ============ bw-timezone-server =========== -->
 
     <dependency>
       <groupId>org.bedework.bw-tzsvr</groupId>
@@ -77,18 +41,14 @@
       <plugin>
         <groupId>org.wildfly.galleon-plugins</groupId>
         <artifactId>wildfly-galleon-maven-plugin</artifactId>
-        <version>${org.wildfly.galleon-plugins.version}</version>
 
         <executions>
           <execution>
             <id>galleon-pack-build</id>
-            <goals>
-              <goal>build-feature-pack</goal>
-            </goals>
-            <phase>package</phase>
+
             <configuration>
               <fork-embedded>false</fork-embedded>
-              <resourcesDir>${resourcesDir}</resourcesDir>
+              <resourcesDir>${project.basedir}/src/main/resources</resourcesDir>
             </configuration>
           </execution>
         </executions>
