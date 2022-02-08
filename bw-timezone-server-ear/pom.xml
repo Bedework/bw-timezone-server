@@ -158,6 +158,8 @@
 				<artifactId>maven-ear-plugin</artifactId>
 
 				<configuration>
+					<filtering>true</filtering>
+
 					<!-- Exclude eclipse generated application.xml during mvn package -->
 					<modules>
 						<webModule>
