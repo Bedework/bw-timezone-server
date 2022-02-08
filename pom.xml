@@ -30,5 +30,6 @@
     <module>bw-timezone-server-ear</module>
     <module>bw-timezone-server-web</module>
     <module>bw-timezone-server-data</module>
+    <module>bw-wf-timezone-server-feature-pack</module>
   </modules>
 </project>
