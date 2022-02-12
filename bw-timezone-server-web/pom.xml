@@ -5,10 +5,11 @@
   <parent>
     <artifactId>bw-timezone-server</artifactId>
     <groupId>org.bedework.bw-tzsvr</groupId>
-    <version>5.0.0</version>
+    <version>5.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>bw-timezone-server-web</artifactId>
+  <name>Bedework: timezone server web classes</name>
 
   <dependencies>
     <!-- Internal Project Dependencies -->
