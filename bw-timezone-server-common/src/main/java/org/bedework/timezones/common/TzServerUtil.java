@@ -144,17 +144,6 @@ public class TzServerUtil {
   }
 
   /**
-   * @return path of config directory.
-   */
-  public static String getConfigDir() {
-    if (cfgHolder == null) {
-      return null;
-    }
-
-    return cfgHolder.getConfigUri();
-  }
-
-  /**
    * @return current state of the configuration
    */
   public static TzConfig getTzConfig() {

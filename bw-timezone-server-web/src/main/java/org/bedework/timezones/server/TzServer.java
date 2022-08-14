@@ -148,7 +148,9 @@ public class TzServer extends HttpServlet
     TzCnvSvc cnv;
 
     public Configurator() {
-      super("org.bedework.timezones:service=TzSvr");
+      super("org.bedework.timezones:service=TzSvr",
+            (String)null,
+            null);
     }
 
     @Override

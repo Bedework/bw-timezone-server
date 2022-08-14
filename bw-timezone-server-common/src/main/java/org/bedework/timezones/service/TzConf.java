@@ -33,15 +33,15 @@ import java.util.List;
  *
  */
 public class TzConf extends ConfBase<TzConfigImpl> implements TzConfMBean, ConfigHolder<TzConfigImpl> {
-  /* Name of the property holding the location of the config data */
-  private static final String confuriPname = "org.bedework.tzs.confuri";
+  /* Name of the directory holding the config data */
+  private static final String confDirName = "tzs";
 
   /**
    */
   public TzConf() {
-    super("org.bedework.timezones:service=Server");
-
-    setConfigPname(confuriPname);
+    super("org.bedework.timezones:service=Server",
+          confDirName,
+          "config");
 
     TzServerUtil.setTzConfigHolder(this);
   }
@@ -211,7 +211,7 @@ public class TzConf extends ConfBase<TzConfigImpl> implements TzConfMBean, Confi
 
   @Override
   public String loadConfig() {
-    return loadOnlyConfig(TzConfigImpl.class);
+    return loadConfig(TzConfigImpl.class);
   }
 
   /** Save the configuration.

@@ -28,18 +28,18 @@ import org.bedework.util.misc.Util;
  */
 public class TzCnvSvc extends ConfBase<TzConvertParams>
         implements TzCnvSvcMBean {
-  /* Name of the property holding the location of the config data */
-  private static final String confuriPname = "org.bedework.tzs.confuri";
+  /* Name of the directory holding the config data */
+  private static final String confDirName = "tzs";
 
   private Processor proc;
 
   /**
    */
   public TzCnvSvc() {
-    super("org.bedework.timezones:service=Convert");
-
-    setConfigPname(confuriPname);
-    setPathSuffix("cnvconfig");
+    super("org.bedework.timezones:service=Convert",
+          confDirName,
+          "cnvconfig",
+          "config");
   }
 
   /* ========================================================================
@@ -193,7 +193,7 @@ public class TzCnvSvc extends ConfBase<TzConvertParams>
 
   @Override
   public String loadConfig() {
-    return loadOnlyConfig(TzConvertParams.class);
+    return loadConfig(TzConvertParams.class);
   }
 
   /* ====================================================================
