@@ -30,22 +30,13 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import static java.lang.String.format;
+
 /** Class called to handle GET action=capabilities.
  *
  *   @author Mike Douglass
  */
-public class
-
-
-
-
-
-
-
-
-
-
-CapabilitiesHandler extends MethodBase {
+public class CapabilitiesHandler extends MethodBase {
   /* Define capabilities as static objects */
   static final CapabilitiesType capabilities = new CapabilitiesType();
 
@@ -189,8 +180,16 @@ CapabilitiesHandler extends MethodBase {
 
       final TzConfig cfg = TzServerUtil.getTzConfig();
 
+      if (cfg == null) {
+        error(format("%1$s\n%1$s\n%1$s\n%2$s\n%1$s\n%1$s\n%1$s\n",
+                     "====================================",
+                     " Missing configuration - exiting"));
+        resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        return;
+      }
+
       if (!cfg.getPrimaryServer()) {
-        ci.setPrimarySource(TzServerUtil.getTzConfig().getPrimaryUrl());
+        ci.setPrimarySource(cfg.getPrimaryUrl());
       } else {
         ci.setSource(cfg.getSource());
       }
