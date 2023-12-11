@@ -3,7 +3,7 @@
 A Java implementation of the tzdist protocol - [RFC7808](https://tools.ietf.org/html/rfc7808)
 
 ## Changes needed
-   *  Conversion program needs a message ouput function so we can add all output to console
+   *  Conversion program needs a message output function so we can add all output to console
    *  Conversion fails with exception if cannot compare - add a message 
 
 ## To check
@@ -40,4 +40,41 @@ For full details, see [Sonatype's documentation for using Maven to publish relea
 
 ## Release Notes
 ### 4.0.6
-    * Dependency versions.
+* Update library versions
+
+#### 4.0.7
+* Update library versions
+
+#### 4.0.8
+* Update library versions
+* Avoid issue with TemporalAmountAdaptor
+* Slight refactor and remove warnings
+* Use new no-fetch timezone registry for timezone server.
+
+#### 4.0.9
+* Update library versions
+
+#### 4.0.10
+* Update library versions
+* Fixes to AbstractDb and H2 implementation
+* Remove all traces of leveldb
+
+#### 4.0.11
+* Update library versions
+* Partially completed changes to better handle aliases.
+
+#### 4.0.12
+* Update library versions
+
+#### 4.0.13
+* Update library versions
+
+#### 5.0.0
+* Use bedework-parent for builds
+*  Upgrade library versions
+* Use aretfacts to deploy timezone server data and calendar h2 data.
+
+#### 5.0.1
+*  Upgrade library versions
+* Fail with 500 if no config
+
