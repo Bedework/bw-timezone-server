@@ -4,12 +4,12 @@
   <parent>
     <groupId>org.bedework</groupId>
     <artifactId>bedework-parent</artifactId>
-    <version>31</version>
+    <version>36</version>
   </parent>
 
   <groupId>org.bedework.bw-tzsvr</groupId>
   <artifactId>bw-timezone-server</artifactId>
-  <version>5.0.2</version>
+  <version>5.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Bedework: timezone server and experimental timezone converter</name>
