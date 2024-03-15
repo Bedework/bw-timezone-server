@@ -10,4 +10,23 @@
 	<artifactId>bw-timezone-server-war</artifactId>
 	<packaging>war</packaging>
 	<name>Bedework: timezone server war</name>
+
+	<properties>
+		<org.bedework.war.dependency>org.bedework.timezone.server.web</org.bedework.war.dependency>
+	</properties>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.bedework</groupId>
+				<artifactId>bw-util-maven-deploy</artifactId>
+
+				<configuration>
+					<warName>${project.artifactId}</warName>
+					<baseDirPath>${project.basedir}/../..</baseDirPath>
+					<propsPath>${org.bedework.deployment.properties}</propsPath>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>
