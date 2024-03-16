@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" 
+        xmlns:tzs="urn:ietf:params:xml:ns:timezone-service" 
+        xmlns:xcal="urn:ietf:params:xml:ns:icalendar-2.0"
+        xmlns:tns="urn:ietf:params:xml:ns:timezone-service-aliases" 
+        targetNamespace="urn:ietf:params:xml:ns:timezone-service-aliases" 
+        elementFormDefault="qualified">
+  <!-- =============================================================
+       Timezones service aliases XML schema 
+       ============================================================= -->
+        
+  <import schemaLocation="http://www.w3.org/2001/xml.xsd"
+          namespace="http://www.w3.org/XML/1998/namespace" />
+        
+  <import schemaLocation="tzservice.xsd" 
+          namespace="urn:ietf:params:xml:ns:timezone-service" />
+        
+  <import schemaLocation="iCalendar.xsd"
+          namespace="urn:ietf:params:xml:ns:icalendar-2.0" />
+  
+  <!-- *************************************************************
+                             list response
+       ************************************************************* -->
+  
+  <complexType name="AliasInfoType">
+    <annotation>
+      <documentation xml:lang="en">
+        Provides information about an alias. 
+      </documentation>
+    </annotation>
+    <sequence >
+      <element name="alias" type="tzs:AliasType" minOccurs="1" />
+      <element name="last-modified" type="tzs:LastmodifiedType" />
+      <element name="description" type="string" />
+      <element name="source" type="anyURI" />
+    </sequence>
+  </complexType>
+
+  <complexType name="ArrayOfAliasInfoType">
+    <sequence>
+      <element name="aliasInfo" type="tns:AliasInfoType"
+               minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+  </complexType>
+  
+  <element name="aliases" type="tns:ArrayOfAliasInfoType" />
+  
+  <complexType name="TimezoneAliasInfoType">
+    <annotation>
+      <documentation xml:lang="en">
+        aliases for a single timezone.  
+      </documentation>
+    </annotation>
+    <sequence >
+      <element name="tzid" type="tzs:TzidType" minOccurs="1" />
+      <element ref="tns:aliases" />
+    </sequence>
+  </complexType>
+
+  <complexType name="ArrayOfTimezoneAliasInfoType">
+    <sequence>
+      <element name="timezoneAliasInfo" type="tns:TimezoneAliasInfoType"
+               minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+  </complexType>
+  
+  <element name="timezoneAliasInfo" type="tns:ArrayOfTimezoneAliasInfoType" />
+  
+  <complexType name="TimezonesAliasInfoType">
+    <annotation>
+      <documentation xml:lang="en">
+        aliases for listed timezones.  
+      </documentation>
+    </annotation>
+    <sequence >
+      <element name="dtstamp" type="tzs:DtstampType" />
+      <element ref="tns:timezoneAliasInfo" />
+    </sequence>
+  </complexType>
+</schema>
+

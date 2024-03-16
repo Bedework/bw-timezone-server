@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" 
+        xmlns:tns="urn:ietf:params:xml:ns:timezone-service" 
+        xmlns:xcal="urn:ietf:params:xml:ns:icalendar-2.0"
+        targetNamespace="urn:ietf:params:xml:ns:timezone-service" 
+        elementFormDefault="qualified">
+  <!-- =============================================================
+       Timezones service XML schema 
+       ============================================================= -->
+        
+  <import schemaLocation="http://www.w3.org/2001/xml.xsd"
+          namespace="http://www.w3.org/XML/1998/namespace" />
+        
+  <import schemaLocation="tzsvc-aliases.xsd" 
+          namespace="urn:ietf:params:xml:ns:timezone-service-aliases" />
+        
+  <import schemaLocation="iCalendar.xsd"
+          namespace="urn:ietf:params:xml:ns:icalendar-2.0" />
+  
+  <!-- *************************************************************
+                             basic types
+       ************************************************************* -->
+          
+  <simpleType name="CalscaleType">
+    <annotation>
+      <documentation xml:lang="en">
+        The calendar system defines how rules, dates and times are to be 
+        interpreted. Currently only the value "Gregorian" is supported, 
+        referring to the Gregorian calendar scale. If this element is 
+        not present in its normal context, then the value "Gregorian" 
+        MUST be assumed. 
+      </documentation>
+    </annotation>
+    <restriction base="string"/>
+  </simpleType>
+
+  <simpleType name="DtstampType">
+    <annotation>
+      <documentation xml:lang="en">
+        Provides the UTC date and time when a substantive change was 
+        made to the timezone data.  
+      </documentation>
+    </annotation>
+    <restriction base="tns:UTCDateTimeType"/>
+  </simpleType>
+
+  <simpleType name="LastmodifiedType">
+    <annotation>
+      <documentation xml:lang="en">
+        Provides the UTC date and time that the timezone data was last 
+        modified. 
+      </documentation>
+    </annotation>
+    <restriction base="tns:UTCDateTimeType"/>
+  </simpleType>
+  
+  <complexType name="LocalNameType">
+    <annotation>
+      <documentation xml:lang="en">
+        Defines one or more localized names that are used when a 
+        timezone identifier needs to be presented to a user. 
+        The xml:lang attribute is used to indicate the language 
+        associated with each value.  
+        If multiple names are provided for the same locale the preferred 
+        name can be flagged with the pref attribute.
+      </documentation>
+    </annotation>
+    <simpleContent>
+      <extension base="string">
+        <attribute ref="xml:lang" />
+        <attribute name="pref" type="boolean" default="false" />
+      </extension>
+    </simpleContent>
+  </complexType>
+              
+  <simpleType name="OnsetType">
+    <annotation>
+      <documentation xml:lang="en">
+        The onset element defines the local time at which the 
+        observance takes effect.   
+      </documentation>
+    </annotation>
+    <restriction base="dateTime">
+      <pattern value="\d{4}\-\d{2}\-\d{2}T\d{2}:\d{2}:\d{2}(\.\d*)?"/>
+    </restriction>
+  </simpleType>
+              
+  <simpleType name="TzidType">
+    <annotation>
+      <documentation xml:lang="en">
+        The text value is the identifier of the timezone being 
+        referred to.  
+      </documentation>
+    </annotation>
+    <restriction base="string"/>
+  </simpleType>
+              
+  <simpleType name="UtcOffsetType">
+    <annotation>
+      <documentation xml:lang="en">
+        This type specifies the UTC offset in hours, minutes and 
+        optional seconds.   
+      </documentation>
+    </annotation>
+    <restriction base="string">
+      <pattern value="(\-|\+)?\d{2}:\d{2}(:\d{2})?"/>
+    </restriction>
+  </simpleType>
+              
+  <complexType name="AliasType">
+    <annotation>
+      <documentation xml:lang="en">
+        Defines alternative identifiers that can be used for the 
+        timezone. This feature allows mapping of old identifiers 
+        onto new. 
+      </documentation>
+    </annotation>
+    <simpleContent>
+      <extension base="string"/>
+    </simpleContent>
+  </complexType>
+  
+  <complexType name="InactiveType">
+    <annotation>
+      <documentation xml:lang="en">
+        The inactive empty element flags timezones that are 
+        no longer active. 
+      </documentation>
+    </annotation>
+  </complexType>
+  
+  <complexType name="BaseResultType" abstract="true" />
+  
+  <simpleType name="UTCDateTimeType">
+    <restriction base="dateTime">
+      <pattern 
+        value="(\-|\+)?\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d*)Z"/>
+    </restriction>
+  </simpleType>
+  
+  <!-- *************************************************************
+                             error response
+       ************************************************************* -->
+  
+  <complexType name="ErrorResponseType" mixed="true" >
+    <annotation>
+      <documentation xml:lang="en">
+        Useful messages SHOULD be returned as an error element. 
+      </documentation>
+    </annotation>
+    <sequence> 
+      <any minOccurs="0"/>
+    </sequence>
+  </complexType>
+  
+  <element name="error" type="tns:ErrorResponseType" />
+  
+  <!-- *************************************************************
+                             capabilities response
+       ************************************************************* -->
+  
+  <complexType name="CapabilitiesInfoType">
+    <annotation>
+      <documentation xml:lang="en">
+        The element used as the container for information about the 
+        servers source of data and contacts.
+      </documentation>
+    </annotation>
+    <sequence>
+      <choice>
+      <element name="source" type="string" />
+      <element name="primary-source" type="string" />
+      </choice>
+      <element name="contact"  type="string" 
+               minOccurs="0" maxOccurs="unbounded" />
+    </sequence>
+  </complexType>
+  
+  <complexType name="CapabilitiesAcceptParameterType">
+    <annotation>
+      <documentation xml:lang="en">
+        This defines the name, type and characteristics of an operation 
+        parameter. 
+      </documentation>
+    </annotation>
+    <sequence> 
+      <element name="name" type="string" />
+      <element name="required" type="boolean" />
+      <element name="multi" type="boolean" />
+      <element name="value" type="string" />
+      <element name="description" type="string" />
+    </sequence>
+  </complexType>
+  
+  <complexType name="CapabilitiesOperationType">
+    <annotation>
+      <documentation xml:lang="en">
+        The element used as the container for information defining an 
+        operation and its parameters.
+      </documentation>
+    </annotation>
+    <sequence> 
+      <element name="action" type="string" />
+      <element name="description" type="string" />
+      <element name="accept-parameter" 
+               type="tns:CapabilitiesAcceptParameterType" 
+               maxOccurs="unbounded" />
+    </sequence>
+  </complexType>
+  
+  <complexType name="CapabilitiesType">
+    <annotation>
+      <documentation xml:lang="en">
+           The root (top-level) element used as the container for 
+           capabilities information.
+      </documentation>
+    </annotation>
+    <complexContent mixed="false">
+      <extension base="tns:BaseResultType">
+        <sequence> 
+          <element name="info" 
+                    type="tns:CapabilitiesInfoType" />
+        
+          <element name="operation" 
+                    type="tns:CapabilitiesOperationType"
+                    maxOccurs="unbounded" />
+        </sequence>
+      </extension>
+    </complexContent>
+  </complexType>
+  
+  <element name="capabilities" type="tns:CapabilitiesType" />
+  
+  <!-- *************************************************************
+                             list response
+       ************************************************************* -->
+  
+  <complexType name="SummaryType">
+    <annotation>
+      <documentation xml:lang="en">
+        This defines the element that provides summary information for a 
+        timezone in the timezones list. 
+      </documentation>
+    </annotation>
+    <sequence >
+      <element name="tzid" type="tns:TzidType" minOccurs="1" />
+      <element name="last-modified" type="tns:LastmodifiedType" />
+      <element name="inactive" type="tns:InactiveType" minOccurs="0" />
+      <element name="local-name" type="tns:LocalNameType"
+               minOccurs="0" maxOccurs="unbounded" />
+      <element name="alias" type="tns:AliasType"
+               minOccurs="0" maxOccurs="unbounded" />
+    </sequence>
+  </complexType>
+  
+  <complexType name="TimezoneListType">
+    <annotation>
+      <documentation xml:lang="en">
+        This defines the root (top-level) element used as the container 
+        for a timezone listing.  
+      </documentation>
+    </annotation>
+    <complexContent mixed="false">
+      <extension base="tns:BaseResultType">
+        <sequence >
+          <element name="dtstamp" 
+                   type="tns:DtstampType" minOccurs="1" />
+          <element name="summary" 
+                   type="tns:SummaryType"
+                   maxOccurs="unbounded"  />
+        </sequence>
+      </extension>
+    </complexContent>
+  </complexType>
+  
+  <element name="timezone-list" type="tns:TimezoneListType" />
+  
+  <!-- ************************************************************
+                            expand response
+       ************************************************************* -->
+  
+  <complexType name="ObservanceType">
+    <annotation>
+      <documentation xml:lang="en">
+        In an expanded timezone, the observance element specifies a 
+        single timezone observance.  
+        
+        The utc-offset-from element defines the UTC offset in hours 
+        and minutes before the start of this observance.   
+        
+        The utc-offset-to element defines the UTC offset in hours and 
+        minutes at and after the start of this observance.   
+      </documentation>
+    </annotation>
+    <sequence> 
+      <element name="name" type="string" />
+      <element name="local-name" type="tns:LocalNameType"
+               maxOccurs="unbounded" />
+      <element name="onset" type="tns:OnsetType" minOccurs="1" />
+      <element name="utc-offset-from" 
+               type="tns:UtcOffsetType" minOccurs="1" />
+      <element name="utc-offset-to" type="tns:UtcOffsetType" 
+               minOccurs="1" />
+    </sequence>
+  </complexType>
+  
+  <complexType name="TzdataType">
+    <annotation>
+      <documentation xml:lang="en">
+        This element specifies expanded timezone data for the range 
+        specified in a request. 
+      </documentation>
+    </annotation>
+    <sequence> 
+      <element name="tzid" type="tns:TzidType" minOccurs="1" />
+      <element name="calscale" type="tns:CalscaleType" />
+      <element name="observance" type="tns:ObservanceType" 
+               maxOccurs="unbounded" />
+    </sequence>
+  </complexType>
+  
+  <complexType name="TimezonesType">
+    <annotation>
+      <documentation xml:lang="en">
+        This defines the root (top-level) element used as the container 
+        for expanded timezone data.  
+      </documentation>
+    </annotation>
+    <complexContent mixed="false">
+      <extension base="tns:BaseResultType">
+        <sequence >
+          <element name="dtstamp" 
+                   type="tns:DtstampType" minOccurs="1" />
+          <element name="tzdata" type="tns:TzdataType"
+                   maxOccurs="unbounded"  />
+        </sequence>
+      </extension>
+    </complexContent>
+  </complexType>
+  
+  <element name="timezones" type="tns:TimezonesType" />
+</schema>
+

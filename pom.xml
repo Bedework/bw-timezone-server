@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.bedework</groupId>
     <artifactId>bedework-parent</artifactId>
-    <version>36</version>
+    <version>38-SNAPSHOT</version>
   </parent>
 
   <groupId>org.bedework.bw-tzsvr</groupId>
@@ -29,5 +29,6 @@
     <module>bw-timezone-server-war</module>
     <module>bw-timezone-server-web</module>
     <module>bw-timezone-server-data</module>
+    <module>bw-timezone-server-xml</module>
   </modules>
 </project>
