@@ -51,7 +51,7 @@
 
 		<dependency>
 			<groupId>org.bedework</groupId>
-			<artifactId>bw-xml-calws-soap</artifactId>
+			<artifactId>bw-calws-soap-xml</artifactId>
 		</dependency>
 
 		<!-- Third Party Libraries -->
