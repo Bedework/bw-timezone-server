@@ -3,4 +3,6 @@
 <jboss-web>
   <!-- Virtual host -->
 
+  <context-root>/tzsvr</context-root>
+
 </jboss-web>

@@ -10,6 +10,11 @@
   <name>Bedework: Experimental timezone converter</name>
 
 	<dependencies>
+    <dependency>
+      <groupId>org.bedework.bw-tzsvr</groupId>
+      <artifactId>bw-timezone-server-xml</artifactId>
+    </dependency>
+
     <!-- Bedework: Util -->
     <dependency>
       <groupId>org.bedework</groupId>
@@ -44,12 +49,7 @@
     <!-- Bedework: Web Services -->
 		<dependency>
 			<groupId>org.bedework</groupId>
-			<artifactId>bw-xml-icalendar</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.bedework</groupId>
-			<artifactId>bw-xml-tzsvr</artifactId>
+			<artifactId>bw-icalendar-xml</artifactId>
 		</dependency>
 
 		<!-- Third Party Libraries -->

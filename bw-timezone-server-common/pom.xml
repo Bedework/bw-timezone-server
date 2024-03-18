@@ -11,6 +11,11 @@
 	<name>Bedework: timezone server common classes</name>
 
 	<dependencies>
+		<dependency>
+			<groupId>org.bedework.bw-tzsvr</groupId>
+			<artifactId>bw-timezone-server-xml</artifactId>
+		</dependency>
+
     <!-- Bedework: Util -->
     <dependency>
       <groupId>org.bedework</groupId>
@@ -41,12 +46,7 @@
 
 		<dependency>
 			<groupId>org.bedework</groupId>
-			<artifactId>bw-xml-icalendar</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.bedework</groupId>
-			<artifactId>bw-xml-tzsvr</artifactId>
+			<artifactId>bw-icalendar-xml</artifactId>
 		</dependency>
 
 		<dependency>

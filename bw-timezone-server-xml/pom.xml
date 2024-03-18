@@ -20,7 +20,7 @@
   <dependencies>
     <dependency>
       <groupId>org.bedework</groupId>
-      <artifactId>bw-xml-icalendar</artifactId>
+      <artifactId>bw-icalendar-xml</artifactId>
       <type>zip</type>
     </dependency>
   </dependencies>
@@ -63,7 +63,7 @@
             </goals>
             <configuration>
               <includeGroupIds>org.bedework</includeGroupIds>
-              <includeArtifactIds>bw-xml-icalendar</includeArtifactIds>
+              <includeArtifactIds>bw-icalendar-xml</includeArtifactIds>
               <includeTypes>zip</includeTypes>
 
               <outputDirectory>${xsdDir}</outputDirectory>
@@ -79,6 +79,7 @@
           <!-- Set the package of the generated code
           <packageName>com.example.myschema</packageName>
  -->
+          <failOnNoSchemas>true</failOnNoSchemas>
 
           <sources>
             <source>${xsdDir}</source>

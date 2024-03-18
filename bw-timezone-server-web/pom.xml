@@ -28,6 +28,12 @@
     </dependency>
 
     <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>bw-timezone-server-xml</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
       <groupId>org.bedework</groupId>
       <artifactId>bw-util-logging</artifactId>
     </dependency>
@@ -46,13 +52,7 @@
 
     <dependency>
       <groupId>org.bedework</groupId>
-      <artifactId>bw-xml-icalendar</artifactId>
-      <scope>provided</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.bedework</groupId>
-      <artifactId>bw-xml-tzsvr</artifactId>
+      <artifactId>bw-icalendar-xml</artifactId>
       <scope>provided</scope>
     </dependency>
 
