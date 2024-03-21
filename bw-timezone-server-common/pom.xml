@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.bedework.bw-tzsvr</groupId>
 		<artifactId>bw-timezone-server</artifactId>
-		<version>5.0.4</version>
+		<version>5.0.5-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>bw-timezone-server-common</artifactId>
@@ -14,6 +14,7 @@
 		<dependency>
 			<groupId>org.bedework.bw-tzsvr</groupId>
 			<artifactId>bw-timezone-server-xml</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 
     <!-- Bedework: Util -->

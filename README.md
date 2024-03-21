@@ -85,3 +85,6 @@ For full details, see [Sonatype's documentation for using Maven to publish relea
 #### 5.0.4
 * Move timezone xml into this project out of bw-xml
 
+#### 5.0.3
+* 5.0.4 skipped after failed release due to missing version in poms.
+
