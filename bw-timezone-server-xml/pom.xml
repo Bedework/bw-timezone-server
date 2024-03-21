@@ -10,6 +10,7 @@
   </parent>
 
   <artifactId>bw-timezone-server-xml</artifactId>
+  <name>Bedework timezone server: XSD</name>
 
   <properties>
     <xsdDir>${project.build.directory}/xsd</xsdDir>

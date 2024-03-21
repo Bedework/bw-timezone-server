@@ -27,14 +27,11 @@ To create a release, you must have:
 1. Permissions to publish to the `org.bedework` groupId.
 2. `gpg` installed with a published key (release artifacts are signed).
 
-To perform a new release:
+To perform a new release use the release script:
 
-> mvn -P bedework-dev release:clean release:prepare
+> ./bedework/build/quickstart/linux/util-scripts/release.sh <module-name> "<release-version>" "<new-version>-SNAPSHOT"
 
-When prompted, select the desired version; accept the defaults for scm tag and next development version.
-When the build completes, and the changes are committed and pushed successfully, execute:
-
-> mvn -P bedework-dev release:perform
+When prompted, indicate all updates are committed
 
 For full details, see [Sonatype's documentation for using Maven to publish releases](http://central.sonatype.org/pages/apache-maven.html).
 
@@ -77,4 +74,14 @@ For full details, see [Sonatype's documentation for using Maven to publish relea
 #### 5.0.1
 *  Upgrade library versions
 * Fail with 500 if no config
+* Deploy as war not ear
+
+#### 5.0.2
+* Update parent
+
+#### 5.0.3
+* 5.0.2 skipped after failed release
+
+#### 5.0.4
+* Move timezone xml into this project out of bw-xml
 
