@@ -9,7 +9,7 @@
 
   <groupId>org.bedework.bw-tzsvr</groupId>
   <artifactId>bw-timezone-server</artifactId>
-  <version>5.0.4-SNAPSHOT</version>
+  <version>5.0.4</version>
   <packaging>pom</packaging>
 
   <name>Bedework: timezone server and experimental timezone converter</name>
