@@ -42,7 +42,7 @@ import net.fortuna.ical4j.model.PropertyList;
 import net.fortuna.ical4j.model.component.VTimeZone;
 import net.fortuna.ical4j.model.property.DtStamp;
 import net.fortuna.ical4j.model.property.ProdId;
-import net.fortuna.ical4j.model.property.Version;
+import net.fortuna.ical4j.model.property.immutable.ImmutableVersion;
 
 import java.io.File;
 import java.io.FileReader;
@@ -196,7 +196,7 @@ class Processor {
       final ComponentList cl = cal.getComponents();
       final PropertyList pl = cal.getProperties();
 
-      pl.add(Version.VERSION_2_0);
+      pl.add(ImmutableVersion.VERSION_2_0);
       pl.add(new ProdId(params.getProdid()));
 
       cl.add(vtzs.get(zoneName));
