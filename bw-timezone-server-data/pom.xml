@@ -7,7 +7,7 @@
   <parent>
     <groupId>org.bedework.bw-tzsvr</groupId>
     <artifactId>bw-timezone-server</artifactId>
-    <version>5.0.7-SNAPSHOT</version>
+    <version>5.0.7</version>
   </parent>
 
   <artifactId>bw-timezone-server-data</artifactId>
