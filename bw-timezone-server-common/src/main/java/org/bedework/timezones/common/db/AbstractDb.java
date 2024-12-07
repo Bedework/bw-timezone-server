@@ -123,10 +123,9 @@ public abstract class AbstractDb extends AbstractCachedData {
   /**
    * @param cfg tz configuration
    * @param msgPrefix - for messages
-   * @throws TzException on fatal error
    */
   public AbstractDb(final TzConfig cfg,
-                    final String msgPrefix) throws TzException {
+                    final String msgPrefix) {
     super(cfg, msgPrefix);
 
   }
@@ -134,9 +133,8 @@ public abstract class AbstractDb extends AbstractCachedData {
   /**
    *
    * @param clear remove all data from db first
-   * @throws TzException on fatal error
    */
-  protected void initData(final boolean clear) throws TzException {
+  protected void initData(final boolean clear) {
     info("Load timezone data");
     loadData(clear);
 
@@ -151,42 +149,36 @@ public abstract class AbstractDb extends AbstractCachedData {
 
   /**
    * @param val the spec
-   * @throws TzException on fatal error
    */
-  public abstract void addTzSpec(TzDbSpec val) throws TzException;
+  public abstract void addTzSpec(TzDbSpec val);
 
   /**
    * @param val the spec
-   * @throws TzException on fatal error
    */
-  public abstract void putTzSpec(TzDbSpec val) throws TzException;
+  public abstract void putTzSpec(TzDbSpec val);
 
-  protected abstract TzDbSpec getSpec(String id) throws TzException;
-
-  /**
-   * @param val the alias
-   * @throws TzException on fatal error
-   */
-  public abstract void addTzAlias(TzAlias val) throws TzException;
+  protected abstract TzDbSpec getSpec(String id);
 
   /**
    * @param val the alias
-   * @throws TzException on fatal error
    */
-  public abstract void putTzAlias(TzAlias val) throws TzException;
+  public abstract void addTzAlias(TzAlias val);
 
   /**
    * @param val the alias
-   * @throws TzException on fatal error
    */
-  public abstract void removeTzAlias(TzAlias val) throws TzException;
+  public abstract void putTzAlias(TzAlias val);
+
+  /**
+   * @param val the alias
+   */
+  public abstract void removeTzAlias(TzAlias val);
 
   /**
    * @param val the alias
    * @return alias entry
-   * @throws TzException on fatal error
    */
-  public abstract TzAlias getTzAlias(String val) throws TzException;
+  public abstract TzAlias getTzAlias(String val);
 
   public abstract static class DbIterator<T>
           implements Iterator<T>, Closeable {
@@ -196,11 +188,11 @@ public abstract class AbstractDb extends AbstractCachedData {
 
   protected abstract DbIterator<TzDbSpec> getTzSpecIterator();
 
-  protected abstract void open() throws TzException;
+  protected abstract void open();
 
   protected abstract void close();
 
-  protected abstract void clearDb() throws TzException;
+  protected abstract void clearDb();
 
   @Override
   public void checkData() {
@@ -211,7 +203,7 @@ public abstract class AbstractDb extends AbstractCachedData {
 
   @Override
   public void updateData(final String dtstamp,
-                         final List<DiffListEntry> dles) throws TzException {
+                         final List<DiffListEntry> dles) {
     if (Util.isEmpty(dles)) {
       return;
     }
@@ -236,7 +228,7 @@ public abstract class AbstractDb extends AbstractCachedData {
   }
 
   @Override
-  public void stop() throws TzException {
+  public void stop() {
     running = false;
 
     if (!cfg.getPrimaryServer()) {
@@ -255,12 +247,12 @@ public abstract class AbstractDb extends AbstractCachedData {
   }
 
   @Override
-  public String getSource() throws TzException {
+  public String getSource() {
     return cfg.getSource();
   }
 
   @Override
-  public List<Stat> getStats() throws TzException {
+  public List<Stat> getStats() {
     final List<Stat> stats = new ArrayList<>(super.getStats());
 
     stats.add(new Stat("Db reloads", String.valueOf(reloads)));
@@ -273,7 +265,7 @@ public abstract class AbstractDb extends AbstractCachedData {
   }
 
   @Override
-  public List<String> findIds(final String val) throws TzException {
+  public List<String> findIds(final String val) {
     try {
       open();
 
@@ -299,9 +291,8 @@ public abstract class AbstractDb extends AbstractCachedData {
   /**
    * @param val to match
    * @return matching tz entry names
-   * @throws TzException on fatal error
    */
-  public List<String> findTzs(final String val) throws TzException {
+  public List<String> findTzs(final String val) {
     try {
       final List<String> ids = new ArrayList<>();
 
@@ -327,9 +318,8 @@ public abstract class AbstractDb extends AbstractCachedData {
   /**
    * @param val the alias
    * @return matching alias entries
-   * @throws TzException on fatal error
    */
-  public List<TzAlias> findTzAliases(final String val) throws TzException {
+  public List<TzAlias> findTzAliases(final String val) {
     try {
       final List<TzAlias> aliases = new ArrayList<>();
 
@@ -356,15 +346,15 @@ public abstract class AbstractDb extends AbstractCachedData {
   protected void fail() {
   }
 
-  /* ====================================================================
+  /* ==============================================================
    *                   Session methods
-   * ==================================================================== */
+   * ============================================================== */
 
   protected boolean isOpen() {
     return open;
   }
 
-  protected void checkOpen() throws TzException {
+  protected void checkOpen() {
     if (!isOpen()) {
       throw new TzException("Session call when closed");
     }
@@ -383,9 +373,8 @@ public abstract class AbstractDb extends AbstractCachedData {
    * <p>We try not to keep the db locked for long periods</p>
    *
    * @return true if we successfully contacted the server
-   * @throws TzException on fatal error
    */
-  private synchronized boolean updateFromPrimary() throws TzException {
+  private synchronized boolean updateFromPrimary() {
     if (debug()) {
       debug("Updating from primary");
     }
@@ -632,7 +621,7 @@ public abstract class AbstractDb extends AbstractCachedData {
     return true;
   }
 
-  private AliasMaps buildAliasMaps() throws TzException {
+  private AliasMaps buildAliasMaps() {
     try {
       open();
 
@@ -680,7 +669,7 @@ public abstract class AbstractDb extends AbstractCachedData {
 
   private void updateFromDiffEntry(final String dtstamp,
                                    final AliasMaps amaps,
-                                   final DiffListEntry dle) throws TzException {
+                                   final DiffListEntry dle) {
     try {
       open();
 
@@ -762,9 +751,8 @@ public abstract class AbstractDb extends AbstractCachedData {
   }
 
   /**
-   * @throws TzException on fatal error
    */
-  private void loadData(final boolean clear) throws TzException {
+  private void loadData(final boolean clear) {
     synchronized (dbLock) {
       reloads++;
 
@@ -810,7 +798,7 @@ public abstract class AbstractDb extends AbstractCachedData {
     }
   }
 
-  protected boolean loadInitialData() throws TzException {
+  protected boolean loadInitialData() {
     try {
       open();
 
@@ -887,7 +875,7 @@ public abstract class AbstractDb extends AbstractCachedData {
     }
   }
 
-  private void processSpecs(final String dtstamp) throws TzException {
+  private void processSpecs(final String dtstamp) {
     try {
       open();
 

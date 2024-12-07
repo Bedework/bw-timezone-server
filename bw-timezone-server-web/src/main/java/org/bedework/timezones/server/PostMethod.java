@@ -32,22 +32,22 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class PostMethod extends MethodBase {
   /**
-   * @throws ServletException
+   * @throws ServletException on error
    */
   public PostMethod() throws ServletException {
     super();
   }
 
   @Override
-  public void doMethod(HttpServletRequest req,
-                        HttpServletResponse resp) throws ServletException {
+  public void doMethod(final HttpServletRequest req,
+                       final HttpServletResponse resp) throws ServletException {
     if (debug()) {
       debug("PostMethod: doMethod");
     }
 
     try {
       resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new ServletException(t);
     }
   }

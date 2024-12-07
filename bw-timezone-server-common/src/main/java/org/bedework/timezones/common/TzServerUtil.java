@@ -39,6 +39,7 @@ import net.fortuna.ical4j.model.component.VTimeZone;
 import net.fortuna.ical4j.util.TimeZones;
 
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -176,9 +177,8 @@ public class TzServerUtil {
 
   /** Cause a refresh of the data
    *
-   * @throws TzException on fatal error
    */
-  public static void fireRefresh(final boolean clear) throws TzException {
+  public static void fireRefresh(final boolean clear) {
     final TzServerUtil tzutil = getInstance();
 
     if (tzutil.cache != null) {
@@ -203,9 +203,8 @@ public class TzServerUtil {
 
   /** Cause data to be checked against primary
    *
-   * @throws TzException on fatal error
    */
-  public static void fireCheck() throws TzException {
+  public static void fireCheck() {
     getInstance().getcache().checkData();
   }
 
@@ -213,9 +212,8 @@ public class TzServerUtil {
    *
    * @param tzdataUrl - references source
    * @return info lines.
-   * @throws TzException on fatal error
    */
-  public static List<String> updateData(final String tzdataUrl) throws TzException {
+  public static List<String> updateData(final String tzdataUrl) {
     final TzServerUtil util = getInstance();
 
     final Differ diff = new Differ();
@@ -250,7 +248,7 @@ public class TzServerUtil {
       out.add(dle.toShortString());
     }
 
-    if (dles.size() == 0) {
+    if (dles.isEmpty()) {
       return out;
     }
 
@@ -279,9 +277,8 @@ public class TzServerUtil {
    *
    * @param tzdataUrl - reference to data
    * @return info lines.
-   * @throws TzException on fatal error
    */
-  public static List<String> compareData(final String tzdataUrl) throws TzException {
+  public static List<String> compareData(final String tzdataUrl) {
     final TzServerUtil util = getInstance();
 
     final Differ diff = new Differ();
@@ -319,7 +316,7 @@ public class TzServerUtil {
     return out;
   }
 
-  public static CachedData getDataSource(final TzConfig config) throws TzException {
+  public static CachedData getDataSource(final TzConfig config) {
     final String tzdataUrl = config.getTzdataUrl();
 
     if (tzdataUrl == null) {
@@ -336,9 +333,8 @@ public class TzServerUtil {
 
   /**
    * @return stats for the service
-   * @throws TzException on fatal error
    */
-  public static List<Stat> getStats() throws TzException {
+  public static List<Stat> getStats() {
     final List<Stat> stats = new ArrayList<>();
 
     stats.add(new Stat("Gets", String.valueOf(gets)));
@@ -369,9 +365,8 @@ public class TzServerUtil {
 
   /** Stop any running threads.
    *
-   * @throws TzException on fatal error
    */
-  public void stop() throws TzException {
+  public void stop() {
     if (cache != null) {
       cache.stop();
     }
@@ -379,9 +374,8 @@ public class TzServerUtil {
 
   /**
    * @return the data dtstamp
-   * @throws TzException on fatal error
    */
-  public String getDtstamp() throws TzException {
+  public String getDtstamp() {
     final String dtst = getcache().getDtstamp();
     if (dtst != null) {
       return dtst;
@@ -392,9 +386,8 @@ public class TzServerUtil {
 
   /**
    * @return names from the zip file.
-   * @throws TzException on fatal error
    */
-  public SortedSet<String> getNames() throws TzException {
+  public SortedSet<String> getNames() {
     nameLists++;
 
     return getcache().getNameList();
@@ -403,43 +396,38 @@ public class TzServerUtil {
   /**
    * @param name of tz
    * @return spec
-   * @throws TzException on fatal error
    */
-  public String getTz(final String name) throws TzException {
+  public String getTz(final String name) {
     return getcache().getCachedVtz(name);
   }
 
   /**
    * @return all specs
-   * @throws TzException on fatal error
    */
-  public Collection<String> getAllTzs() throws TzException {
+  public Collection<String> getAllTzs() {
     return getcache().getAllCachedVtzs();
   }
 
   /**
    * @param name alias
    * @return spec
-   * @throws TzException on fatal error
    */
-  public String getAliasedTz(final String name) throws TzException {
+  public String getAliasedTz(final String name) {
     return getcache().getAliasedCachedVtz(name);
   }
 
   /**
    * @return String value of aliases file.
-   * @throws TzException on fatal error
    */
-  public String getAliasesStr() throws TzException {
+  public String getAliasesStr() {
     return getcache().getAliasesStr();
   }
 
   /**
    * @param tzid timezone id
-   * @return list of aliases or null
-   * @throws TzException on fatal error
+   * @return set of aliases or null
    */
-  public SortedSet<String> findAliases(final String tzid) throws TzException {
+  public SortedSet<String> findAliases(final String tzid) {
     return getcache().findAliases(tzid);
   }
 
@@ -447,10 +435,9 @@ public class TzServerUtil {
    * @param time to convert to UTC
    * @param tzid timezone id
    * @return String utc date
-   * @throws Throwable on date error
    */
   public String getUtc(final String time,
-                       final String tzid) throws Throwable {
+                       final String tzid) {
     if (DateTimeUtil.isISODateTimeUTC(time)) {
       // Already UTC
       return time;
@@ -468,7 +455,12 @@ public class TzServerUtil {
     final DateFormat formatTd  = new SimpleDateFormat("yyyyMMdd'T'HHmmss");
     formatTd.setTimeZone(tz);
 
-    final Date date = formatTd.parse(time);
+    final Date date;
+    try {
+      date = formatTd.parse(time);
+    } catch (final ParseException pe) {
+      throw new TzException(pe);
+    }
     final String utc;
 
     synchronized (cal) {
@@ -503,10 +495,9 @@ public class TzServerUtil {
    * @param fromTzid tz converting from
    * @param toTzid tz converting to
    * @return String time in given timezone
-   * @throws Throwable on date error
    */
   public String convertDateTime(final String dateTime, final String fromTzid,
-                                final String toTzid) throws Throwable {
+                                final String toTzid) {
     final String UTCdt;
     if (DateTimeUtil.isISODateTimeUTC(dateTime)) {
       // Already UTC
@@ -541,27 +532,24 @@ public class TzServerUtil {
   /**
    * @param tzids - to fetch
    * @return list of summary info
-   * @throws TzException on fatal error
    */
-  public List<TimezoneType> getTimezones(final String[] tzids) throws TzException {
+  public List<TimezoneType> getTimezones(final String[] tzids) {
     return getcache().getTimezones(tzids);
   }
 
   /**
    * @param changedSince - null or dtstamp value
    * @return list of summary info
-   * @throws TzException on fatal error
    */
-  public List<TimezoneType> getTimezones(final String changedSince) throws TzException {
+  public List<TimezoneType> getTimezones(final String changedSince) {
     return getcache().getTimezones(changedSince);
   }
 
   /**
    * @param name - non null name for partial match
    * @return list of summary info
-   * @throws TzException on fatal error
    */
-  public List<TimezoneType> findTimezones(final String name) throws TzException {
+  public List<TimezoneType> findTimezones(final String name) {
     return getcache().findTimezones(name);
   }
 
@@ -583,12 +571,11 @@ public class TzServerUtil {
    * @param start of range
    * @param end of range
    * @return expansion or null
-   * @throws TzException on fatal error
    */
   public ExpandedMapEntry getExpanded(final String tzid,
                                       final String start,
                                       final String end,
-                                      final boolean oldForm) throws Throwable {
+                                      final boolean oldForm) {
     expandFetches++;
 
     final ExpandedMapEntryKey emek;
@@ -615,8 +602,14 @@ public class TzServerUtil {
 
     final VTimeZone vtz = tz.getVTimeZone();
 
-    final DateTime dtstart = new DateTime(emek.getStart());
-    final DateTime dtend = new DateTime(emek.getEnd());
+    final DateTime dtstart;
+    final DateTime dtend;
+    try {
+      dtstart = new DateTime(emek.getStart());
+      dtend = new DateTime(emek.getEnd());
+    } catch (final ParseException pe) {
+      throw new TzException(pe);
+    }
 
     dtstart.setTimeZone(tz);
     dtend.setTimeZone(tz);
@@ -677,17 +670,16 @@ public class TzServerUtil {
    *
    * @param tzid to fetch
    * @return TimeZone with id or null
-   * @throws TzException on fatal error
    */
-  public TimeZone fetchTimeZone(final String tzid) throws TzException {
+  public TimeZone fetchTimeZone(final String tzid) {
     tzfetches++;
 
     return getcache().getTimeZone(tzid);
   }
 
-  /* ====================================================================
+  /* ==============================================================
    *                   Convenience methods
-   * ==================================================================== */
+   * ============================================================== */
 
   /**
    * @return an ical Calendar prefix
@@ -708,9 +700,8 @@ public class TzServerUtil {
 
   /**
    * @return an etag based on when we refreshed data
-   * @throws TzException on fatal error
    */
-  public String getEtag() throws TzException {
+  public String getEtag() {
     final StringBuilder val = new StringBuilder();
 
     val.append("\"");
@@ -726,7 +717,7 @@ public class TzServerUtil {
 
   private ExpandedMapEntryKey makeExpandedKey(final String tzid,
                                               final String start,
-                                              final String end) throws TzException {
+                                              final String end) {
     /* Start and end may be null or intergers represeting start/end year
      */
 
@@ -745,7 +736,7 @@ public class TzServerUtil {
   }
 
   private net.fortuna.ical4j.model.Date makeStartDateFromYear(
-          final String val) throws TzException {
+          final String val) {
     if (val == null) {
       return new net.fortuna.ical4j.model.Date();
     }
@@ -761,7 +752,7 @@ public class TzServerUtil {
 
   private net.fortuna.ical4j.model.Date makeEndDateFromYear(
           final net.fortuna.ical4j.model.Date start,
-          final String val) throws TzException {
+          final String val) {
     if (val == null) {
       final TemporalAmountAdapter dur = new TemporalAmountAdapter(
               Duration.ofDays(520 * 7)); //520 weeks
@@ -780,7 +771,7 @@ public class TzServerUtil {
     }
   }
 
-  private CachedData getcache() throws TzException {
+  private CachedData getcache() {
     if (cache == null) {
       getcache(false);
     }
@@ -788,7 +779,7 @@ public class TzServerUtil {
     return cache;
   }
 
-  private void getcache(final boolean clear) throws TzException {
+  private void getcache(final boolean clear) {
     final TzConfig cfg = getTzConfig();
 
     if (cfg == null) {
@@ -820,9 +811,9 @@ public class TzServerUtil {
     cal.setTimeZone(utctz);
   }
 
-  private static void digit2(final StringBuilder sb, final int val) throws Throwable {
+  private static void digit2(final StringBuilder sb, final int val) {
     if (val > 99) {
-      throw new Exception("Bad date");
+      throw new TzException("Bad date");
     }
     if (val < 10) {
       sb.append("0");
@@ -830,9 +821,9 @@ public class TzServerUtil {
     sb.append(val);
   }
 
-  private static void digit4(final StringBuilder sb, final int val) throws Throwable {
+  private static void digit4(final StringBuilder sb, final int val) {
     if (val > 9999) {
-      throw new Exception("Bad date");
+      throw new TzException("Bad date");
     }
     if (val < 10) {
       sb.append("000");

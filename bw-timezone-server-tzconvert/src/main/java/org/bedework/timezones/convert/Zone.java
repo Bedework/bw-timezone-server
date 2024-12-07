@@ -34,6 +34,7 @@ import org.bedework.util.misc.ToString;
 import net.fortuna.ical4j.model.Component;
 import net.fortuna.ical4j.model.Property;
 import net.fortuna.ical4j.model.PropertyList;
+import net.fortuna.ical4j.model.component.Observance;
 import net.fortuna.ical4j.model.component.Standard;
 import net.fortuna.ical4j.model.component.VTimeZone;
 import net.fortuna.ical4j.model.property.TzId;
@@ -70,7 +71,7 @@ class Zone {
     String nextLine = line;
 
     while (nextLine != null) {
-      if (nextLine.length() == 0) {
+      if (nextLine.isEmpty()) {
         nextLine = lri.next();
         continue;
       }
@@ -83,7 +84,7 @@ class Zone {
 
       final List<String> splits = Utils.untab(nextLine);
 
-      if (splits.size() == 0) {
+      if (splits.isEmpty()) {
         // Assume comment line
         nextLine = lri.next();
         continue;
@@ -103,8 +104,7 @@ class Zone {
     }
   }
 
-  /** Generate a partial Zone line.
-
+  /* * Generate a partial Zone line.
    *
    * @ return the Rule
    * /
@@ -240,7 +240,7 @@ class Zone {
                                        transition.zonerule,
                                        transition.rule));
         } else {
-          if (results.size() > 0) {
+          if (!results.isEmpty()) {
             final ZoneExpandResult lastOne =
                     results.get(results.size() - 1);
 
@@ -277,7 +277,7 @@ class Zone {
     // Get a VTIMEZONE component
     final VTimeZone vtz = new VTimeZone();
 
-    final PropertyList pl = vtz.getProperties();
+    final PropertyList<Property> pl = vtz.getProperties();
 
     // Add TZID property
     pl.add(new TzId(name));
@@ -443,8 +443,7 @@ class Zone {
     // Map the similar sub-components together
     final Map<SimilarMapKey, List<Component>> similarMap = new HashMap<>();
 
-    for (final Object o: vtz.getObservances()) {
-      final Component comp = (Component)o;
+    for (final Observance comp: vtz.getObservances()) {
       final SimilarMapKey key = new SimilarMapKey(comp);
 
       if (comp.getProperty(Property.RDATE) != null) {

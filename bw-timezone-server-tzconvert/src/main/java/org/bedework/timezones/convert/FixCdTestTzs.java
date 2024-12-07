@@ -23,6 +23,7 @@ import org.bedework.util.args.Args;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.LineNumberReader;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,14 +37,14 @@ public class FixCdTestTzs {
   int changed;
 
   /* Skip if path ends with one of these */
-  private static ArrayList<String> skipList = new ArrayList<String>();
+  private static final ArrayList<String> skipList = new ArrayList<>();
 
   static {
     skipList.add("CalDAV/timezones");
   }
 
-  boolean process() throws Throwable {
-    File d = new File(dirName);
+  boolean process() {
+    final File d = new File(dirName);
 
     if (!d.isDirectory()) {
       error("Not a directory: " + dirName);
@@ -60,10 +61,10 @@ public class FixCdTestTzs {
     return true;
   }
 
-  boolean processDir(File d, String indent) throws Throwable {
-    String path = d.getPath();
+  boolean processDir(final File d, final String indent) {
+    final String path = d.getPath();
 
-    for (String p: skipList) {
+    for (final String p: skipList) {
       if (path.endsWith(p)) {
         info(indent + path + "  *** Skipped ***");
         return true;
@@ -72,12 +73,12 @@ public class FixCdTestTzs {
 
     info(indent + path);
 
-    String[] l = d.list();
+    final String[] l = d.list();
 
-    Set<String> sorted = new TreeSet<String>();
+    final Set<String> sorted = new TreeSet<>();
 
     if ((l != null) && (l.length > 0)) {
-      for (String s: l) {
+      for (final String s: l) {
         if (s.equals(".svn")) {
           continue;
         }
@@ -115,14 +116,16 @@ public class FixCdTestTzs {
     String defSym;
     String spuriousSym;
 
-    Syms(String idSym, String defSym, String spuriousSym) {
+    Syms(final String idSym,
+         final String defSym,
+         final String spuriousSym) {
       this.idSym = idSym;
       this.defSym = defSym;
       this.spuriousSym = spuriousSym;
     }
   }
 
-  private static Map<String, Syms> tzidMap = new HashMap<String, Syms>();
+  private static final Map<String, Syms> tzidMap = new HashMap<>();
 
   static {
     tzidMap.put("US/Eastern", new Syms("$tzidUSE:",
@@ -153,147 +156,151 @@ public class FixCdTestTzs {
                                       "$tzspecEtcGMT8:", null));
   }
 
-  void processFile(File f, String indent) throws Throwable {
-    FileReader fr = new FileReader(f);
-    LineNumberReader lnr = new LineNumberReader(fr);
-
-    String ln = lnr.readLine();
-
-    if ((ln == null) | (!"BEGIN:VCALENDAR".equals(ln))) {
-      if (ln.startsWith("BEGIN:VCALENDAR")) {
-        error("Starts with BEGIN:VCALENDAR");
-      }
-
-      return;
-    }
-
-    ArrayList<String> lines = new ArrayList<String>();
-
-    lines.add(ln);
-
-    boolean rewrite = false;
-    boolean inTz = false;
+  void processFile(final File f,
+                   final String indent) {
+    final ArrayList<String> lines = new ArrayList<>();
     boolean defUsed = false;
     String tzName = null;
 
-    for (;;) {
-      ln = lnr.readLine();
+    try (final FileReader fr = new FileReader(f);
+      final LineNumberReader lnr = new LineNumberReader(fr)) {
+      String ln = lnr.readLine();
 
-      if (ln == null) {
-        break;
-      }
-
-      if (inTz) {
-        if (tzName != null) {
-          // Looking for end
-          if (ln.equals("END:VTIMEZONE")) {
-            inTz = false;
-          }
-          continue;
+      if ((ln == null) | (!"BEGIN:VCALENDAR".equals(ln))) {
+        if ((ln != null) && ln.startsWith("BEGIN:VCALENDAR")) {
+          error("Starts with BEGIN:VCALENDAR");
         }
 
-        if (ln.startsWith("TZID:")) {
-          tzName = ln.substring(5);
-        }
-
-        continue;
+        return;
       }
 
-      if (ln.equals("BEGIN:VTIMEZONE")) {
-        if (tzName != null) {
-          error("Multiple timezones for " + f.getPath());
+      lines.add(ln);
+
+      boolean rewrite = false;
+      boolean inTz = false;
+
+      for (; ; ) {
+        ln = lnr.readLine();
+
+        if (ln == null) {
           break;
         }
 
-        inTz = true;
-        rewrite = true;
-        lines.add(tzMarker);
-        continue;
+        if (inTz) {
+          if (tzName != null) {
+            // Looking for end
+            if (ln.equals("END:VTIMEZONE")) {
+              inTz = false;
+            }
+            continue;
+          }
+
+          if (ln.startsWith("TZID:")) {
+            tzName = ln.substring(5);
+          }
+
+          continue;
+        }
+
+        if (ln.equals("BEGIN:VTIMEZONE")) {
+          if (tzName != null) {
+            error("Multiple timezones for " + f.getPath());
+            break;
+          }
+
+          inTz = true;
+          rewrite = true;
+          lines.add(tzMarker);
+          continue;
+        }
+
+        if (tzName == null) {
+          lines.add(ln);
+          continue;
+        }
+
+        final int pos = ln.indexOf(";TZID=" + tzName + ":");
+
+        if (pos < 0) {
+          lines.add(ln);
+          continue;
+        }
+
+        final Syms syms = tzidMap.get(tzName);
+
+        if (syms == null) {
+          error("Unmapped timezone " + tzName + " for " + f.getPath());
+          break;
+        }
+
+        lines.add(ln.replace(";TZID=" + tzName + ":",
+                             ";TZID=" + syms.idSym + ":"));
+
+        defUsed = true;
       }
 
-      if (tzName == null) {
-        lines.add(ln);
-        continue;
+      if (!rewrite) {
+        return;
       }
-
-      int pos = ln.indexOf(";TZID=" + tzName + ":");
-
-      if (pos < 0) {
-        lines.add(ln);
-        continue;
-      }
-
-      Syms syms = tzidMap.get(tzName);
-
-      if (syms == null) {
-        error("Unmapped timezone " + tzName + " for " + f.getPath());
-        break;
-      }
-
-      lines.add(ln.replace(";TZID=" + tzName + ":",
-                           ";TZID=" + syms.idSym + ":"));
-
-      defUsed = true;
-    }
-
-    lnr.close();
-    fr.close();
-
-    if (!rewrite) {
-      return;
+    } catch (final IOException ie) {
+      throw new RuntimeException(ie);
     }
 
     changed++;
 
-    FileWriter fw = new FileWriter(f);
+    try (final FileWriter fw = new FileWriter(f)) {
+      final Syms syms = tzidMap.get(tzName);
 
-    Syms syms = tzidMap.get(tzName);
-
-    for (String s: lines) {
-      if (s.equals(tzMarker)) {
-        if (syms == null) {
-          error("Unmapped timezone " + tzName + " for " + f.getPath());
-          continue;
-        } else if (defUsed) {
-          s = syms.defSym;
-        } else if (syms.spuriousSym == null) {
-          error("No spurious sym for " + tzName + " for " + f.getPath());
-          s = syms.defSym;
-        } else {
-          s = syms.spuriousSym;
+      for (String s: lines) {
+        if (s.equals(tzMarker)) {
+          if (syms == null) {
+            error("Unmapped timezone " + tzName + " for " + f.getPath());
+            continue;
+          } else if (defUsed) {
+            s = syms.defSym;
+          } else if (syms.spuriousSym == null) {
+            error("No spurious sym for " + tzName + " for " + f.getPath());
+            s = syms.defSym;
+          } else {
+            s = syms.spuriousSym;
+          }
         }
-      }
 
-      if (s == null) {
-        error("No def for timezone " + tzName + " for " + f.getPath());
-        continue;
+        if (s == null) {
+          error("No def for timezone " + tzName + " for " + f.getPath());
+          continue;
+        }
+        fw.write(s);
+        fw.write("\n");
       }
-      fw.write(s);
-      fw.write("\n");
+    } catch (final IOException ie) {
+      throw new RuntimeException(ie);
     }
-
-    fw.close();
 
     return;
   }
 
-  boolean processArgs(final Args args) throws Throwable {
+  boolean processArgs(final Args args) {
     if (args == null) {
       return true;
     }
 
-    while (args.more()) {
-      if (args.ifMatch("")) {
-        continue;
-      }
+    try {
+      while (args.more()) {
+        if (args.ifMatch("")) {
+          continue;
+        }
 
-      if (args.ifMatch("-d")) {
-        dirName = args.next();
-      } else {
-        error("Illegal argument: " + args.current());
-        usage();
-        return false;
+        if (args.ifMatch("-d")) {
+          dirName = args.next();
+        } else {
+          error("Illegal argument: " + args.current());
+          usage();
+          return false;
+        }
       }
+    } catch (final Throwable t) {
+      throw new RuntimeException(t);
     }
 
     return true;
@@ -315,20 +322,19 @@ public class FixCdTestTzs {
   }
 
   /**
-   * @param args
+   * @param args runtime arguments
    */
-  public static void main(String[] args) {
-    FixCdTestTzs fx = null;
+  public static void main(final String[] args) {
 
     try {
-      fx = new FixCdTestTzs();
+      final FixCdTestTzs fx = new FixCdTestTzs();
 
       if (!fx.processArgs(new Args(args))) {
         return;
       }
 
       fx.process();
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       t.printStackTrace();
     }
   }

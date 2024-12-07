@@ -29,10 +29,12 @@ import org.apache.http.impl.client.DefaultHttpClient;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -53,62 +55,61 @@ public class ZipCachedData  extends AbstractCachedData {
   private File tzDefsFile;
 
   /**
-   * @param cfg
-   * @throws TzException
+   * @param cfg tz configuration
    */
-  public ZipCachedData(final TzConfig cfg) throws TzException {
+  public ZipCachedData(final TzConfig cfg) {
     super(cfg, "Zip");
     loadData();
   }
 
   @Override
-  public void stop() throws TzException {
+  public void stop() {
   }
 
   @Override
-  public String getSource() throws TzException {
+  public String getSource() {
     return null;
   }
 
   @Override
-  public void checkData() throws TzException {
+  public void checkData() {
     loadData();
   }
 
   @Override
   public void updateData(final String dtstamp,
-                         final List<DiffListEntry> dles) throws TzException {
+                         final List<DiffListEntry> dles) {
     // XXX ??
   }
 
   @Override
-  public List<String> findIds(final String val) throws TzException {
-    List<String> ids = new ArrayList<String>();
+  public List<String> findIds(final String val) {
+    final List<String> ids = new ArrayList<>();
 
     return ids;
   }
 
-  private synchronized void loadData() throws TzException {
+  private synchronized void loadData() {
     try {
-      long smillis = System.currentTimeMillis();
+      final long smillis = System.currentTimeMillis();
 
       /* ======================== First get the data file =================== */
-      File f = getdata();
+      final File f = getdata();
 
       /* ============================ open a zip file ======================= */
-      ZipFile zf = new ZipFile(f);
+      final ZipFile zf = new ZipFile(f);
 
       if (tzDefsZipFile != null) {
         try {
           tzDefsZipFile.close();
-        } catch (Throwable t) {
+        } catch (final Throwable ignored) {
         }
       }
 
       if (tzDefsFile != null) {
         try {
           tzDefsFile.delete();
-        } catch (Throwable t) {
+        } catch (final Throwable ignored) {
         }
       }
 
@@ -119,13 +120,13 @@ public class ZipCachedData  extends AbstractCachedData {
 
       /* ========================= get the data info ======================== */
 
-      ZipEntry ze = tzDefsZipFile.getEntry("info.txt");
+      final ZipEntry ze = tzDefsZipFile.getEntry("info.txt");
 
-      String info = entryToString(ze);
+      final String info = entryToString(ze);
 
-      String[] infoLines = info.split("\n");
+      final String[] infoLines = info.split("\n");
 
-      for (String s: infoLines) {
+      for (final String s: infoLines) {
         if (s.startsWith("buildTime=")) {
           String bt = s.substring("buildTime=".length());
           if (!bt.endsWith("Z")) {
@@ -147,7 +148,7 @@ public class ZipCachedData  extends AbstractCachedData {
 
       TzServerUtil.reloadsMillis += System.currentTimeMillis() - smillis;
       TzServerUtil.reloads++;
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new TzException(t);
     }
   }
@@ -157,11 +158,10 @@ public class ZipCachedData  extends AbstractCachedData {
    * the alias is the name and val is a comma separated list of
    * target ids.
    *
-   * @param tzDefsZipFile
+   * @param tzDefsZipFile a zip file
    * @return mapped aliases
-   * @throws TzException
    */
-  private AliasMaps buildAliasMaps(final ZipFile tzDefsZipFile) throws TzException {
+  private AliasMaps buildAliasMaps(final ZipFile tzDefsZipFile) {
     try {
       final ZipEntry ze = tzDefsZipFile.getEntry("aliases.txt");
 
@@ -198,30 +198,30 @@ public class ZipCachedData  extends AbstractCachedData {
   }
 
   private void unzipTzs(final ZipFile tzDefsZipFile,
-                        final String dtstamp) throws TzException {
+                        final String dtstamp) {
     try {
       resetTzs();
 
-      Enumeration<? extends ZipEntry> zes = tzDefsZipFile.entries();
+      final Enumeration<? extends ZipEntry> zes = tzDefsZipFile.entries();
 
       while (zes.hasMoreElements()) {
-        ZipEntry ze = zes.nextElement();
+        final ZipEntry ze = zes.nextElement();
 
         if (ze.isDirectory()) {
           continue;
         }
 
-        String n = ze.getName();
+        final String n = ze.getName();
 
         if (!(n.startsWith("zoneinfo/") && n.endsWith(".ics"))) {
           continue;
         }
 
-        String id = n.substring(9, n.length() - 4);
+        final String id = n.substring(9, n.length() - 4);
 
         processSpec(id, entryToString(ze), null, null);
       }
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new TzException(t);
     }
   }
@@ -229,11 +229,10 @@ public class ZipCachedData  extends AbstractCachedData {
   /** Retrieve the data and store in a temp file. Return the file object.
    *
    * @return File
-   * @throws TzException
    */
-  private File getdata() throws TzException {
+  private File getdata() {
     try {
-      String dataUrl = cfg.getTzdataUrl();
+      final String dataUrl = cfg.getTzdataUrl();
       if (dataUrl == null) {
         throw new TzException("No data url defined");
       }
@@ -243,11 +242,11 @@ public class ZipCachedData  extends AbstractCachedData {
       }
 
       /* Fetch the data */
-      HttpClient client = new DefaultHttpClient();
+      final HttpClient client = new DefaultHttpClient();
 
-      HttpRequestBase get = new HttpGet(dataUrl);
+      final HttpRequestBase get = new HttpGet(dataUrl);
 
-      HttpResponse resp = client.execute(get);
+      final HttpResponse resp = client.execute(get);
 
       InputStream is = null;
       FileOutputStream fos = null;
@@ -255,14 +254,14 @@ public class ZipCachedData  extends AbstractCachedData {
       try {
         is = resp.getEntity().getContent();
 
-        File f = File.createTempFile("bwtzserver", "zip");
+        final File f = File.createTempFile("bwtzserver", "zip");
 
         fos = new FileOutputStream(f);
 
-        byte[] buff = new byte[4096];
+        final byte[] buff = new byte[4096];
 
         for (;;) {
-          int num = is.read(buff);
+          final int num = is.read(buff);
 
           if (num < 0) {
             break;
@@ -283,33 +282,35 @@ public class ZipCachedData  extends AbstractCachedData {
           is.close();
         } finally {}
       }
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new TzException(t);
     }
   }
 
-  private String entryToString(final ZipEntry ze) throws Throwable {
-    InputStreamReader is = new InputStreamReader(tzDefsZipFile.getInputStream(ze),
-                                                 "UTF-8");
+  private String entryToString(final ZipEntry ze) {
+    try (final InputStreamReader is =
+                 new InputStreamReader(tzDefsZipFile.getInputStream(ze),
+                                       StandardCharsets.UTF_8)) {
 
-    StringWriter sw = new StringWriter();
+      final StringWriter sw = new StringWriter();
 
-    char[] buff = new char[4096];
+      final char[] buff = new char[4096];
 
-    for (;;) {
-      int num = is.read(buff);
+      for (; ; ) {
+        final int num = is.read(buff);
 
-      if (num < 0) {
-        break;
+        if (num < 0) {
+          break;
+        }
+
+        if (num > 0) {
+          sw.write(buff, 0, num);
+        }
       }
 
-      if (num > 0) {
-        sw.write(buff, 0, num);
-      }
+      return sw.toString();
+    } catch (final IOException ie) {
+      throw new TzException(ie);
     }
-
-    is.close();
-
-    return sw.toString();
   }
 }

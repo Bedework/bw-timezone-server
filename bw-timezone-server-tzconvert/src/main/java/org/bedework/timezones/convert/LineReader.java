@@ -17,18 +17,25 @@ package org.bedework.timezones.convert;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Iterator;
 
 /**
   Read lines
 */
-public class LineReader implements Iterable<String> {
+public class LineReader implements AutoCloseable, Iterable<String> {
   BufferedReader reader;
   int lineNbr;
 
-  LineReader(final String path) throws Throwable {
-    final FileInputStream fis = new FileInputStream(path);
+  LineReader(final String path) {
+    final FileInputStream fis;
+    try {
+      fis = new FileInputStream(path);
+    } catch (final FileNotFoundException e) {
+      throw new RuntimeException(e);
+    }
     reader = new BufferedReader(new InputStreamReader(fis));
   }
 
@@ -73,5 +80,16 @@ public class LineReader implements Iterable<String> {
   @Override
   public Iterator<String> iterator() {
     return new LineReaderIterator();
+  }
+
+  @Override
+  public void close() {
+    if (reader != null) {
+      try {
+        reader.close();
+      } catch (final IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 }

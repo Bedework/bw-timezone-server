@@ -100,10 +100,9 @@ public abstract class AbstractCachedData implements Logged, CachedData {
   /**
    * @param cfg our config
    * @param msgPrefix - for messages
-   * @throws TzException on fatal error
    */
   public AbstractCachedData(final TzConfig cfg,
-                            final String msgPrefix) throws TzException {
+                            final String msgPrefix) {
     if (cfg == null) {
       throw new TzException("No configuration data");
     }
@@ -113,7 +112,7 @@ public abstract class AbstractCachedData implements Logged, CachedData {
   }
 
   @Override
-  public List<Stat> getStats() throws TzException {
+  public List<Stat> getStats() {
     final List<Stat> stats = new ArrayList<>();
 
     stats.add(new Stat(msgPrefix + " #tzs", String.valueOf(vtzs.size())));
@@ -128,16 +127,15 @@ public abstract class AbstractCachedData implements Logged, CachedData {
   /** Find tz identifiers or alias names that (partially) match the given value
    * @param val pattern to match
    * @return list of strings - never null
-   * @throws TzException on fatal error
    */
-  public abstract List<String> findIds(String val) throws TzException;
+  public abstract List<String> findIds(String val);
 
   /* ====================================================================
    *                   CachedData methods
    * ==================================================================== */
 
   @Override
-  public String getDtstamp() throws TzException {
+  public String getDtstamp() {
     return dtstamp;
   }
 
@@ -205,7 +203,7 @@ public abstract class AbstractCachedData implements Logged, CachedData {
 
   /*
   @Override
-  public TimeZone getAliasedTimeZone(final String tzid) throws TzException {
+  public TimeZone getAliasedTimeZone(final String tzid) {
     return aliasedTzs.get(tzid);
   }*/
 
@@ -270,7 +268,7 @@ public abstract class AbstractCachedData implements Logged, CachedData {
   }
 
   @Override
-  public List<TimezoneType> findTimezones(final String name) throws TzException {
+  public List<TimezoneType> findTimezones(final String name) {
     final List<TimezoneType> sums = new ArrayList<>();
 
     final List<String> ids = findIds(name);
@@ -420,7 +418,7 @@ public abstract class AbstractCachedData implements Logged, CachedData {
                                final VTimeZone vtz) {
     final VTimeZone avtz;
     try {
-      avtz = (VTimeZone)vtz.copy();
+      avtz = vtz.copy();
     } catch (final Throwable t) {
       throw new RuntimeException(t);
     }

@@ -30,22 +30,22 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class OptionsMethod extends MethodBase {
   /**
-   * @throws ServletException
+   * @throws ServletException on error
    */
   public OptionsMethod() throws ServletException {
     super();
   }
 
   @Override
-  public void doMethod(HttpServletRequest req,
-                        HttpServletResponse resp) throws ServletException {
+  public void doMethod(final HttpServletRequest req,
+                       final HttpServletResponse resp) throws ServletException {
     if (debug()) {
       debug("OptionsMethod: doMethod");
     }
 
     try {
       resp.addHeader("Allow", "OPTIONS, GET");
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new ServletException(t);
     }
   }

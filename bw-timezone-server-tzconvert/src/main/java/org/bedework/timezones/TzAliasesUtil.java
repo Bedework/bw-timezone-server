@@ -27,6 +27,7 @@ import org.bedework.util.timezones.model.aliases.TimezonesAliasInfoType;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
@@ -116,15 +117,17 @@ public class TzAliasesUtil implements Logged {
 
   /**
    * @return true if processing went ok
-   * @throws Throwable on fatal error
    */
-  public boolean process() throws Throwable {
+  public boolean process() {
     TimezonesAliasInfoType tai = null;
 
     if (infileName != null) {
-      final InputStream in = new FileInputStream(infileName);
+      try (final InputStream in = new FileInputStream(infileName)) {
 
-      tai = (TimezonesAliasInfoType)unmarshal(in);
+        tai = (TimezonesAliasInfoType)unmarshal(in);
+      } catch (final IOException ie) {
+        throw new RuntimeException(ie);
+      }
     }
 
     if (propsfileName == null) {
@@ -133,25 +136,33 @@ public class TzAliasesUtil implements Logged {
       return false;
     }
 
-    final InputStream propStream = new FileInputStream(propsfileName);
-
     final Properties props = new Properties();
 
-    props.load(propStream);
+    try (final InputStream propStream = new FileInputStream(propsfileName)) {
+      props.load(propStream);
+    } catch (final IOException ie) {
+      throw new RuntimeException(ie);
+    }
 
     final OutputStream out;
 
-    if (outfileName == null) {
-      out = System.out;
-    } else {
-      out = new FileOutputStream(outfileName);
+    try {
+      if (outfileName == null) {
+        out = System.out;
+      } else {
+        out = new FileOutputStream(outfileName);
+      }
+
+      tai = mergeProperties(tai, props, null);
+
+      marshal(tai, out);
+
+      if (outfileName != null) {
+        out.close();
+      }
+    } catch (final IOException ie) {
+      throw new RuntimeException(ie);
     }
-
-    tai = mergeProperties(tai, props, null);
-
-    marshal(tai, out);
-
-    out.close();
 
     return true;
   }
@@ -172,55 +183,69 @@ public class TzAliasesUtil implements Logged {
 
       tzau.process();
     } catch (final Throwable t) {
-      t.printStackTrace();
+      throw new RuntimeException(t);
     }
   }
 
-  /* ====================================================================
+  /* ==============================================================
    *                   Private methods
-   * ==================================================================== */
+   * ============================================================== */
 
   @SuppressWarnings("unchecked")
   protected void marshal(final TimezonesAliasInfoType tai,
-                         final OutputStream out) throws Throwable {
-    final JAXBContext contextObj = JAXBContext.newInstance(tai.getClass());
+                         final OutputStream out) {
+    try {
+      final JAXBContext contextObj = JAXBContext.newInstance(
+              tai.getClass());
 
-    final Marshaller marshaller = contextObj.createMarshaller();
-    marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+      final Marshaller marshaller = contextObj.createMarshaller();
+      marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 
-    //ObjectFactory of = new ObjectFactory();
-    marshaller.marshal(new JAXBElement(new QName("urn:ietf:params:xml:ns:timezone-service-aliases",
-                                                 "TimezonesAliasInfoType"),
-                                                 tai.getClass(), tai), out);
+      //ObjectFactory of = new ObjectFactory();
+      marshaller.marshal(new JAXBElement(new QName(
+              "urn:ietf:params:xml:ns:timezone-service-aliases",
+              "TimezonesAliasInfoType"),
+                                         tai.getClass(), tai), out);
+    } catch (final Throwable t) {
+      throw new RuntimeException(t);
+    }
+  }
+  protected Object unmarshal(final InputStream in) {
+    try {
+      final JAXBContext jc = JAXBContext.newInstance(
+              TimezonesAliasInfoType.class);
+      final Unmarshaller u = jc.createUnmarshaller();
+      return u.unmarshal(in);
+    } catch (final Throwable t) {
+      throw new RuntimeException(t);
+    }
   }
 
-  protected Object unmarshal(final InputStream in) throws Throwable {
-    final JAXBContext jc = JAXBContext.newInstance(TimezonesAliasInfoType.class);
-    final Unmarshaller u = jc.createUnmarshaller();
-    return u.unmarshal(in);
-  }
-
-  private boolean processArgs(final Args args) throws Throwable {
+  private boolean processArgs(final Args args) {
     if (args == null) {
       return true;
     }
 
-    while (args.more()) {
-      if (args.ifMatch("")) {
-        continue;
-      }
+    try {
+      while (args.more()) {
+        if (args.ifMatch("")) {
+          continue;
+        }
 
-      if (args.ifMatch("-f")) {
-        infileName = args.next();
-      } else if (args.ifMatch("-o")) {
-        outfileName = args.next();
-      } else if (args.ifMatch("-p")) {
-        propsfileName = args.next();
-      } else {
-        error("Illegal argument: " + args.current());
-        usage();
-        return false;
+        if (args.ifMatch("-f")) {
+          infileName = args.next();
+        } else if (args.ifMatch("-o")) {
+          outfileName = args.next();
+        } else if (args.ifMatch("-p")) {
+          propsfileName = args.next();
+        } else {
+          error("Illegal argument: " + args.current());
+          usage();
+          return false;
+        }
       }
+    } catch (final Throwable t) {
+      throw new RuntimeException(t);
     }
 
     return true;

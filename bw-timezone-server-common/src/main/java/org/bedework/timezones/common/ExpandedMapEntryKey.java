@@ -18,24 +18,25 @@
 */
 package org.bedework.timezones.common;
 
+import org.bedework.util.misc.ToString;
 import org.bedework.util.misc.Util;
 
 import java.io.Serializable;
 
 
-/** Allos us to cache expansions
+/** Allows us to cache expansions
  *
  * @author douglm
  */
 public class ExpandedMapEntryKey implements Comparable<ExpandedMapEntryKey>, Serializable {
-  private String tzid;
-  private String start;
-  private String end;
+  private final String tzid;
+  private final String start;
+  private final String end;
 
   /**
-   * @param tzid
-   * @param start
-   * @param end
+   * @param tzid id
+   * @param start of expansion
+   * @param end of expansion
    */
   public ExpandedMapEntryKey(final String tzid,
                           final String start,
@@ -89,21 +90,17 @@ public class ExpandedMapEntryKey implements Comparable<ExpandedMapEntryKey>, Ser
 
   @Override
   public boolean equals(final Object o) {
-    return compareTo((ExpandedMapEntryKey)o) == 0;
+    if (!(o instanceof final ExpandedMapEntryKey key)) {
+      return false;
+    }
+    return compareTo(key) == 0;
   }
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder(getClass().getSimpleName()).append("{");
-
-    sb.append(getTzid());
-    sb.append(", start=");
-    sb.append(getStart());
-    sb.append(", end=");
-    sb.append(getEnd());
-
-    sb.append("}");
-
-    return sb.toString();
+    return new ToString(this).append("id", getTzid())
+                             .append("start", getStart())
+                             .append("end", getEnd())
+                             .toString();
   }
 }

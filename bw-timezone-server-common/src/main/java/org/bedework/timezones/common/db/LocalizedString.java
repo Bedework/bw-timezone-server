@@ -88,8 +88,8 @@ public class LocalizedString extends TzDbentity<LocalizedString> {
 
   /** Search the collection for a string that matches the given language code.
    *
-   * @param lang
-   * @param c
+   * @param lang code
+   * @param c collection of localized strings
    * @return LocalizedString or null if no strings.
    */
   protected static LocalizedString findLang(final String lang,
@@ -98,10 +98,8 @@ public class LocalizedString extends TzDbentity<LocalizedString> {
       return null;
     }
 
-    for (LocalizedString s: c) {
-      String slang = s.getLang();
-
-      if (slang.equals(lang)) {
+    for (final LocalizedString s: c) {
+      if (s.getLang().equals(lang)) {
         return s;
       }
     }
@@ -112,7 +110,7 @@ public class LocalizedString extends TzDbentity<LocalizedString> {
   /** Figure out what's different and update it. This should reduce the number
    * of spurious changes to the db.
    *
-   * @param from
+   * @param from localized string
    * @return true if we changed something.
    */
   public boolean update(final LocalizedString from) {
@@ -153,9 +151,9 @@ public class LocalizedString extends TzDbentity<LocalizedString> {
     return changed;
   }
 
-  /* ====================================================================
+  /* ==============================================================
    *                        Object methods
-   * ==================================================================== */
+   * ============================================================== */
 
   @Override
   public int compareTo(final LocalizedString that) {
@@ -167,7 +165,7 @@ public class LocalizedString extends TzDbentity<LocalizedString> {
       return -1;
     }
 
-    int res = Util.cmpObjval(getLang(), that.getLang());
+    final int res = Util.cmpObjval(getLang(), that.getLang());
 
     if (res != 0) {
       return res;

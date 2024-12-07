@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -103,9 +104,9 @@ public abstract class MethodBase implements Logged {
   }
 
   /**
-   * @param req
-   * @param resp
-   * @throws ServletException
+   * @param req http request
+   * @param resp http response
+   * @throws ServletException on error
    */
   public abstract void doMethod(HttpServletRequest req,
                                 HttpServletResponse resp)
@@ -166,13 +167,13 @@ public abstract class MethodBase implements Logged {
    *
    * @param req      Servlet request object
    * @return resourceUri  fixed up and split uri
-   * @throws ServletException
+   * @throws ServletException on error
    */
   public ResourceUri getResourceUri(final HttpServletRequest req)
       throws ServletException {
     String uri = req.getPathInfo();
 
-    if ((uri == null) || (uri.length() == 0)) {
+    if ((uri == null) || (uri.isEmpty())) {
       /* No path specified - set it to root. */
       uri = "/";
     }
@@ -197,7 +198,7 @@ public abstract class MethodBase implements Logged {
    *
    * @param path      String path to be fixed
    * @return String   fixed path
-   * @throws ServletException
+   * @throws ServletException on error
    */
   public static ResourceUri fixPath(final String path) throws ServletException {
     if (path == null) {
@@ -206,7 +207,7 @@ public abstract class MethodBase implements Logged {
 
     String decoded;
     try {
-      decoded = URLDecoder.decode(path, "UTF8");
+      decoded = URLDecoder.decode(path, StandardCharsets.UTF_8);
     } catch (final Throwable t) {
       throw new ServletException("bad path: " + path);
     }
@@ -215,24 +216,25 @@ public abstract class MethodBase implements Logged {
       return new ResourceUri();
     }
 
-    /** Make any backslashes into forward slashes.
+    /* Make any backslashes into forward slashes.
      */
     if (decoded.indexOf('\\') >= 0) {
       decoded = decoded.replace('\\', '/');
     }
 
-    /** Ensure a leading '/'
+    /* Ensure a leading '/'
      */
     if (!decoded.startsWith("/")) {
       decoded = "/" + decoded;
     }
 
-    /** Remove all instances of '//'.
+    /* Remove all instances of '//'.
      */
     while (decoded.contains("//")) {
       decoded = decoded.replaceAll("//", "/");
     }
-    /** Somewhere we may have /./ or /../
+
+    /* Somewhere we may have /./ or /../
      */
 
     final StringTokenizer st = new StringTokenizer(decoded, "/");
@@ -248,7 +250,7 @@ public abstract class MethodBase implements Logged {
 
       if (s.equals("..")) {
         // Back up 1
-        if (al.size() == 0) {
+        if (al.isEmpty()) {
           // back too far
           return new ResourceUri();
         }
@@ -262,7 +264,7 @@ public abstract class MethodBase implements Logged {
 
     final ResourceUri ruri = new ResourceUri();
 
-    /** Reconstruct */
+    /* Reconstruct */
     for (final String s: al) {
       ruri.addPathElement(s);
     }
@@ -284,7 +286,7 @@ public abstract class MethodBase implements Logged {
       tzl.setSynctoken(util.getDtstamp());
 
       if (tzl.getTimezones() == null) {
-        tzl.setTimezones(new ArrayList<TimezoneType>());
+        tzl.setTimezones(new ArrayList<>());
       }
       tzl.getTimezones().addAll(tzs);
 
@@ -315,16 +317,16 @@ public abstract class MethodBase implements Logged {
                            final Object val) throws ServletException {
     try {
       mapper.writeValue(resp.getOutputStream(), val);
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new ServletException(t);
     }
   }
 
-  /* ====================================================================
+  /* ==============================================================
    *                   Logged methods
-   * ==================================================================== */
+   * ============================================================== */
 
-  private BwLogger logger = new BwLogger();
+  private final BwLogger logger = new BwLogger();
 
   @Override
   public BwLogger getLogger() {

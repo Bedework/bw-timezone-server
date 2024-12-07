@@ -32,7 +32,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class TzidHandler extends MethodBase {
   /**
-   * @throws javax.servlet.ServletException
+   * @throws ServletException on error
    */
   public TzidHandler() throws ServletException {
     super();

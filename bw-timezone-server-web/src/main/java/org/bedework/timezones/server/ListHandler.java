@@ -67,9 +67,9 @@ public class ListHandler extends MethodBase {
         new BwLogger().setLoggedName("org.bedework.timezones.refresh.logger")
                       .info("Refresh call from " + req.getRemoteHost());
       }
-    } catch (ServletException se) {
+    } catch (final ServletException se) {
       throw se;
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       throw new ServletException(t);
     }
   }

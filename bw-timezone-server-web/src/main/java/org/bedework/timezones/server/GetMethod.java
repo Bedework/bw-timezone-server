@@ -43,7 +43,6 @@ public class GetMethod extends MethodBase {
       lists = new ListHandler();
       tzids = new TzidHandler();
     } catch (final ServletException e) {
-      e.printStackTrace();
       throw new RuntimeException(e);
     }
   }
@@ -106,7 +105,7 @@ public class GetMethod extends MethodBase {
         return;
       }
 
-      if (ruri.uriElements.size() == 0) {
+      if (ruri.uriElements.isEmpty()) {
         return;
       }
 
@@ -503,8 +502,6 @@ public class GetMethod extends MethodBase {
       } else {
         resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
       }
-    } catch (final ServletException se) {
-      throw se;
     } catch (final Throwable t) {
       throw new ServletException(t);
     }
@@ -523,8 +520,6 @@ public class GetMethod extends MethodBase {
       } else {
         resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
       }
-    } catch (final ServletException se) {
-      throw se;
     } catch (final Throwable t) {
       throw new ServletException(t);
     }

@@ -24,7 +24,7 @@ public interface TzConvertParamsI extends Serializable {
   /**
    * @param val uri of server used for comparisons
    */
-  void setTzServerUri(final String val);
+  void setTzServerUri(String val);
 
   /**
    * @return uri of server used for comparisons
@@ -34,7 +34,7 @@ public interface TzConvertParamsI extends Serializable {
   /**
    * @param val true if we do comparisons
    */
-  void setCompare(final boolean val);
+  void setCompare(boolean val);
 
   /**
    * @return true if we do comparisons
@@ -44,7 +44,7 @@ public interface TzConvertParamsI extends Serializable {
   /**
    * @param val end year for conversion
    */
-  void setEndYear(final int val);
+  void setEndYear(int val);
 
   /**
    * @return end year for conversion
@@ -54,7 +54,7 @@ public interface TzConvertParamsI extends Serializable {
   /**
    * @param val start year for conversion
    */
-  void setStartYear(final int val);
+  void setStartYear(int val);
 
   /**
    * @return start year for conversion
@@ -64,7 +64,7 @@ public interface TzConvertParamsI extends Serializable {
   /**
    * @param val where we find and build data
    */
-  void setRootdir(final String val);
+  void setRootdir(String val);
 
   /**
    * @return where we find and build data
@@ -74,7 +74,7 @@ public interface TzConvertParamsI extends Serializable {
   /**
    * @param val prodid for resulting output
    */
-  void setProdid(final String val);
+  void setProdid(String val);
 
   /**
    * @return prodid for resulting output
@@ -84,7 +84,7 @@ public interface TzConvertParamsI extends Serializable {
   /**
    * @param val value for source in tz server capabilities e.g. "IANA 2014d"
    */
-  void setSource(final String val);
+  void setSource(String val);
 
   /**
    * @return value for source in tz server capabilities e.g. "IANA 2014d"
@@ -94,7 +94,7 @@ public interface TzConvertParamsI extends Serializable {
   /**
    * @param val true to generate output
    */
-  void setGenerate(final boolean val);
+  void setGenerate(boolean val);
 
   /**
    * @return true to generate output
@@ -104,7 +104,7 @@ public interface TzConvertParamsI extends Serializable {
   /**
    * @param val Directory containing an Olson tzdata directory to  compare with
    */
-  void setCompareWithPath(final String val);
+  void setCompareWithPath(String val);
 
   /**
    * @return Directory containing an Olson tzdata directory to  compare with
@@ -114,7 +114,7 @@ public interface TzConvertParamsI extends Serializable {
   /**
    * @param val Tzid for verbose output
    */
-  void setVerboseId(final String val);
+  void setVerboseId(String val);
 
   /**
    * @return Tzid for verbose output
@@ -124,7 +124,7 @@ public interface TzConvertParamsI extends Serializable {
   /**
    * @param val Path to property file defining extra aliases
    */
-  void setAliasesPath(final String val);
+  void setAliasesPath(String val);
 
   /**
    * @return Path to property file defining extra aliases

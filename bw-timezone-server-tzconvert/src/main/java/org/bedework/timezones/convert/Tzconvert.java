@@ -27,7 +27,7 @@ import org.bedework.util.misc.Util;
  * <code>ftp://ftp.iana.org/tz/releases/tzcode2012e.tar.gz</code>
  *
  * <p>This code is a rewrite of that written by Cyrus Daboo and
- * available from http://calendarserver.org as part of their open source
+ * available from <a href="http://calendarserver.org">http://calendarserver.org</a> as part of their open source
  * calendar server.</p>
  *
  */
@@ -37,26 +37,28 @@ class Tzconvert {
       Utils.print(error_msg);
     }
 
-    Utils.print("Usage: tzconvert [options] [DIR]\n" +
-                        "Options:\n" +
-                        "    -h            Print this help and exit\n" +
-                        "    --prodid      PROD-ID string to use\n" +
-                        "    --start       Start year\n" +
-                        "    --end         End year\n" +
-                        "    --root        Directory containing an " +
-                        "Olson tzdata directory to read, also\n" +
-                        "             where zoneinfo data will be written\n" +
-                        "    --generate    true/false\n" +
-                        "    --comparewith Directory containing an \" +\n" +
-                        " Olson tzdata directory to  compare with\n" +
-                        "    --tzserver    Server providing tz data to compare with\" +\n" +
-                        "    --aliases     Path to property file defining extra aliases\n" +
-                        "    --source      Value to be supplied in info.properties " +
-                        "e.g. IANA 2014d\n" +
-                        "\n" +
-                        "Description:\n" +
-                        "    This utility convert Olson-style timezone data in iCalendar.\n" +
-                        "    VTIMEZONE objects, one .ics file per-timezone.\n");
+    Utils.print("""
+      Usage: tzconvert [options] [DIR]
+      Options:
+          -h            Print this help and exit
+          --prodid      PROD-ID string to use
+          --start       Start year
+          --end         End year
+          --root        Directory containing an \
+      Olson tzdata directory to read, also
+                   where zoneinfo data will be written
+          --generate    true/false
+          --comparewith Directory containing an " +
+       Olson tzdata directory to  compare with
+          --tzserver    Server providing tz data to compare with" +
+          --aliases     Path to property file defining extra aliases
+          --source      Value to be supplied in info.properties \
+      e.g. IANA 2014d
+      
+      Description:
+          This utility convert Olson-style timezone data in iCalendar.
+          VTIMEZONE objects, one .ics file per-timezone.
+      """);
 
     if (error_msg != null) {
       throw new RuntimeException(error_msg);
@@ -66,44 +68,48 @@ class Tzconvert {
   }
 
   static boolean processArgs(final Args args,
-                             final TzConvertParamsI params) throws Throwable {
+                             final TzConvertParamsI params) {
     if (args == null) {
       return true;
     }
 
-    while (args.more()) {
-      if (args.ifMatch("")) {
-        continue;
-      }
+    try {
+      while (args.more()) {
+        if (args.ifMatch("")) {
+          continue;
+        }
 
-      if (args.ifMatch("-h")) {
-        usage(null);
-      } else if (args.ifMatch("--prodid")) {
-        params.setProdid(args.next());
-      } else if (args.ifMatch("--root")) {
-        params.setRootdir(args.next());
-      } else if (args.ifMatch("--start")) {
-        params.setStartYear(Integer.valueOf(args.next()));
-      } else if (args.ifMatch("--end")) {
-        params.setEndYear(Integer.valueOf(args.next()));
-      } else if (args.ifMatch("--generate")) {
-        params.setGenerate(Boolean.valueOf(args.next()));
-      } else if (args.ifMatch("--tzserver")) {
-        params.setTzServerUri(args.next());
-        params.setCompare(true);
-      } else if (args.ifMatch("--comparewith")) {
-        params.setCompareWithPath(args.next());
-        params.setCompare(true);
-      } else if (args.ifMatch("--verboseid")) {
-        params.setVerboseId(args.next());
-      } else if (args.ifMatch("--aliases")) {
-        params.setAliasesPath(args.next());
-      } else if (args.ifMatch("--source")) {
-        params.setSource(args.next());
-      } else {
-        usage("Unrecognized option: " + args.current());
-        return false;
+        if (args.ifMatch("-h")) {
+          usage(null);
+        } else if (args.ifMatch("--prodid")) {
+          params.setProdid(args.next());
+        } else if (args.ifMatch("--root")) {
+          params.setRootdir(args.next());
+        } else if (args.ifMatch("--start")) {
+          params.setStartYear(Integer.parseInt(args.next()));
+        } else if (args.ifMatch("--end")) {
+          params.setEndYear(Integer.parseInt(args.next()));
+        } else if (args.ifMatch("--generate")) {
+          params.setGenerate(Boolean.parseBoolean(args.next()));
+        } else if (args.ifMatch("--tzserver")) {
+          params.setTzServerUri(args.next());
+          params.setCompare(true);
+        } else if (args.ifMatch("--comparewith")) {
+          params.setCompareWithPath(args.next());
+          params.setCompare(true);
+        } else if (args.ifMatch("--verboseid")) {
+          params.setVerboseId(args.next());
+        } else if (args.ifMatch("--aliases")) {
+          params.setAliasesPath(args.next());
+        } else if (args.ifMatch("--source")) {
+          params.setSource(args.next());
+        } else {
+          usage("Unrecognized option: " + args.current());
+          return false;
+        }
       }
+    } catch (final Exception e) {
+        throw new RuntimeException(e);
     }
 
     return true;

@@ -18,6 +18,7 @@
 */
 package org.bedework.timezones.common.db;
 
+import org.bedework.timezones.common.TzException;
 import org.bedework.util.misc.ToString;
 
 import java.io.Serializable;
@@ -30,7 +31,8 @@ import java.io.Serializable;
  *
  * @param <T>
  */
-public class TzDbentity<T extends TzDbentity> implements Comparable<T>, Serializable {
+public class TzDbentity<T extends TzDbentity<?>>
+        implements Comparable<T>, Serializable {
   private long id = -1;
 
   /* db version number */
@@ -73,9 +75,9 @@ public class TzDbentity<T extends TzDbentity> implements Comparable<T>, Serializ
     return getId() == -1;
   }
 
-  /* ====================================================================
+  /* ==============================================================
    *                   Convenience methods
-   * ==================================================================== */
+   * ============================================================== */
 
   /** Add our stuff to the ToString builder
    *
@@ -85,33 +87,25 @@ public class TzDbentity<T extends TzDbentity> implements Comparable<T>, Serializ
     ts.append("id", getId());
   }
 
-  /* ====================================================================
+  /* ==============================================================
    *                   Object methods
    * The following are required for a db object.
-   * ==================================================================== */
+   * ============================================================== */
 
-  /** Make visible
-   * @return Object of class T
-   */
   @Override
   public Object clone() {
     return null;
   }
 
-  /* (non-Javadoc)
-   * @see java.lang.Comparable#compareTo(java.lang.Object)
-   */
   public int compareTo(final T o) {
-    throw new RuntimeException("compareTo must be implemented for a db object");
+    throw new TzException("compareTo must be implemented for a db object");
   }
 
   @Override
   public int hashCode() {
-    throw new RuntimeException("hashcode must be implemented for a db object");
+    throw new TzException("hashcode must be implemented for a db object");
   }
 
-  /* We always use the compareTo method
-   */
   @SuppressWarnings("unchecked")
   @Override
   public boolean equals(final Object obj) {

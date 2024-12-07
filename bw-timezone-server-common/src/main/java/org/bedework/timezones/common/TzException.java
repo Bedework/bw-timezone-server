@@ -26,69 +26,67 @@ import javax.xml.namespace.QName;
  *
  *   @author Mike Douglass   douglm rpi.edu
  */
-public class TzException extends Throwable {
+public class TzException extends RuntimeException {
   /** > 0 if set
    */
-  int statusCode = -1;
+  int statusCode;
   QName errorTag;
 
   /** Constructor
    *
-   * @param s
+   * @param msg a message
    */
-  public TzException(String s) {
-    super(s);
-    if (statusCode < 0) {
-      statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-    }
+  public TzException(final String msg) {
+    super(msg);
+    statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
   }
 
   /** Constructor
    *
-   * @param t
+   * @param t throwable
    */
-  public TzException(Throwable t) {
+  public TzException(final Throwable t) {
     super(t);
-    if (statusCode < 0) {
-      statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-    }
+    statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
   }
 
   /** Constructor
    *
-   * @param st
+   * @param st status
    */
-  public TzException(int st) {
+  public TzException(final int st) {
     statusCode = st;
   }
 
   /** Constructor
    *
-   * @param st
-   * @param msg
+   * @param st status
+   * @param msg a message
    */
-  public TzException(int st, String msg) {
+  public TzException(final int st, final String msg) {
     super(msg);
     statusCode = st;
   }
 
   /** Constructor
    *
-   * @param st
-   * @param errorTag
+   * @param st status
+   * @param errorTag xml tage
    */
-  public TzException(int st, QName errorTag) {
+  public TzException(final int st, final QName errorTag) {
     statusCode = st;
     this.errorTag = errorTag;
   }
 
   /** Constructor
    *
-   * @param st
-   * @param errorTag
-   * @param msg
+   * @param st status
+   * @param errorTag xml tage
+   * @param msg a message
    */
-  public TzException(int st, QName errorTag, String msg) {
+  public TzException(final int st,
+                     final QName errorTag,
+                     final String msg) {
     super(msg);
     statusCode = st;
     this.errorTag = errorTag;
@@ -97,7 +95,7 @@ public class TzException extends Throwable {
   /** Set the status
    * @param val int status
    */
-  public void setStatusCode(int val) {
+  public void setStatusCode(final int val) {
     statusCode = val;
   }
 

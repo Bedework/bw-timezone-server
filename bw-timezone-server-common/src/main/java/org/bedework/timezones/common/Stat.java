@@ -18,6 +18,8 @@
 */
 package org.bedework.timezones.common;
 
+import org.bedework.util.misc.ToString;
+
 import java.io.Serializable;
 
 /** Provide a way to get named values.
@@ -25,13 +27,13 @@ import java.io.Serializable;
  * @author douglm
  */
 public class Stat implements Serializable {
-  private String name;
-  private String value1;
+  private final String name;
+  private final String value1;
   private String value2;
 
   /**
-   * @param name
-   * @param value
+   * @param name of stat
+   * @param value and stat
    */
   public Stat(final String name,
               final String value) {
@@ -40,9 +42,9 @@ public class Stat implements Serializable {
   }
 
   /**
-   * @param name
-   * @param value1
-   * @param value2
+   * @param name of stat
+   * @param value1 #1
+   * @param value2 #2
    */
   public Stat(final String name,
               final String value1,
@@ -75,19 +77,17 @@ public class Stat implements Serializable {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder();
+    final ToString ts = new ToString(this);
 
-    sb.append(getName());
-    sb.append(" = ");
-    sb.append(getValue1());
+    ts.delimitersOff()
+      .append(getName())
+      .append(" = ")
+      .append(getValue1());
 
     if (getValue2() != null) {
-      sb.append(", ");
-      sb.append(getValue2());
+      ts.delimit().append(getValue2());
     }
 
-    sb.append("\n");
-
-    return sb.toString();
+    return ts.newLine().toString();
   }
 }

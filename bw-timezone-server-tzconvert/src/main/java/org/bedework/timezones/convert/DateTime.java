@@ -183,9 +183,9 @@ public class DateTime implements Comparable<DateTime> {
 
   void setNextDayOfWeek(final int start,
                         final int dayNum) {
-    if (year == 1944) {
-      int x = year;
-    }
+    //if (year == 1944) {
+    //  final int x = year;
+    //}
     // Set to first day in month
     day = start;
 
@@ -274,7 +274,6 @@ public class DateTime implements Comparable<DateTime> {
     //changed();
   }
 
-  @SuppressWarnings("NullableProblems")
   @Override
   public int compareTo(final DateTime other) {
     int res = cmp(year, other.year);
@@ -320,14 +319,7 @@ public class DateTime implements Comparable<DateTime> {
   }
 
   private int cmp(final int a, final int b) {
-    if (a < b) {
-      return -1;
-    }
-    if (a > b) {
-      return 1;
-    }
-
-    return 0;
+    return Integer.compare(a, b);
   }
 
   private int cmp(final boolean a, final boolean b) {

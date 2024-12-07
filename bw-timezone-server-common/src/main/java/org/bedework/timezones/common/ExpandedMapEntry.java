@@ -30,8 +30,8 @@ public class ExpandedMapEntry {
   private final ExpandedTimezoneType tzs;
 
   /**
-   * @param etag
-   * @param tzs
+   * @param etag current etag
+   * @param tzs expanded version
    */
   public ExpandedMapEntry(final String etag,
                           final ExpandedTimezoneType tzs) {

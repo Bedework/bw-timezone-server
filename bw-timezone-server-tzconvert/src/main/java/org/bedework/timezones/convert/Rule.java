@@ -259,10 +259,10 @@ class Rule {
    */
   private int getOffset() {
     final String[] splits = saveTime.split(":");
-    final int hours = Integer.valueOf(splits[0]);
+    final int hours = Integer.parseInt(splits[0]);
     final int minutes;
     if (splits.length == 2) {
-      minutes = Integer.valueOf(splits[1]);
+      minutes = Integer.parseInt(splits[1]);
     } else {
       minutes = 0;
     }
@@ -280,7 +280,7 @@ class Rule {
   }
 
   private int startYear() {
-    return new Integer(fromYear);
+    return Integer.parseInt(fromYear);
   }
 
   private int endYear() {
@@ -292,7 +292,7 @@ class Rule {
       return 9999;
     }
 
-    return Integer.valueOf(toYear);
+    return Integer.parseInt(toYear);
   }
 
   /**
@@ -322,15 +322,15 @@ class Rule {
       minval = splits[1];
     }
 
-    final int hours = Integer.valueOf(splits[0]);
+    final int hours = Integer.parseInt(splits[0]);
     final int minutes;
     final String special;
 
     if (minval.length() > 2) {
-      minutes = Integer.valueOf(minval.substring(0, 2));
+      minutes = Integer.parseInt(minval.substring(0, 2));
       special = minval.substring(2);
     } else {
-      minutes = Integer.valueOf(minval);
+      minutes = Integer.parseInt(minval);
       special = null;
     }
 
@@ -351,11 +351,11 @@ class Rule {
       dt.setDayOfWeekInMonth(-1, LASTDAY_NAME_TO_DAY.get(onDay));
     } else if (onDay.contains(">=")) {
       splits = onDay.split(">=");
-      dt.setNextDayOfWeek(Integer.valueOf(splits[1]),
+      dt.setNextDayOfWeek(Integer.parseInt(splits[1]),
                           DAY_NAME_TO_DAY.get(splits[0]));
     } else {
       try {
-        final int day = Integer.valueOf(onDay);
+        final int day = Integer.parseInt(onDay);
         dt.setDay(day);
       } catch (final Throwable t) {
         Utils.assertion(false, "onDay value is not recognized: %s" , onDay);
@@ -450,8 +450,8 @@ class Rule {
           offset = 0;
         }
       }
-    } catch (final Throwable ignored) {
-      ignored.printStackTrace();
+    } catch (final Throwable t) {
+      t.printStackTrace();
       Utils.assertion(false, "onDay value is not recognized: %s", onDay);
     }
 
@@ -473,7 +473,6 @@ class Rule {
       this.rule = rule;
     }
 
-    @SuppressWarnings("NullableProblems")
     @Override
     public int compareTo(final DateOffset o) {
       return dt.compareTo(o.dt);
@@ -574,8 +573,8 @@ class Rule {
     comp.getProperties().add(new TzName(tzname));
 
     // Do offsets
-    final UtcOffset tzoffsetfrom = new UtcOffset(offsetfrom * 1000);
-    final UtcOffset tzoffsetto = new UtcOffset(offsetto * 1000);
+    final UtcOffset tzoffsetfrom = new UtcOffset(offsetfrom * 1000L);
+    final UtcOffset tzoffsetto = new UtcOffset(offsetto * 1000L);
 
     comp.getProperties().add(new TzOffsetFrom(null, tzoffsetfrom));
     comp.getProperties().add(new TzOffsetTo(null, tzoffsetto));
@@ -625,7 +624,7 @@ class Rule {
       } else if (onDay.contains(">=")) {
         final String[] split = onDay.split(">=");
         final int indicatedDay;
-        final int dayoffset = Integer.valueOf(split[1]);
+        final int dayoffset = Integer.parseInt(split[1]);
 
         // Need to check whether day has changed due to time shifting
         final int dayOfWeek = start.getDayOfWeek();
@@ -660,7 +659,6 @@ class Rule {
         }
       } else {
         try {
-          //noinspection ResultOfMethodCallIgnored
           Integer.valueOf(onDay);
         } catch (final Throwable t) {
           Utils.assertion(false,

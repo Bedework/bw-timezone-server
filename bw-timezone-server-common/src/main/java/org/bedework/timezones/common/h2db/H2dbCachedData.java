@@ -63,10 +63,9 @@ public class H2dbCachedData extends AbstractDb {
    *
    * @param cfg the configuration
    * @param clear remove all data from db first
-   * @throws TzException on fatal error
    */
   public H2dbCachedData(final TzConfig cfg,
-                        final boolean clear) throws TzException {
+                        final boolean clear) {
     super(cfg, "Db");
 
     try {
@@ -94,7 +93,7 @@ public class H2dbCachedData extends AbstractDb {
    * ==================================================================== */
 
   @Override
-  public void addTzAlias(final TzAlias val) throws TzException {
+  public void addTzAlias(final TzAlias val) {
     final Connection conn = getDb();
 
     try (final var stmt = conn.prepareStatement(
@@ -120,7 +119,7 @@ public class H2dbCachedData extends AbstractDb {
   }
 
   @Override
-  public void putTzAlias(final TzAlias val) throws TzException {
+  public void putTzAlias(final TzAlias val) {
     final Connection conn = getDb();
 
     try (final var stmt = conn.prepareStatement(
@@ -142,7 +141,7 @@ public class H2dbCachedData extends AbstractDb {
   }
 
   @Override
-  public void removeTzAlias(final TzAlias val) throws TzException {
+  public void removeTzAlias(final TzAlias val) {
     final Connection conn = getDb();
 
     try (final var stmt = conn.prepareStatement(
@@ -159,7 +158,7 @@ public class H2dbCachedData extends AbstractDb {
   }
 
   @Override
-  public TzAlias getTzAlias(final String val) throws TzException {
+  public TzAlias getTzAlias(final String val) {
     final Connection conn = getDb();
 
     try (final var stmt = conn.prepareStatement(
@@ -283,7 +282,7 @@ public class H2dbCachedData extends AbstractDb {
   }
 
   @Override
-  public void addTzSpec(final TzDbSpec val) throws TzException {
+  public void addTzSpec(final TzDbSpec val) {
     final Connection conn = getDb();
 
     try (final var stmt = conn.prepareStatement(
@@ -305,7 +304,7 @@ public class H2dbCachedData extends AbstractDb {
   }
 
   @Override
-  public void putTzSpec(final TzDbSpec val) throws TzException {
+  public void putTzSpec(final TzDbSpec val) {
     final Connection conn = getDb();
 
     try (final var stmt = conn.prepareStatement(
@@ -326,7 +325,7 @@ public class H2dbCachedData extends AbstractDb {
   }
 
   @Override
-  protected TzDbSpec getSpec(final String id) throws TzException {
+  protected TzDbSpec getSpec(final String id) {
     final Connection conn = getDb();
 
     try (final var stmt = conn.prepareStatement(
@@ -359,7 +358,7 @@ public class H2dbCachedData extends AbstractDb {
    *                   Transaction methods
    * ==================================================================== */
 
-  protected void open() throws TzException {
+  protected void open() {
     synchronized (dbLock) {
       if (!isOpen()) {
         getDb();
@@ -379,7 +378,7 @@ public class H2dbCachedData extends AbstractDb {
   }
 
   @Override
-  protected void clearDb() throws TzException {
+  protected void clearDb() {
     final Connection conn = getDb();
 
     try (final var stmt = conn.createStatement()) {
@@ -406,7 +405,7 @@ public class H2dbCachedData extends AbstractDb {
    *                   private methods
    * ==================================================================== */
 
-  private Connection getDb() throws TzException {
+  private Connection getDb() {
     if (conn != null) {
       return conn;
     }
@@ -455,7 +454,7 @@ public class H2dbCachedData extends AbstractDb {
    *                   Json methods
    *  =================================================================== */
 
-  protected byte[] bytesJson(final Object val) throws TzException {
+  protected byte[] bytesJson(final Object val) {
     try {
       final ByteArrayOutputStream os = new ByteArrayOutputStream();
 
@@ -468,7 +467,7 @@ public class H2dbCachedData extends AbstractDb {
   }
 
   protected <T> T getJson(final InputStream is,
-                          final Class<T> valueType) throws TzException {
+                          final Class<T> valueType) {
     try {
       return mapper.readValue(is, valueType);
     } catch (final Throwable t) {

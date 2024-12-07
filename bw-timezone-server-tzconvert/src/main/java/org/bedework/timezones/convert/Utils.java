@@ -18,6 +18,7 @@ package org.bedework.timezones.convert;
 import org.bedework.util.logging.BwLogger;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -29,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 class Utils {
-  private static BwLogger logger =
+  private static final BwLogger logger =
           new BwLogger().setLoggedClass(Utils.class);
 
   /**
@@ -75,7 +76,7 @@ class Utils {
     }
 
     for (final String split: s1.split(" ")) {
-      if (split.length() > 0) {
+      if (!split.isEmpty()) {
         if (split.startsWith("#")) {
           break;
         }
@@ -165,15 +166,19 @@ class Utils {
     }
 
     @Override
-    public int compareTo(@SuppressWarnings("NullableProblems") final DateTimeWrapper o) {
+    public int compareTo(final DateTimeWrapper o) {
       return dt.compareTo(o.dt);
     }
   }
 
-  public static Path createFile(final String path) throws Throwable {
+  public static Path createFile(final String path) {
     final Path pathToFile = Paths.get(path);
-    Files.createDirectories(pathToFile.getParent());
-    return Files.createFile(pathToFile);
+    try {
+      Files.createDirectories(pathToFile.getParent());
+      return Files.createFile(pathToFile);
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public static boolean empty(final String path) {
@@ -197,7 +202,7 @@ class Utils {
     }
 
     flist = file.listFiles();
-    if (flist != null && flist.length > 0) {
+    if ((flist != null) && (flist.length > 0)) {
       for (final File f : flist) {
         if (!delete(f, true)) {
           return false;
@@ -259,7 +264,7 @@ class Utils {
   static int getInt(final String val) {
     try {
       return Integer.valueOf(val);
-    } catch (Throwable ignored) {
+    } catch (final Throwable ignored) {
       throw new RuntimeException("Failed to parse as Integer " + val);
     }
   }
@@ -267,13 +272,13 @@ class Utils {
   final static Map<Integer, Integer> leapDaysMap = new HashMap<>();
 
   static int leapDaysSince1970(final int yearOffset) {
-    Integer r = leapDaysMap.get(yearOffset);
+    final Integer r = leapDaysMap.get(yearOffset);
 
     if (r != null) {
       return r;
     }
 
-    int result;
+    final int result;
 
     if (yearOffset > 2) {
       result = (yearOffset + 1) / 4;
@@ -311,13 +316,13 @@ class Utils {
   private static final Map<Integer, Boolean> leapYears = new HashMap<>();
 
   static boolean isLeapYear(final int year) {
-    Boolean b = leapYears.get(year);
+    final Boolean b = leapYears.get(year);
 
     if (b != null) {
       return b;
     }
 
-    boolean result;
+    final boolean result;
 
     if (year <= 1752) {
       result = (year % 4 == 0);

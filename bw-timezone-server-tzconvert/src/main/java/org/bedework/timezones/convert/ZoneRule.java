@@ -31,7 +31,7 @@ import org.bedework.timezones.convert.Utils.DateTimeWrapper;
 import org.bedework.util.misc.ToString;
 import org.bedework.util.misc.Util;
 
-import net.fortuna.ical4j.model.Component;
+import net.fortuna.ical4j.model.Property;
 import net.fortuna.ical4j.model.PropertyList;
 import net.fortuna.ical4j.model.UtcOffset;
 import net.fortuna.ical4j.model.component.Daylight;
@@ -109,7 +109,7 @@ import static org.bedework.timezones.convert.Utils.Offsets;
  * </pre>
  */
 class ZoneRule {
-  private Zone zone;
+  private final Zone zone;
   String gmtoff;
   private String rule;
   private String format;
@@ -141,7 +141,7 @@ class ZoneRule {
     }
 
     Utils.assertion(splits.size() - offset >= 3, "Help: %s", line);
-    gmtoff = splits.get(0 + offset);
+    gmtoff = splits.get(offset);
     rule = splits.get(1 + offset);
     format = splits.get(2 + offset);
     if (splits.size() - offset < 4) {
@@ -229,20 +229,20 @@ class ZoneRule {
               break;
 
             default:
-              day = Integer.valueOf(splits.get(2));
+              day = Integer.parseInt(splits.get(2));
           }
 
 
           if (splits.size() > 3 && !splits.get(3).startsWith(
                   "#")) {
             final String[] splits2 = splits.get(3).split(":");
-            hours = Integer.valueOf(splits2[0]);
-            minutes = Integer.valueOf(splits2[1].substring(0, 2));
+            hours = Integer.parseInt(splits2[0]);
+            minutes = Integer.parseInt(splits2[1].substring(0, 2));
             if (splits2[1].length() > 2) {
               mode = splits2[1].substring(2);
             }
             if (splits2.length > 2) {
-              seconds = Integer.valueOf(splits2[2]);
+              seconds = Integer.parseInt(splits2[2]);
             }
           }
         }
@@ -279,7 +279,7 @@ class ZoneRule {
       return 0;
     }
 
-    return Math.abs(Integer.valueOf(splits [i]));
+    return Math.abs(Integer.parseInt(splits [i]));
   }
 
   static class ExpandResult implements Comparable<ExpandResult> {
@@ -421,9 +421,9 @@ class ZoneRule {
       }
 
       final String[] splits = ruleNoMinus.split(":");
-      to_offset = 60 * 60 * Integer.valueOf(splits[0]);
+      to_offset = 60 * 60 * Integer.parseInt(splits[0]);
       if (splits.length > 1) {
-        to_offset += 60 * Integer.valueOf(splits[1]);
+        to_offset += 60 * Integer.parseInt(splits[1]);
       }
 
       if (neg) {
@@ -446,7 +446,7 @@ class ZoneRule {
                  final int offsetto,
                  final boolean standard) {
     // Determine type of component based on offset
-    final Component comp;
+    final Observance comp;
 
     if (standard) {
       comp = new Standard();
@@ -454,7 +454,7 @@ class ZoneRule {
       comp = new Daylight();
     }
 
-    final PropertyList pl = comp.getProperties();
+    final PropertyList<Property> pl = comp.getProperties();
 
     final String tzname;
 
@@ -489,7 +489,7 @@ class ZoneRule {
       throw new RuntimeException(pe);
     }
 
-    vtz.getObservances().add((Observance)comp);
+    vtz.getObservances().add(comp);
   }
 
 

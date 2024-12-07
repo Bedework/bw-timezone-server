@@ -46,9 +46,8 @@ public class FileCachedData extends AbstractCachedData {
 
   /**
    * @param cfg configuration file
-   * @throws TzException on fatal error
    */
-  public FileCachedData(final TzConfig cfg) throws TzException {
+  public FileCachedData(final TzConfig cfg) {
     super(cfg, "File");
     loadData();
   }
@@ -63,7 +62,7 @@ public class FileCachedData extends AbstractCachedData {
   }
 
   @Override
-  public void checkData() throws TzException {
+  public void checkData() {
     loadData();
   }
 
@@ -78,7 +77,7 @@ public class FileCachedData extends AbstractCachedData {
     return new ArrayList<>();
   }
 
-  private synchronized void loadData() throws TzException {
+  private synchronized void loadData() {
     try {
       final long smillis = System.currentTimeMillis();
 
@@ -131,9 +130,8 @@ public class FileCachedData extends AbstractCachedData {
    *
    * @param parent - root directory
    * @return mapped aliases
-   * @throws TzException on fatal error
    */
-  private AliasMaps buildAliasMaps(final File parent) throws TzException {
+  private AliasMaps buildAliasMaps(final File parent) {
     try {
       final AliasMaps maps = new AliasMaps();
 
@@ -173,20 +171,21 @@ public class FileCachedData extends AbstractCachedData {
     }
   }
 
-  private void fetchTzs(final String dtstamp) throws TzException {
+  private void fetchTzs(final String dtstamp) {
     try {
       resetTzs();
 
       final Path dataPath = Paths.get(cfg.getTzdataUrl(),"zoneinfo");
-      final TzFetcher tzFetcher =
-              new FileTzFetcher(dataPath.toString());
+      try (final TzFetcher tzFetcher =
+                   new FileTzFetcher(dataPath.toString())) {
 
-      for (final String id: tzFetcher.getTzids()) {
-        final Calendar cal = new Calendar();
-        cal.getComponents().add(tzFetcher.getTz(id));
-        cal.getProperties().add(new Version());
+        for (final String id: tzFetcher.getTzids()) {
+          final Calendar cal = new Calendar();
+          cal.getComponents().add(tzFetcher.getTz(id));
+          cal.getProperties().add(new Version());
 
-        processSpec(id, cal, null, dtstamp);
+          processSpec(id, cal, null, dtstamp);
+        }
       }
     } catch (final Throwable t) {
       throw new TzException(t);
@@ -196,9 +195,8 @@ public class FileCachedData extends AbstractCachedData {
   /** Return the File object which must represent a directory.
    *
    * @return File
-   * @throws TzException on fatal error
    */
-  private File getdata() throws TzException {
+  private File getdata() {
     try {
       final String dataUrl = cfg.getTzdataUrl();
       if (dataUrl == null) {
@@ -220,7 +218,7 @@ public class FileCachedData extends AbstractCachedData {
   }
 
   private FileReader getFileRdr(final File parent,
-                                final String name) throws TzException {
+                                final String name) {
     try {
       final File theFile = new File(parent.getAbsolutePath(), name);
 

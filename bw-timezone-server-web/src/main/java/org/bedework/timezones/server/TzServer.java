@@ -25,7 +25,6 @@ import org.bedework.util.logging.BwLogger;
 import org.bedework.util.logging.Logged;
 import org.bedework.util.servlet.HttpServletUtils;
 
-import java.io.IOException;
 import java.util.Enumeration;
 
 import javax.servlet.ServletConfig;
@@ -68,7 +67,7 @@ public class TzServer extends HttpServlet
 
   @Override
   protected void service(final HttpServletRequest req,
-                         final HttpServletResponse resp) throws ServletException, IOException {
+                         final HttpServletResponse resp) throws ServletException {
     try {
       final String methodName = req.getMethod();
 
@@ -106,7 +105,6 @@ public class TzServer extends HttpServlet
    *
    * @param req http request
    */
-  @SuppressWarnings("unchecked")
   public void dumpRequest(final HttpServletRequest req) {
     try {
       String title = "Request headers";
@@ -212,7 +210,7 @@ public class TzServer extends HttpServlet
    *                   Logged methods
    * ==================================================================== */
 
-  private BwLogger logger = new BwLogger();
+  private final BwLogger logger = new BwLogger();
 
   @Override
   public BwLogger getLogger() {

@@ -38,14 +38,18 @@ import org.bedework.util.timezones.TzFetcher;
 
 import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.ComponentList;
+import net.fortuna.ical4j.model.Property;
 import net.fortuna.ical4j.model.PropertyList;
+import net.fortuna.ical4j.model.component.CalendarComponent;
 import net.fortuna.ical4j.model.component.VTimeZone;
 import net.fortuna.ical4j.model.property.DtStamp;
 import net.fortuna.ical4j.model.property.ProdId;
 import net.fortuna.ical4j.model.property.immutable.ImmutableVersion;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -182,10 +186,9 @@ class Processor {
   /**
    * @param outputdir - where to put output
    * @param doLinks - true to create link data
-   * @throws Throwable on fatal error
    */
   public void generateZoneinfoFiles(final String outputdir,
-                                    final boolean doLinks) throws Throwable {
+                                    final boolean doLinks) {
     buildVtzs();
 
     // Empty current directory
@@ -193,8 +196,8 @@ class Processor {
 
     for (final String zoneName: vtzs.keySet()) {
       final Calendar cal = new Calendar();
-      final ComponentList cl = cal.getComponents();
-      final PropertyList pl = cal.getProperties();
+      final ComponentList<CalendarComponent> cl = cal.getComponents();
+      final PropertyList<Property> pl = cal.getProperties();
 
       pl.add(ImmutableVersion.VERSION_2_0);
       pl.add(new ProdId(params.getProdid()));
@@ -208,11 +211,11 @@ class Processor {
                                               outputdir, "/",
                                               zoneName, ".ics"));
 
-      final OutputStream os = Files.newOutputStream(fpath);
-
-      os.write(icsdata.getBytes());
-
-      os.close();
+      try (final OutputStream os = Files.newOutputStream(fpath)) {
+        os.write(icsdata.getBytes());
+      } catch (final IOException ie) {
+        throw new RuntimeException(ie);
+      }
 
       if (verbose) {
         Utils.print("Write path: %s", fpath);
@@ -290,8 +293,7 @@ class Processor {
   }
 
   private void parseFile(final String file) {
-    try {
-      final LineReader f = new LineReader(file);
+    try (final LineReader f = new LineReader(file)) {
       final LineReaderIterator lri = (LineReaderIterator)f.iterator();
 
       while (lri.hasNext()) {
@@ -301,7 +303,7 @@ class Processor {
           break;
         }
 
-        if (line.startsWith("#") || (line.length() == 0)) {
+        if (line.startsWith("#") || (line.isEmpty())) {
           continue;
         }
 
@@ -320,7 +322,7 @@ class Processor {
           continue;
         }
 
-        if (line.trim().length() != 0) {
+        if (!line.trim().isEmpty()) {
           Utils.assertion(false,
                           "Could not parse line %d from file %s: '%s'",
                           f.lineNbr, file, line);
@@ -359,11 +361,15 @@ class Processor {
     links.put(fields.get(2), fields.get(1));
   }
 
-  private void generateLinks(final String outputdir) throws Throwable {
+  private void generateLinks(final String outputdir) {
     /* First add links from the aliases file */
 
     final Properties aliases = new Properties();
-    aliases.load(getFileRdr(params.getAliasesPath()));
+    try {
+      aliases.load(getFileRdr(params.getAliasesPath()));
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
+    }
 
     for (final Object pname: aliases.keySet()) {
       links.put((String)pname, aliases.getProperty((String)pname));
@@ -384,29 +390,29 @@ class Processor {
 
       final List<String> contents = new ArrayList<>();
 
-      final LineReader lr = new LineReader(fromPath);
+      try (final LineReader lr = new LineReader(fromPath)) {
+        for (final String s: lr) {
+          contents.add(s.replace(linkFrom, linkTo));
+        }
 
-      for (final String s: lr) {
-        contents.add(s.replace(linkFrom, linkTo));
+        final String toPath = Util.buildPath(false, outputdir, "/",
+                                             linkTo, ".ics");
+        final Path outPath = Utils.createFile(toPath);
+        try (final OutputStream os = Files.newOutputStream(outPath)) {
+          for (final String s: contents) {
+            os.write(s.getBytes());
+            os.write('\n');
+          }
+        } catch (final IOException ie) {
+          throw new RuntimeException(ie);
+        }
+
+        if (verbose) {
+          Utils.print("Write link: %s", linkTo);
+        }
+
+        linkList.add(linkTo + "\t" + linkFrom);
       }
-
-      final String toPath = Util.buildPath(false, outputdir, "/",
-                                           linkTo, ".ics");
-      final Path outPath = Utils.createFile(toPath);
-      final OutputStream os = Files.newOutputStream(outPath);
-
-      for (final String s: contents) {
-        os.write(s.getBytes());
-        os.write('\n');
-      }
-
-      os.close();
-
-      if (verbose) {
-        Utils.print("Write link: %s", linkTo);
-      }
-
-      linkList.add(linkTo + "\t" + linkFrom);
     }
 
     Collections.sort(linkList);
@@ -415,9 +421,9 @@ class Processor {
     final String toPath = Util.buildPath(false, outputdir, "/",
                                          "aliases.properties");
     final Path outPath = Utils.createFile(toPath);
-    final OutputStream os = Files.newOutputStream(outPath);
+    try (final OutputStream os = Files.newOutputStream(outPath)) {
 
-    aliases.store(os, "# Timezone aliases file");
+      aliases.store(os, "# Timezone aliases file");
 
     /*
     // Generate link mapping file
@@ -430,11 +436,12 @@ class Processor {
       os.write(s.getBytes());
       os.write('\n');
     }*/
-
-    os.close();
+    } catch (final IOException ie) {
+      throw new RuntimeException(ie);
+    }
   }
 
-  private void generateInfo(final String outputdir) throws Throwable {
+  private void generateInfo(final String outputdir) {
     final Properties info = new Properties();
 
     final DtStamp dtStamp = new DtStamp();
@@ -446,20 +453,25 @@ class Processor {
     final String toPath = Util.buildPath(false, outputdir, "/",
                                          "info.properties");
     final Path outPath = Utils.createFile(toPath);
-    final OutputStream os = Files.newOutputStream(outPath);
-
-    info.store(os, "# Timezone server info file");
-
-    os.close();
+    try (final OutputStream os = Files.newOutputStream(outPath)) {
+      info.store(os, "# Timezone server info file");
+    } catch (final IOException ie) {
+      throw new RuntimeException(ie);
+    }
   }
 
-  private FileReader getFileRdr(final String path) throws Throwable {
+  private FileReader getFileRdr(final String path) {
     final File theFile = new File(path);
 
     if (!theFile.exists() || !theFile.isFile()) {
-      throw new Exception(path + " does not exist or is not a file");
+      throw new RuntimeException(
+              path + " does not exist or is not a file");
     }
 
-    return new FileReader(theFile);
+    try {
+      return new FileReader(theFile);
+    } catch (final FileNotFoundException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

@@ -64,7 +64,7 @@ public class Differ implements Logged {
     public boolean aliasChangeOnly;
     /**
      */
-    public SortedSet<String> aliases = new TreeSet<String>();
+    public SortedSet<String> aliases = new TreeSet<>();
 
     /** Add our stuff to the StringBuilder
      *
@@ -112,10 +112,9 @@ public class Differ implements Logged {
    * @param newTzdata new set
    * @param currentTzdata current set
    * @return possibly empty list - never null.
-   * @throws TzException on fatal error
    */
   public List<DiffListEntry> compare(final CachedData newTzdata,
-                                     final CachedData currentTzdata) throws TzException {
+                                     final CachedData currentTzdata) {
     final List<DiffListEntry> res = new ArrayList<>();
 
     final SortedSet<String> newNames = newTzdata.getNameList();
@@ -197,8 +196,8 @@ public class Differ implements Logged {
   }
 
   private static class NameChanges {
-    SortedSet<String> addedNames = new TreeSet<String>();
-    SortedSet<String> deletedNames = new TreeSet<String>();
+    SortedSet<String> addedNames = new TreeSet<>();
+    SortedSet<String> deletedNames = new TreeSet<>();
   }
 
   private NameChanges getNameChanges(final SortedSet<String> newList,
