@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.bedework</groupId>
     <artifactId>bedework-parent</artifactId>
-    <version>88-SNAPSHOT</version>
+    <version>87</version>
   </parent>
 
   <groupId>org.bedework.bw-tzsvr</groupId>
