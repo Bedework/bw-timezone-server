@@ -28,7 +28,7 @@ import utils
 
 import org.bedework.timezones.convert.Rule.DateOffset;
 import org.bedework.timezones.convert.Utils.DateTimeWrapper;
-import org.bedework.util.misc.ToString;
+import org.bedework.base.ToString;
 import org.bedework.util.misc.Util;
 
 import net.fortuna.ical4j.model.Property;

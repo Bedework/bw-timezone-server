@@ -20,7 +20,7 @@ package org.bedework.timezones.common;
 
 import org.bedework.util.config.ConfInfo;
 import org.bedework.util.config.ConfigBase;
-import org.bedework.util.misc.ToString;
+import org.bedework.base.ToString;
 
 /** This class defines the various properties we need for a carddav server
  *

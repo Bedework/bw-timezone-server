@@ -3,7 +3,7 @@
 */
 package org.bedework.timezones.convert;
 
-import org.bedework.util.misc.ToString;
+import org.bedework.base.ToString;
 
 /**
  * User: mike Date: 5/3/19 Time: 12:05

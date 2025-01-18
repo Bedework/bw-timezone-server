@@ -19,7 +19,7 @@
 package org.bedework.timezones.common.db;
 
 import org.bedework.timezones.common.TzException;
-import org.bedework.util.misc.ToString;
+import org.bedework.base.ToString;
 
 import java.io.Serializable;
 

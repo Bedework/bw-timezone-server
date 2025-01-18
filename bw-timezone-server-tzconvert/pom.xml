@@ -16,6 +16,11 @@
       <version>${project.version}</version>
     </dependency>
 
+    <dependency>
+      <groupId>org.bedework</groupId>
+      <artifactId>bw-base</artifactId>
+    </dependency>
+
     <!-- Bedework: Util -->
     <dependency>
       <groupId>org.bedework</groupId>
