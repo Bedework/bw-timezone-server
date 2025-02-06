@@ -11,7 +11,7 @@ A Java implementation of the tzdist protocol - [RFC7808](https://tools.ietf.org/
 
 ## Requirements
 
-1. JDK 11
+1. JDK 17
 2. Maven 3
 
 ## Building Locally
@@ -85,6 +85,16 @@ For full details, see [Sonatype's documentation for using Maven to publish relea
 #### 5.0.4
 * Move timezone xml into this project out of bw-xml
 
-#### 5.0.3
+#### 5.0.5
 * 5.0.4 skipped after failed release due to missing version in poms.
 
+#### 5.0.6
+* Update library versions
+
+#### 5.0.7
+* Update library versions
+
+#### 5.0.8
+* Update library versions
+* Move response classes and ToString into bw-base module.
+* Pre-jakarta
