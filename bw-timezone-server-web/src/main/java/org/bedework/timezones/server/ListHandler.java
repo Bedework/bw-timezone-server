@@ -20,9 +20,9 @@ package org.bedework.timezones.server;
 
 import org.bedework.util.logging.BwLogger;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /** Class called to handle GET action=list.
  *
@@ -30,7 +30,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class ListHandler extends MethodBase {
   /**
-   * @throws javax.servlet.ServletException
+   * @throws jakarta.servlet.ServletException
    */
   public ListHandler() throws ServletException {
     super();

@@ -22,9 +22,9 @@ import org.bedework.timezones.common.TzServerUtil;
 
 import java.io.Writer;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /** Class called to handle GET action=get.
  *

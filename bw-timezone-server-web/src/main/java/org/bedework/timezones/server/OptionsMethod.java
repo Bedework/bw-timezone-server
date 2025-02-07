@@ -18,9 +18,9 @@
 */
 package org.bedework.timezones.server;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /** Class called to handle OPTIONS. We should determine what the current
  * url refers to and send a response which shows the allowable methods on that

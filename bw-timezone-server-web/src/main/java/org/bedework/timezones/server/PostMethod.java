@@ -18,9 +18,9 @@
 */
 package org.bedework.timezones.server;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /** Class called to handle POST. This is used to provoke the server into doing a
  * refresh and is not part of the timezone server specification.

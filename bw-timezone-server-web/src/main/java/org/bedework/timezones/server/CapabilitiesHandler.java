@@ -26,9 +26,9 @@ import org.bedework.util.timezones.model.CapabilitiesInfoType;
 import org.bedework.util.timezones.model.CapabilitiesTruncatedType;
 import org.bedework.util.timezones.model.CapabilitiesType;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import static java.lang.String.format;
 
