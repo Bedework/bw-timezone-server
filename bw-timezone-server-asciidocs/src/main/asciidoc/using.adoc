@@ -1,2 +1,13 @@
 === Using this project
 Deployed as a war to the wildfly server when selected or included in a layer.
+
+Additionally, modules may wish to reference the XML -
+
+[source]
+----
+      <dependency>
+        <groupId>org.bedework.bw-tzsvr</groupId>
+        <artifactId>bw-timezone-server-xml</artifactId>
+        <version>${bw-timezone-server.version}</version>
+      </dependency>
+----
