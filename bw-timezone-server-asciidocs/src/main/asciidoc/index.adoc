@@ -1,5 +1,5 @@
-= Bedework CalDAV modules.
-:title: The Bedework CalDAV modules.
+= Bedework Timezone Server modules.
+:title: The Bedework Timezone Server modules.
 :safe-mode-unsafe:
 :docinfo: shared
 :docinfodir: ./docinfo
