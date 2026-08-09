@@ -22,7 +22,6 @@ import org.bedework.util.caching.FlushMap;
 import org.bedework.util.calendar.IcalToXcal;
 import org.bedework.util.logging.BwLogger;
 import org.bedework.util.logging.Logged;
-import org.bedework.util.timezones.DateTimeUtil;
 import org.bedework.util.timezones.TimeZoneRegistryNoFetch;
 import org.bedework.util.timezones.model.TimezoneType;
 
@@ -46,6 +45,9 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.SortedSet;
 import java.util.TreeSet;
+
+import static org.bedework.util.dates.DateFormatter.icalDateTimeUTCFormat;
+import static org.bedework.util.dates.DateFormatter.webDateTimeUTCFormat;
 
 /** Abstract class to help simplify implementation
  *
@@ -251,7 +253,8 @@ public abstract class AbstractCachedData implements Logged, CachedData {
         continue;
       }
 
-      final String lm = DateTimeUtil.rfcDateTimeUTC(tz.getLastModified());
+      final String lm = webDateTimeUTCFormat.fromDate(
+          tz.getLastModified());
 
       /*
        * cs > lm +
@@ -363,12 +366,12 @@ public abstract class AbstractCachedData implements Logged, CachedData {
 
     tz.setTzid(id);
 
-    if (lm!= null) {
-      tz.setLastModified(DateTimeUtil.fromISODateTimeUTC(lm.getValue()));
+    if (lm != null) {
+      tz.setLastModified(icalDateTimeUTCFormat.toDate(lm.getValue()));
     } else if (storedDtstamp != null) {
-      tz.setLastModified(DateTimeUtil.fromRfcDateTimeUTC(storedDtstamp));
+      tz.setLastModified(webDateTimeUTCFormat.toDate(storedDtstamp));
     } else {
-      tz.setLastModified(DateTimeUtil.fromRfcDateTimeUTC(dtstamp));
+      tz.setLastModified(webDateTimeUTCFormat.toDate(dtstamp));
     }
 
     if (etag != null) {

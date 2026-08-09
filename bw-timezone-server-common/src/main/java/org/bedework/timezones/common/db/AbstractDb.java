@@ -12,7 +12,6 @@ import org.bedework.timezones.common.TzException;
 import org.bedework.timezones.common.TzServerUtil;
 import org.bedework.util.calendar.XcalUtil;
 import org.bedework.util.misc.Util;
-import org.bedework.util.timezones.DateTimeUtil;
 import org.bedework.util.timezones.Timezones;
 import org.bedework.util.timezones.Timezones.TaggedTimeZone;
 import org.bedework.util.timezones.TimezonesImpl;
@@ -31,6 +30,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+
+import static org.bedework.util.dates.DateFormatter.webDateTimeUTCFormat;
 
 /**
  * User: mike Date: 6/22/21 Time: 23:07
@@ -538,7 +539,7 @@ public abstract class AbstractDb extends AbstractCachedData {
 
           entry.dbspec.setName(entry.id);
           entry.dbspec.setEtag(entry.ttz.etag);
-          entry.dbspec.setDtstamp(DateTimeUtil.rfcDateTimeUTC(
+          entry.dbspec.setDtstamp(webDateTimeUTCFormat.fromDate(
                   entry.sum.getLastModified()));
           entry.dbspec.setSource(cfg.getPrimaryUrl());
           entry.dbspec.setActive(true);

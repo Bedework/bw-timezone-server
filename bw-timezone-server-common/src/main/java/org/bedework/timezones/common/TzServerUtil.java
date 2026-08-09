@@ -23,7 +23,6 @@ import org.bedework.timezones.common.h2db.H2dbCachedData;
 import org.bedework.util.calendar.XcalUtil;
 import org.bedework.util.jmx.ConfigHolder;
 import org.bedework.util.logging.BwLogger;
-import org.bedework.util.timezones.DateTimeUtil;
 import org.bedework.util.timezones.model.ExpandedTimezoneType;
 import org.bedework.util.timezones.model.ObservanceType;
 import org.bedework.util.timezones.model.TimezoneType;
@@ -38,6 +37,8 @@ import net.fortuna.ical4j.model.component.Observance;
 import net.fortuna.ical4j.model.component.VTimeZone;
 import net.fortuna.ical4j.util.TimeZones;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -51,9 +52,12 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import jakarta.servlet.http.HttpServletResponse;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import static org.bedework.util.dates.DateFormatter.icalDateTimeFormat;
+import static org.bedework.util.dates.DateFormatter.icalDateTimeUTCFormat;
+import static org.bedework.util.dates.DateFormatter.webDateTimeUTCFormat;
 
 /** Common code for the timezone service.
  *
@@ -381,7 +385,7 @@ public class TzServerUtil {
       return dtst;
     }
 
-    return DateTimeUtil.rfcDateTimeUTC(new DateTime(lastDataFetch));
+    return webDateTimeUTCFormat.fromDate(new DateTime(lastDataFetch));
   }
 
   /**
@@ -438,12 +442,12 @@ public class TzServerUtil {
    */
   public String getUtc(final String time,
                        final String tzid) {
-    if (DateTimeUtil.isISODateTimeUTC(time)) {
+    if (icalDateTimeUTCFormat.matches(time)) {
       // Already UTC
       return time;
     }
 
-    if (!DateTimeUtil.isISODateTime(time)) {
+    if (!icalDateTimeFormat.matches(time)) {
       return null;  // Bad datetime
     }
 
@@ -499,10 +503,10 @@ public class TzServerUtil {
   public String convertDateTime(final String dateTime, final String fromTzid,
                                 final String toTzid) {
     final String UTCdt;
-    if (DateTimeUtil.isISODateTimeUTC(dateTime)) {
+    if (icalDateTimeUTCFormat.matches(dateTime)) {
       // Already UTC
       UTCdt = dateTime;
-    } else if (!DateTimeUtil.isISODateTime(dateTime)) {
+    } else if (!icalDateTimeFormat.matches(dateTime)) {
       return null;  // Bad datetime
     } else if (toTzid == null) {
       return null;  // Bad toTzid
@@ -516,14 +520,14 @@ public class TzServerUtil {
 
     // Convert to time in toTzid
 
-    final Date dt = DateTimeUtil.fromISODateTimeUTC(UTCdt);
+    final Date dt = icalDateTimeUTCFormat.toDate(UTCdt);
 
     final TimeZone tz = fetchTimeZone(toTzid);
     if (tz == null) {
       return null;
     }
 
-    final String cdt = DateTimeUtil.isoDateTime(dt, tz);
+    final String cdt = icalDateTimeFormat.fromDate(dt, tz);
     conversionsMillis += System.currentTimeMillis() - smillis;
 
     return cdt;
@@ -623,10 +627,8 @@ public class TzServerUtil {
     for (final Observance ob: cl) {
       final PeriodList pl = ob.calculateRecurrenceSet(p);
 
-      for (final Object po: pl) {
-        final Period onsetPer = (Period)po;
-
-        final ObservanceType ot = new ObservanceType();
+      for (final Period onsetPer: pl) {
+        final var ot = new ObservanceType();
 
         ot.setName(ob.getName());
         ot.setOnset(XcalUtil.getXmlFormatDateTime(
